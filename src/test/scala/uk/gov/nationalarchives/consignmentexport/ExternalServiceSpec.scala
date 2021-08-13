@@ -112,7 +112,7 @@ class ExternalServiceSpec extends AnyFlatSpec with BeforeAndAfterEach with Befor
     .willReturn(okJson(fromResource(s"json/get_consignment_for_export_different_checksum.json").mkString)))
 
   def graphqlUpdateExportLocation: StubMapping = wiremockGraphqlServer.stubFor(post(urlEqualTo(graphQlPath))
-    .willReturn(okJson(fromResource(s"json/get_files.json").mkString)))
+    .willReturn(okJson(fromResource(s"json/update_export_location.json").mkString)))
 
   def authOk: StubMapping = wiremockAuthServer.stubFor(post(urlEqualTo(authPath))
     .willReturn(okJson(fromResource(s"json/access_token.json").mkString)))
