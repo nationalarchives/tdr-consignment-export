@@ -13,8 +13,8 @@ class BagMetadataSpec extends ExportSpec {
 
   private val fixedDateTime = ZonedDateTime.now()
   private val userId = UUID.randomUUID()
-  private val series = Series(Some("series-code"))
-  private val transferringBody = TransferringBody(Some("tb-code"))
+  private val series = Series("series-code")
+  private val transferringBody = TransferringBody("tb-code")
   private val consignmentRef = "consignmentReference-1234"
   private val consignment = GetConsignment(
     userId, Some(fixedDateTime), Some(fixedDateTime), Some(fixedDateTime), consignmentRef,Some(series), Some(transferringBody), List()

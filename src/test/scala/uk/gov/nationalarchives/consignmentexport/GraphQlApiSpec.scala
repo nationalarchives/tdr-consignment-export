@@ -71,8 +71,8 @@ class GraphQlApiSpec extends ExportSpec {
     val fixedDate = ZonedDateTime.now()
     val userId = UUID.randomUUID()
     val consignmentRef = "consignmentReference-1234"
-    val series = Series(Some("series-code"))
-    val transferringBody = TransferringBody(Some("tb-code"))
+    val series = Series("series-code")
+    val transferringBody = TransferringBody("tb-code")
     val consignmentClient = mock[GraphQLClient[gce.Data, gce.Variables]]
     val updateExportClient = mock[GraphQLClient[uel.Data, uel.Variables]]
     val keycloak = mock[KeycloakUtils]
