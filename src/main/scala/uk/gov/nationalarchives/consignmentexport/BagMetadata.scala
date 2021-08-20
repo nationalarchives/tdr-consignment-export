@@ -23,20 +23,11 @@ class BagMetadata(keycloakClient: KeycloakClient)(implicit val logger: SelfAware
   }
 
   private def getConsignmentDetails(consignment: GetConsignment, exportDatetime: ZonedDateTime): Map[String, Option[String]] = {
-    val seriesCode = for (series <- consignment.series) yield series.code
-    val bodyName = for (body <- consignment.transferringBody) yield body.name
-
-    val startDatetime = for {
-      createdDate <- consignment.createdDatetime
-      cd = createdDate.toFormattedPrecisionString
-    } yield cd
-
-    val completedDatetime = for {
-      completedDate <- consignment.transferInitiatedDatetime
-      cd = completedDate.toFormattedPrecisionString
-    } yield cd
-
-    val contactName = getContactName(consignment.userid)
+    val seriesCode: Option[String] = consignment.series.map(_.code)
+    val bodyName: Option[String] = consignment.transferringBody.map(_.name)
+    val startDatetime: Option[String] = consignment.createdDatetime.map(_.toFormattedPrecisionString)
+    val completedDatetime: Option[String] = consignment.transferInitiatedDatetime.map(_.toFormattedPrecisionString)
+    val contactName: String = getContactName(consignment.userid)
 
     Map(
       InternalSenderIdentifierKey -> Some(consignment.consignmentReference),
