@@ -2,8 +2,8 @@ package uk.gov.nationalarchives.consignmentexport
 
 import java.time.{ZoneOffset, ZonedDateTime}
 import java.util.UUID
-
 import cats.effect._
+import cats.syntax.all._
 import com.monovore.decline.Opts
 import com.monovore.decline.effect.CommandIOApp
 import com.typesafe.config.ConfigFactory
@@ -16,6 +16,7 @@ import uk.gov.nationalarchives.consignmentexport.BagMetadata.{InternalSenderIden
 import uk.gov.nationalarchives.consignmentexport.Config.config
 import uk.gov.nationalarchives.consignmentexport.StepFunction.ExportOutput
 
+import scala.concurrent.duration._
 import scala.language.{implicitConversions, postfixOps}
 
 object Main extends CommandIOApp("tdr-consignment-export", "Exports tdr files in bagit format", version = "0.0.1") {
@@ -29,8 +30,9 @@ object Main extends CommandIOApp("tdr-consignment-export", "Exports tdr files in
       case FileExport(consignmentId, taskToken) =>
         val exportFailedErrorMessage = s"Export for consignment $consignmentId failed"
         val stepFunction: StepFunction  = StepFunction(StepFunctionUtils(sfnAsyncClient(stepFunctionPublishEndpoint)))
-
+        def runHeartbeat(): IO[Unit] = stepFunction.sendHeartbeat(taskToken) >> IO.sleep(1 minute) >> runHeartbeat()
         val exitCode = for {
+          heartbeat <- runHeartbeat().start
           config <- config()
           rootLocation = config.efs.rootLocation
           exportId = UUID.randomUUID
@@ -73,6 +75,7 @@ object Main extends CommandIOApp("tdr-consignment-export", "Exports tdr files in
             ExportOutput(consignmentData.userid,
               bagMetadata.get(InternalSenderIdentifierKey).get(0),
               bagMetadata.get(SourceOrganisationKey).get(0)))
+          _ <- heartbeat.cancel
         } yield ExitCode.Success
 
         exitCode.handleErrorWith(e => {
