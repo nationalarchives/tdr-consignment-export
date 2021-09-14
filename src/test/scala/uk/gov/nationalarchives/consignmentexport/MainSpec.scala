@@ -224,6 +224,22 @@ class MainSpec extends ExternalServiceSpec {
     ex.getMessage should equal(s"Checksum mismatch for file(s): $fileId")
   }
 
+  "the export job" should "call the step function heartbeat endpoint" in {
+    setUpValidExternalServices()
+
+    val consignmentId = UUID.fromString("50df01e6-2e5e-4269-97e7-531a755b417d")
+    val fileId = "7b19b272-d4d1-4d77-bf25-511dc6489d12"
+
+    putFile(s"$consignmentId/$fileId")
+
+    Main.run(List("export", "--consignmentId", consignmentId.toString, "--taskToken", taskTokenValue)).unsafeRunSync()
+
+    wiremockSfnServer.getAllServeEvents.asScala
+      .count(ev =>
+        ev.getRequest.getHeader("X-Amz-Target") == s"AWSStepFunctions.SendTaskHeartbeat"
+      ) should equal(1)
+  }
+
   private def setUpValidExternalServices() = {
     graphQlGetConsignmentMetadata
     keycloakGetUser
