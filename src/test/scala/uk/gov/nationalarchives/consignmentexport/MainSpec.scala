@@ -6,6 +6,7 @@ import java.util.UUID
 
 import com.github.tomakehurst.wiremock.stubbing.ServeEvent
 import org.apache.commons.codec.digest.DigestUtils
+import org.scalatest.Assertion
 import uk.gov.nationalarchives.consignmentexport.Utils.PathUtils
 
 import scala.io.Source
@@ -27,8 +28,7 @@ class MainSpec extends ExternalServiceSpec {
     putFile(s"$consignmentId/$fileId")
 
     Main.run(List("export", "--consignmentId", consignmentId.toString, "--taskToken", taskTokenValue)).unsafeRunSync()
-
-    checkStepFunctionPublishCalled("publish_success_request_body")
+    checkStepFunctionSuccessCalled
     val objects = outputBucketObjects().map(_.key())
 
     objects.size should equal(2)
@@ -47,7 +47,7 @@ class MainSpec extends ExternalServiceSpec {
 
     Main.run(List("export", "--consignmentId", consignmentId.toString, "--taskToken", taskTokenValue)).unsafeRunSync()
 
-    checkStepFunctionPublishCalled("publish_success_request_body")
+    checkStepFunctionSuccessCalled
 
     val downloadDirectory = s"$scratchDirectory/download"
     new File(s"$downloadDirectory").mkdirs()
@@ -76,7 +76,7 @@ class MainSpec extends ExternalServiceSpec {
     putFile(s"$consignmentId/$fileId")
     Main.run(List("export", "--consignmentId", consignmentId.toString, "--taskToken", taskTokenValue)).unsafeRunSync()
 
-    checkStepFunctionPublishCalled("publish_success_request_body")
+    checkStepFunctionSuccessCalled
 
     val exportLocationEvent: Option[ServeEvent] = wiremockGraphqlServer.getAllServeEvents.asScala
       .find(p => p.getRequest.getBodyAsString.contains("mutation updateExportLocation"))
@@ -98,7 +98,7 @@ class MainSpec extends ExternalServiceSpec {
       Main.run(List("export", "--consignmentId", consignmentId, "--taskToken", taskTokenValue)).unsafeRunSync()
     }
 
-    checkStepFunctionPublishCalled("publish_failure_no_files_for_consignment_request_body")
+    checkStepFunctionFailureCalled("publish_failure_no_files_for_consignment_request_body")
     ex.getMessage should equal(s"Consignment API returned no files for consignment $consignmentId")
   }
 
@@ -116,7 +116,7 @@ class MainSpec extends ExternalServiceSpec {
       Main.run(List("export", "--consignmentId", consignmentId.toString, "--taskToken", taskTokenValue)).unsafeRunSync()
     }
 
-    checkStepFunctionPublishCalled("publish_failure_incomplete_file_properties_request_body")
+    checkStepFunctionFailureCalled("publish_failure_incomplete_file_properties_request_body")
     ex.getMessage should equal(s"$fileId is missing the following properties: foiExemptionCode, heldBy, language, rightsCopyright, sha256ClientSideChecksum")
   }
 
@@ -134,7 +134,7 @@ class MainSpec extends ExternalServiceSpec {
       Main.run(List("export", "--consignmentId", consignmentId.toString, "--taskToken", taskTokenValue)).unsafeRunSync()
     }
 
-    checkStepFunctionPublishCalled("publish_failure_missing_ffid_metadata_request_body")
+    checkStepFunctionFailureCalled("publish_failure_missing_ffid_metadata_request_body")
     ex.getMessage should equal(s"FFID metadata is missing for file id $fileId")
   }
 
@@ -152,7 +152,7 @@ class MainSpec extends ExternalServiceSpec {
       Main.run(List("export", "--consignmentId", consignmentId.toString, "--taskToken", taskTokenValue)).unsafeRunSync()
     }
 
-    checkStepFunctionPublishCalled("publish_failure_missing_antivirus_metadata_request_body")
+    checkStepFunctionFailureCalled("publish_failure_missing_antivirus_metadata_request_body")
     ex.getMessage should equal(s"Antivirus metadata is missing for file id $fileId")
   }
 
@@ -167,7 +167,7 @@ class MainSpec extends ExternalServiceSpec {
       Main.run(List("export", "--consignmentId", consignmentId.toString, "--taskToken", taskTokenValue)).unsafeRunSync()
     }
 
-    checkStepFunctionPublishCalled("publish_failure_no_consignment_metadata_request_body")
+    checkStepFunctionFailureCalled("publish_failure_no_consignment_metadata_request_body")
     ex.getMessage should equal(s"No consignment metadata found for consignment $consignmentId")
   }
 
@@ -184,7 +184,7 @@ class MainSpec extends ExternalServiceSpec {
       Main.run(List("export", "--consignmentId", consignmentId.toString, "--taskToken", taskTokenValue)).unsafeRunSync()
     }
 
-    checkStepFunctionPublishCalled("publish_failure_no_valid_user_request_body")
+    checkStepFunctionFailureCalled("publish_failure_no_valid_user_request_body")
     ex.getMessage should equal(s"No valid user found $keycloakUserId: HTTP 404 Not Found")
   }
 
@@ -202,7 +202,7 @@ class MainSpec extends ExternalServiceSpec {
       Main.run(List("export", "--consignmentId", consignmentId.toString, "--taskToken", taskTokenValue)).unsafeRunSync()
     }
 
-    checkStepFunctionPublishCalled("publish_failure_incomplete_user_request_body")
+    checkStepFunctionFailureCalled("publish_failure_incomplete_user_request_body")
     ex.getMessage should equal(s"Incomplete details for user $keycloakUserId")
   }
 
@@ -220,8 +220,24 @@ class MainSpec extends ExternalServiceSpec {
       Main.run(List("export", "--consignmentId", consignmentId.toString, "--taskToken", taskTokenValue)).unsafeRunSync()
     }
 
-    checkStepFunctionPublishCalled("publish_failure_checksum_mismatch_request_body")
+    checkStepFunctionFailureCalled("publish_failure_checksum_mismatch_request_body")
     ex.getMessage should equal(s"Checksum mismatch for file(s): $fileId")
+  }
+
+  "the export job" should "call the step function heartbeat endpoint" in {
+    setUpValidExternalServices()
+
+    val consignmentId = UUID.fromString("50df01e6-2e5e-4269-97e7-531a755b417d")
+    val fileId = "7b19b272-d4d1-4d77-bf25-511dc6489d12"
+
+    putFile(s"$consignmentId/$fileId")
+
+    Main.run(List("export", "--consignmentId", consignmentId.toString, "--taskToken", taskTokenValue)).unsafeRunSync()
+
+    wiremockSfnServer.getAllServeEvents.asScala
+      .count(ev =>
+        ev.getRequest.getHeader("X-Amz-Target") == s"AWSStepFunctions.SendTaskHeartbeat"
+      ) should equal(1)
   }
 
   private def setUpValidExternalServices() = {
@@ -230,15 +246,17 @@ class MainSpec extends ExternalServiceSpec {
     stepFunctionPublish
   }
 
-  private def checkStepFunctionPublishCalled(expectedJsonRequestFilePath: String) = {
-    wiremockSfnServer.getAllServeEvents.size() should be(1)
-    val expectedRequestBody: String = getExpectedResponseAsString(s"json/${expectedJsonRequestFilePath}.json")
+  private def checkStepFunctionSuccessCalled: Assertion =
+    checkStepFunctionPublishCalled("publish_success_request_body", "SendTaskSuccess")
+
+  private def checkStepFunctionFailureCalled(expectedJsonRequestFilePath: String) =
+    checkStepFunctionPublishCalled(expectedJsonRequestFilePath, "SendTaskFailure")
+
+  private def checkStepFunctionPublishCalled(expectedJsonRequestFilePath: String, method: String) = {
+    wiremockSfnServer.getAllServeEvents.asScala
+      .count(ev => ev.getRequest.getHeader("X-Amz-Target") == s"AWSStepFunctions.$method") should equal(1)
+    val expectedRequestBody: String = fromResource(s"json/$expectedJsonRequestFilePath.json").mkString.replaceAll("\n", "")
     val eventRequestBody = wiremockSfnServer.getAllServeEvents.get(0).getRequest.getBodyAsString
     eventRequestBody should equal(expectedRequestBody)
-  }
-
-  private def getExpectedResponseAsString(filePath: String) = {
-    //Strip new lines from json file
-    fromResource(filePath).mkString.replaceAll("\n", "")
   }
 }
