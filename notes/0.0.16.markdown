@@ -1,0 +1,15 @@
+2676f59 Merge pull request #62 from nationalarchives/manual-version-bump
+c979660 Manual version bump as I've messed up the releases somehow
+6ffe7c2 Merge pull request #61 from nationalarchives/send-task-heartbeat
+1c0e3b0 Version bump aws utils and add test for heartbeat
+bab6853 TDR-1318 Send task heartbeat.
+3c78976 Merge pull request #60 from nationalarchives/update-generated-graphql-scala-dependency
+45ba623 Use the right version
+b127313 Update generated-graphql to the latest version
+e814763 Merge pull request #59 from nationalarchives/updateGeneratedGraphQLVersion
+4bd5012 Replace for comprehensions with maps
+a8f4cb4 Merge branch 'master' into updateGeneratedGraphQLVersion
+625abfd Update generated Graphql & Remove 'Option' from body name and series
+ae21f17 Update generated-graphql version to the latest
+3699f85 Merge pull request #58 from nationalarchives/removeGetFilesReferences
+b3d369c Remove references to no longer the used 'get_files.json'
