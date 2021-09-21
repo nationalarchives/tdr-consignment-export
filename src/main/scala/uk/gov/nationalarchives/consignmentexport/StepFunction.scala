@@ -18,8 +18,11 @@ class StepFunction(stepFunctionUtils: StepFunctionUtils)(implicit val logger: Se
   def publishFailure(taskToken: String, cause: String): IO[SendTaskFailureResponse] =
     stepFunctionUtils.sendTaskFailureRequest(taskToken, cause)
 
-  def sendHeartbeat(taskToken: String): IO[SendTaskHeartbeatResponse] =
-    stepFunctionUtils.sendTaskHeartbeat(taskToken)
+  def sendHeartbeat(taskToken: String): IO[Unit] =
+    stepFunctionUtils.sendTaskHeartbeat(taskToken).attempt.flatMap {
+      case Left(err) => logger.error(err)("Error sending the task heartbeat")
+      case Right(_) => logger.info(s"Task heartbeat sent successfully")
+    }
 }
 
 object StepFunction {
