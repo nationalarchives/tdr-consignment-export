@@ -6,7 +6,7 @@ def pullRequestTitlePrefix = "Version Bump from build number"
 
 pipeline {
   agent {
-    label "master"
+    label "built-in"
   }
 
   stages {
