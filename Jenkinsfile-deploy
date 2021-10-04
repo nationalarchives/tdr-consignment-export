@@ -10,9 +10,6 @@ pipeline {
   }
   stages {
     stage("Docker") {
-      agent {
-        label "master"
-      }
       steps {
         script {
           def image = "${env.MANAGEMENT_ACCOUNT}.dkr.ecr.eu-west-2.amazonaws.com/consignment-export"
@@ -26,9 +23,6 @@ pipeline {
       }
     }
     stage("Update release branch") {
-      agent {
-        label "master"
-      }
       steps {
         script {
           def releaseBranch = "release-${params.STAGE}"
