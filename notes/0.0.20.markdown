@@ -1,0 +1,4 @@
+5dcd37f Merge pull request #70 from nationalarchives/TDR-1427-upgrade-keycloak-libraries
+00ccb9a Upgrade Keycloak libraries to version 15.0.2
+57b052a Merge pull request #69 from nationalarchives/version-bump-56
+578d904 Setting version to 0.0.20-SNAPSHOT
