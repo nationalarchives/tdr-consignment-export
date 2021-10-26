@@ -6,6 +6,8 @@ import cats.effect.IO
 import com.github.tototoshi.csv.CSVWriter
 import uk.gov.nationalarchives.consignmentexport.Validator.{ValidatedAntivirusMetadata, ValidatedFFIDMetadata, ValidatedFileMetadata}
 
+import java.time.format.DateTimeFormatter
+
 class BagAdditionalFiles(rootDirectory: Path) {
 
   def createAntivirusMetadataCsv(validatedAntivirusMetadata: List[ValidatedAntivirusMetadata]): IO[File] = {
@@ -16,7 +18,16 @@ class BagAdditionalFiles(rootDirectory: Path) {
 
   def createFileMetadataCsv(fileMetadataList: List[ValidatedFileMetadata]): IO[File] = {
     val header = List("Filepath", "Filesize", "RightsCopyright", "LegalStatus", "HeldBy", "Language", "FoiExemptionCode", "LastModified")
-    val fileMetadataRows = fileMetadataList.map(f => List(dataPath(f.clientSideOriginalFilePath), f.clientSideFileSize, f.rightsCopyright, f.legalStatus, f.heldBy, f.language, f.foiExemptionCode, f.clientSideLastModifiedDate))
+    val fileMetadataRows = fileMetadataList.map(f => List(
+      dataPath(f.clientSideOriginalFilePath),
+      f.clientSideFileSize,
+      f.rightsCopyright,
+      f.legalStatus,
+      f.heldBy,
+      f.language,
+      f.foiExemptionCode,
+      DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss").format(f.clientSideLastModifiedDate))
+    )
     writeToCsv("file-metadata.csv", header, fileMetadataRows)
   }
 
