@@ -32,7 +32,35 @@ class BagAdditionalFilesSpec extends ExportSpec {
     val rest = csvLines.tail
     header should equal("Filepath,Filesize,RightsCopyright,LegalStatus,HeldBy,Language,FoiExemptionCode,LastModified")
     rest.length should equal(1)
-    rest.head should equal(s"data/originalPath,1,rightsCopyright,legalStatus,heldBy,language,foiExemption,2021-02-03T10:33:30.414")
+    rest.head should equal(s"data/originalPath,1,rightsCopyright,legalStatus,heldBy,language,foiExemption,2021-02-03T10:33:30")
+    source.close()
+    new File("exporter/src/test/resources/file-metadata.csv").delete()
+  }
+
+  "fileMetadataCsv" should "write the seconds to the file when the input seconds are zero" in {
+    val bagAdditionalFiles = BagAdditionalFiles(getClass.getResource(".").getPath.toPath)
+    val lastModified = LocalDateTime.parse("2021-02-03T10:33:00.0")
+    val metadata = ValidatedFileMetadata(
+      UUID.randomUUID(),
+      1L,
+      lastModified,
+      "originalPath",
+      "foiExemption",
+      "heldBy",
+      "language",
+      "legalStatus",
+      "rightsCopyright",
+      "clientSideChecksumValue"
+    )
+    val file = bagAdditionalFiles.createFileMetadataCsv(List(metadata)).unsafeRunSync()
+
+    val source = Source.fromFile(file)
+    val csvLines = source.getLines().toList
+    val header = csvLines.head
+    val rest = csvLines.tail
+    header should equal("Filepath,Filesize,RightsCopyright,LegalStatus,HeldBy,Language,FoiExemptionCode,LastModified")
+    rest.length should equal(1)
+    rest.head should equal(s"data/originalPath,1,rightsCopyright,legalStatus,heldBy,language,foiExemption,2021-02-03T10:33:00")
     source.close()
     new File("exporter/src/test/resources/file-metadata.csv").delete()
   }
