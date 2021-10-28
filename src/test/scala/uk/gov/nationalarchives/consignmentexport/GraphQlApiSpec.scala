@@ -14,7 +14,7 @@ import graphql.codegen.UpdateExportLocation.{updateExportLocation => uel}
 import sangria.ast.Document
 import sttp.client.{HttpURLConnectionBackend, Identity, NothingT, SttpBackend}
 import uk.gov.nationalarchives.consignmentexport.Config._
-import uk.gov.nationalarchives.tdr.keycloak.KeycloakUtils
+import uk.gov.nationalarchives.tdr.keycloak.{KeycloakUtils, TdrKeycloakDeployment}
 import uk.gov.nationalarchives.tdr.{GraphQLClient, GraphQlResponse}
 
 import scala.concurrent.{ExecutionContextExecutor, Future}
@@ -34,6 +34,8 @@ class GraphQlApiSpec extends ExportSpec {
     EFS(""),
     StepFunction(""))
 
+  implicit val tdrKeycloakDeployment: TdrKeycloakDeployment = TdrKeycloakDeployment("authUrl", "realm", 3600)
+
   "the updateExportLocation method" should "return the correct value" in {
     val consignmentClient = mock[GraphQLClient[gce.Data, gce.Variables]]
     val updateExportClient = mock[GraphQLClient[uel.Data, uel.Variables]]
@@ -41,7 +43,8 @@ class GraphQlApiSpec extends ExportSpec {
     val api = new GraphQlApi(keycloak, consignmentClient, updateExportClient)
     val consignmentId = UUID.randomUUID()
 
-    doAnswer(() => Future(new BearerAccessToken("token"))).when(keycloak).serviceAccountToken[Identity](any[String], any[String])(any[SttpBackend[Identity, Nothing, NothingT]], any[ClassTag[Identity[_]]])
+    doAnswer(() => Future(new BearerAccessToken("token"))).when(keycloak).serviceAccountToken[Identity](
+      any[String], any[String])(any[SttpBackend[Identity, Nothing, NothingT]], any[ClassTag[Identity[_]]], any[TdrKeycloakDeployment])
     val data = new GraphQlResponse[uel.Data](uel.Data(1.some).some, List())
     doAnswer(() => Future(data)).when(updateExportClient).getResult[Identity](any[BearerAccessToken], any[Document], any[Option[uel.Variables]])(any[SttpBackend[Identity, Nothing, NothingT]], any[ClassTag[Identity[_]]])
 
@@ -57,7 +60,8 @@ class GraphQlApiSpec extends ExportSpec {
     val api = new GraphQlApi(keycloak, consignmentClient, updateExportClient)
     val consignmentId = UUID.randomUUID()
 
-    doAnswer(() => Future(new BearerAccessToken("token"))).when(keycloak).serviceAccountToken[Identity](any[String], any[String])(any[SttpBackend[Identity, Nothing, NothingT]], any[ClassTag[Identity[_]]])
+    doAnswer(() => Future(new BearerAccessToken("token"))).when(keycloak).serviceAccountToken[Identity](any[String], any[String])(
+      any[SttpBackend[Identity, Nothing, NothingT]], any[ClassTag[Identity[_]]], any[TdrKeycloakDeployment])
     val data = new GraphQlResponse[uel.Data](Option.empty[uel.Data], List())
     doAnswer(() => Future(data)).when(updateExportClient).getResult[Identity](any[BearerAccessToken], any[Document], any[Option[uel.Variables]])(any[SttpBackend[Identity, Nothing, NothingT]], any[ClassTag[Identity[_]]])
 
@@ -85,7 +89,8 @@ class GraphQlApiSpec extends ExportSpec {
       userId, Some(fixedDate), Some(fixedDate), Some(fixedDate), consignmentRef, Some(series), Some(transferringBody), List(Files(fileId, fileMetadata, Option.empty, Option.empty))
     )
 
-    doAnswer(() => Future(new BearerAccessToken("token"))).when(keycloak).serviceAccountToken[Identity](any[String], any[String])(any[SttpBackend[Identity, Nothing, NothingT]], any[ClassTag[Identity[_]]])
+    doAnswer(() => Future(new BearerAccessToken("token"))).when(keycloak).serviceAccountToken[Identity](any[String], any[String])(
+      any[SttpBackend[Identity, Nothing, NothingT]], any[ClassTag[Identity[_]]], any[TdrKeycloakDeployment])
     val data = new GraphQlResponse[gce.Data](gce.Data(Some(consignment)).some, List())
     doAnswer(() => Future(data)).when(consignmentClient).getResult[Identity](any[BearerAccessToken], any[Document], any[Option[gce.Variables]])(any[SttpBackend[Identity, Nothing, NothingT]], any[ClassTag[Identity[_]]])
 
@@ -106,7 +111,8 @@ class GraphQlApiSpec extends ExportSpec {
     val api = new GraphQlApi(keycloak, consignmentClient, updateExportClient)
     val consignmentId = UUID.randomUUID()
 
-    doAnswer(() => Future(new BearerAccessToken("token"))).when(keycloak).serviceAccountToken[Identity](any[String], any[String])(any[SttpBackend[Identity, Nothing, NothingT]], any[ClassTag[Identity[_]]])
+    doAnswer(() => Future(new BearerAccessToken("token"))).when(keycloak).serviceAccountToken[Identity](any[String], any[String])(
+      any[SttpBackend[Identity, Nothing, NothingT]], any[ClassTag[Identity[_]]], any[TdrKeycloakDeployment])
     val data = new GraphQlResponse[gce.Data](Option.empty[gce.Data], List())
     doAnswer(() => Future(data)).when(consignmentClient).getResult[Identity](any[BearerAccessToken], any[Document], any[Option[gce.Variables]])(any[SttpBackend[Identity, Nothing, NothingT]], any[ClassTag[Identity[_]]])
 
