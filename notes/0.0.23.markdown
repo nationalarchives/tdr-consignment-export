@@ -1,0 +1,6 @@
+388715e Merge pull request #75 from nationalarchives/version-bump-60
+85cc15c Merge branch 'master' into version-bump-60
+e77f8ff Merge pull request #76 from nationalarchives/reduceHeartbeatIntervalTo30Secs
+dc4a822 Merge branch 'master' into reduceHeartbeatIntervalTo30Secs
+6b6f2c8 Reduce the interval from 1 minute to 30 secs
+5916121 Setting version to 0.0.23-SNAPSHOT
