@@ -34,7 +34,7 @@ object Main extends CommandIOApp("tdr-consignment-export", "Exports tdr files in
       case FileExport(consignmentId, taskToken) =>
         val exportFailedErrorMessage = s"Export for consignment $consignmentId failed"
         val stepFunction: StepFunction  = StepFunction(StepFunctionUtils(sfnAsyncClient(stepFunctionPublishEndpoint)))
-        def runHeartbeat(): IO[Unit] = stepFunction.sendHeartbeat(taskToken) >> IO.sleep(1 minute) >> runHeartbeat()
+        def runHeartbeat(): IO[Unit] = stepFunction.sendHeartbeat(taskToken) >> IO.sleep(30 seconds) >> runHeartbeat()
         val exitCode = for {
           heartbeat <- runHeartbeat().start
           config <- config()
