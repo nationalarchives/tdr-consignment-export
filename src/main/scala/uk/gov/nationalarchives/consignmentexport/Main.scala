@@ -2,6 +2,7 @@ package uk.gov.nationalarchives.consignmentexport
 
 import java.time.{ZoneOffset, ZonedDateTime}
 import java.util.UUID
+
 import cats.effect._
 import cats.syntax.all._
 import com.monovore.decline.Opts
@@ -14,15 +15,18 @@ import uk.gov.nationalarchives.aws.utils.{S3Utils, StepFunctionUtils}
 import uk.gov.nationalarchives.consignmentexport.Arguments._
 import uk.gov.nationalarchives.consignmentexport.BagMetadata.{InternalSenderIdentifierKey, SourceOrganisationKey}
 import uk.gov.nationalarchives.consignmentexport.Config.config
+import uk.gov.nationalarchives.consignmentexport.GraphQlApi.backend
 import uk.gov.nationalarchives.consignmentexport.StepFunction.ExportOutput
+import uk.gov.nationalarchives.tdr.keycloak.TdrKeycloakDeployment
 
 import scala.concurrent.duration._
 import scala.language.{implicitConversions, postfixOps}
 
 object Main extends CommandIOApp("tdr-consignment-export", "Exports tdr files in bagit format", version = "0.0.1") {
-  implicit def logger: SelfAwareStructuredLogger[IO] = Slf4jLogger.getLogger[IO]
-
   private val configuration = ConfigFactory.load()
+
+  implicit def logger: SelfAwareStructuredLogger[IO] = Slf4jLogger.getLogger[IO]
+  implicit val tdrKeycloakDeployment: TdrKeycloakDeployment = TdrKeycloakDeployment(configuration.getString("auth.url"), "tdr", 3600)
   private val stepFunctionPublishEndpoint = configuration.getString("stepFunction.endpoint")
 
   override def main: Opts[IO[ExitCode]] =
@@ -38,7 +42,7 @@ object Main extends CommandIOApp("tdr-consignment-export", "Exports tdr files in
           exportId = UUID.randomUUID
           basePath = s"$rootLocation/$exportId"
           bashCommands = BashCommands()
-          graphQlApi = GraphQlApi(config.api.url, config.auth.url)
+          graphQlApi = GraphQlApi(config.api.url)
           keycloakClient = KeycloakClient(config)
           s3Files = S3Files(S3Utils(s3Async))
           bagit = Bagit()
