@@ -1,0 +1,5 @@
+4406346 Merge pull request #78 from nationalarchives/upgrade-tdr-auth-utils
+51a6106 Merge remote-tracking branch 'origin/master' into upgrade-tdr-auth-utils
+186539a Merge pull request #77 from nationalarchives/version-bump-62
+7f05d43 Update tdr-auth-utils library version
+a52f71d Setting version to 0.0.24-SNAPSHOT
