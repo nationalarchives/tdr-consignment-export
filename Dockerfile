@@ -1,10 +1,12 @@
-FROM openjdk:15-alpine
+FROM alpine
 RUN apk add --no-cache bash tar curl wget && \
     apk update && \
     apk upgrade p11-kit busybox && \
     adduser consignment-export -D && \
     wget https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64 -O /usr/local/bin/jq && \
-    chmod +x /usr/local/bin/jq
+    chmod +x /usr/local/bin/jq && \
+    wget https://s3.amazonaws.com/rds-downloads/rds-ca-2019-root.pem && \
+    apk add openjdk15 --repository=http://dl-cdn.alpinelinux.org/alpine/edge/community
 WORKDIR /home/consignment-export
 USER consignment-export
 RUN wget $(curl https://api.github.com/repos/nationalarchives/tdr-consignment-export/releases/latest | jq -r '.assets[0].browser_download_url')
