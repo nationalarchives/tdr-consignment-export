@@ -1,0 +1,5 @@
+d3aede5 Merge pull request #82 from nationalarchives/use-base-alpine-image
+9c91a58 Remove unnecessary wget command
+95c3b66 Use base alpine image with jdk 15 installed
+ade9a52 Merge pull request #81 from nationalarchives/version-bump-64
+5ab0dc1 Setting version to 0.0.26-SNAPSHOT
