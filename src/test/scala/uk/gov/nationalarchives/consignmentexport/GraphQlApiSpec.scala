@@ -77,6 +77,7 @@ class GraphQlApiSpec extends ExportSpec {
     val consignmentRef = "consignmentReference-1234"
     val series = Series("series-code")
     val transferringBody = TransferringBody("tb-code")
+    val consignmentType = "standard"
     val consignmentClient = mock[GraphQLClient[gce.Data, gce.Variables]]
     val updateExportClient = mock[GraphQLClient[uel.Data, uel.Variables]]
     val keycloak = mock[KeycloakUtils]
@@ -86,7 +87,7 @@ class GraphQlApiSpec extends ExportSpec {
     val lastModified = LocalDateTime.now().some
     val fileMetadata = Metadata(1L.some, lastModified, "clientSideOriginalFilePath".some, "foiExemptionCode".some, "heldBy".some, "language".some, "legalStatus".some, "rightsCopyright".some, "clientSideChecksum".some)
     val consignment = GetConsignmentExport.getConsignmentForExport.GetConsignment(
-      userId, Some(fixedDate), Some(fixedDate), Some(fixedDate), consignmentRef, Some(series), Some(transferringBody), List(Files(fileId, fileMetadata, Option.empty, Option.empty))
+      userId, Some(fixedDate), Some(fixedDate), Some(fixedDate), consignmentRef, Some(consignmentType), Some(series), Some(transferringBody), List(Files(fileId, fileMetadata, Option.empty, Option.empty))
     )
 
     doAnswer(() => Future(new BearerAccessToken("token"))).when(keycloak).serviceAccountToken[Identity](any[String], any[String])(

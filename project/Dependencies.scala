@@ -13,7 +13,7 @@ object Dependencies {
   lazy val catsEffect = "org.typelevel" %% "cats-effect" % "2.2.0"
   lazy val decline = "com.monovore" %% "decline" % monovoreDeclineVersion
   lazy val declineEffect = "com.monovore" %% "decline-effect" % monovoreDeclineVersion
-  lazy val generatedGraphql = "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.160"
+  lazy val generatedGraphql = "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.173-SNAPSHOT"
   lazy val graphqlClient = "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.15"
   lazy val scalaTest = "org.scalatest" %% "scalatest" % "3.2.2"
   lazy val scalaCsv = "com.github.tototoshi" %% "scala-csv" % "1.3.6"
