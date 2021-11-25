@@ -1,0 +1,3 @@
+5b54f6c Merge pull request #84 from nationalarchives/add-consignment-type
+3ea96a6 Remove SNAPSHOT version
+551694a Add 'consignment type' to bagit-info
