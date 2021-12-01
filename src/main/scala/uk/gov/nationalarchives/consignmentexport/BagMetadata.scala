@@ -15,18 +15,14 @@ import uk.gov.nationalarchives.consignmentexport.Utils._
 class BagMetadata(keycloakClient: KeycloakClient)(implicit val logger: SelfAwareStructuredLogger[IO]) {
 
   implicit class UserRepresentationUtils(value: UserRepresentation) {
-    private def isStringNullOrEmpty(s: String): Boolean = s == null || s.trim.isEmpty
+    private def isValuePresent(s: String): Boolean = s != null && s.trim.nonEmpty
 
-    private def isUserRepresentationComplete: Boolean = {
-      !isStringNullOrEmpty(value.getFirstName) && !isStringNullOrEmpty(value.getLastName) && !isStringNullOrEmpty(value.getEmail)
-    }
+    private def isUserRepresentationComplete: Boolean =
+      isValuePresent(value.getFirstName) && isValuePresent(value.getLastName) && isValuePresent(value.getEmail)
 
-    def toUserDetails(): UserDetails = {
-      isUserRepresentationComplete match {
-        case true => UserDetails(s"${value.getFirstName} ${value.getLastName}", value.getEmail)
-        case _ => throw new RuntimeException(s"Incomplete details for user ${value.getId}")
-      }
-    }
+    def toUserDetails: UserDetails = if (isUserRepresentationComplete) {
+      UserDetails(s"${value.getFirstName} ${value.getLastName}", value.getEmail)
+    } else { throw new RuntimeException(s"Incomplete details for user ${value.getId}") }
   }
 
   private def getConsignmentDetails(consignment: GetConsignment, exportDatetime: ZonedDateTime): Map[String, Option[String]] = {
@@ -35,7 +31,7 @@ class BagMetadata(keycloakClient: KeycloakClient)(implicit val logger: SelfAware
     val consignmentType: Option[String] = consignment.consignmentType
     val startDatetime: Option[String] = consignment.createdDatetime.map(_.toFormattedPrecisionString)
     val completedDatetime: Option[String] = consignment.transferInitiatedDatetime.map(_.toFormattedPrecisionString)
-    val userDetails: UserDetails = keycloakClient.getUserRepresentation(consignment.userid.toString).toUserDetails()
+    val userDetails: UserDetails = keycloakClient.getUserRepresentation(consignment.userid.toString).toUserDetails
 
     Map(
       InternalSenderIdentifierKey -> Some(consignment.consignmentReference),
