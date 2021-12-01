@@ -15,7 +15,7 @@ class KeycloakClientSpec extends ExternalServiceSpec {
     keycloakGetUser
     val keycloakClient = new KeycloakClient(keycloakCreateAdminClient, config)
 
-    val userDetails = keycloakClient.getUserDetails(keycloakUserId)
+    val userDetails = keycloakClient.getUserRepresentation(keycloakUserId)
     userDetails.getFirstName should be("FirstName")
     userDetails.getLastName should be("LastName")
   }
@@ -25,7 +25,7 @@ class KeycloakClientSpec extends ExternalServiceSpec {
     val keycloakClient = new KeycloakClient(keycloakCreateAdminClient, config)
 
     val exception = intercept[RuntimeException] {
-      keycloakClient.getUserDetails(nonExistentUserId)
+      keycloakClient.getUserRepresentation(nonExistentUserId)
     }
     exception.getMessage should equal(s"No valid user found $nonExistentUserId: HTTP 404 Not Found")
   }

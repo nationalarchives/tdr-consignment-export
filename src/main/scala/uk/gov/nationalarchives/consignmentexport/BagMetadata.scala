@@ -21,7 +21,7 @@ class BagMetadata(keycloakClient: KeycloakClient)(implicit val logger: SelfAware
       !isStringNullOrEmpty(value.getFirstName) && !isStringNullOrEmpty(value.getLastName) && !isStringNullOrEmpty(value.getEmail)
     }
 
-    def getUserDetails(): UserDetails = {
+    def toUserDetails(): UserDetails = {
       isUserRepresentationComplete match {
         case true => UserDetails(s"${value.getFirstName} ${value.getLastName}", value.getEmail)
         case _ => throw new RuntimeException(s"Incomplete details for user ${value.getId}")
@@ -35,7 +35,7 @@ class BagMetadata(keycloakClient: KeycloakClient)(implicit val logger: SelfAware
     val consignmentType: Option[String] = consignment.consignmentType
     val startDatetime: Option[String] = consignment.createdDatetime.map(_.toFormattedPrecisionString)
     val completedDatetime: Option[String] = consignment.transferInitiatedDatetime.map(_.toFormattedPrecisionString)
-    val userDetails: UserDetails = keycloakClient.getUserDetails(consignment.userid.toString).getUserDetails()
+    val userDetails: UserDetails = keycloakClient.getUserRepresentation(consignment.userid.toString).toUserDetails()
 
     Map(
       InternalSenderIdentifierKey -> Some(consignment.consignmentReference),

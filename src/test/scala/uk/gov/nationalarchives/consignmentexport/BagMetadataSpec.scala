@@ -30,7 +30,7 @@ class BagMetadataSpec extends ExportSpec {
     val consignmentId = UUID.randomUUID()
     val mockKeycloakClient = mock[KeycloakClient]
 
-    doAnswer(() => userRepresentation).when(mockKeycloakClient).getUserDetails(any[String])
+    doAnswer(() => userRepresentation).when(mockKeycloakClient).getUserRepresentation(any[String])
     val bagMetadata = BagMetadata(mockKeycloakClient).generateMetadata(consignmentId, consignment, fixedDateTime).unsafeRunSync()
 
     bagMetadata.get("Consignment-Series").get(0) should be("series-code")
@@ -53,7 +53,7 @@ class BagMetadataSpec extends ExportSpec {
     )
     val mockKeycloakClient = mock[KeycloakClient]
 
-    doAnswer(() => userRepresentation).when(mockKeycloakClient).getUserDetails(any[String])
+    doAnswer(() => userRepresentation).when(mockKeycloakClient).getUserRepresentation(any[String])
 
     val exception = intercept[RuntimeException] {
       BagMetadata(mockKeycloakClient).generateMetadata(consignmentId, incompleteConsignment, fixedDateTime).unsafeRunSync()
@@ -68,7 +68,7 @@ class BagMetadataSpec extends ExportSpec {
     incompleteUserRepresentation.setId(userId.toString)
     incompleteUserRepresentation.setLastName("LastName")
 
-    doAnswer(() => incompleteUserRepresentation).when(mockKeycloakClient).getUserDetails(userId.toString)
+    doAnswer(() => incompleteUserRepresentation).when(mockKeycloakClient).getUserRepresentation(userId.toString)
 
     val exception = intercept[RuntimeException] {
       BagMetadata(mockKeycloakClient).generateMetadata(consignmentId, consignment, fixedDateTime).unsafeRunSync()
