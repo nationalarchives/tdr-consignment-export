@@ -17,12 +17,12 @@ class BagMetadata(keycloakClient: KeycloakClient)(implicit val logger: SelfAware
   implicit class UserRepresentationUtils(value: UserRepresentation) {
     private def isStringNullOrEmpty(s: String): Boolean = s == null || s.trim.isEmpty
 
-    def isUserRepresentationComplete: Boolean = {
+    private def isUserRepresentationComplete: Boolean = {
       !isStringNullOrEmpty(value.getFirstName) && !isStringNullOrEmpty(value.getLastName) && !isStringNullOrEmpty(value.getEmail)
     }
 
     def getUserDetails(): UserDetails = {
-      value.isUserRepresentationComplete match {
+      isUserRepresentationComplete match {
         case true => UserDetails(s"${value.getFirstName} ${value.getLastName}", value.getEmail)
         case _ => throw new RuntimeException(s"Incomplete details for user ${value.getId}")
       }
