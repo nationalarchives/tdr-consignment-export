@@ -1,0 +1,7 @@
+c696718 Merge pull request #86 from nationalarchives/add-user-email-address
+98d9918 Refactor functions checking user details
+9bdadef Rename functions to better represent purpose
+9d686b5 Pull request feedback
+d022cf7 Add user email to bag-info
+1182354 Merge pull request #85 from nationalarchives/version-bump-66
+050760d Setting version to 0.0.28-SNAPSHOT
