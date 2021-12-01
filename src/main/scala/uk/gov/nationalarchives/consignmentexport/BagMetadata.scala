@@ -15,11 +15,14 @@ import uk.gov.nationalarchives.consignmentexport.Utils._
 class BagMetadata(keycloakClient: KeycloakClient)(implicit val logger: SelfAwareStructuredLogger[IO]) {
 
   implicit class UserRepresentationUtils(value: UserRepresentation) {
-    private def isStringNullOrEmpty(s: String): Boolean = s == null || s.trim.isEmpty
+    private def isValuePresent(s: String): Boolean = s != null && s.trim.nonEmpty
 
-    def isUserRepresentationComplete: Boolean = {
-      !isStringNullOrEmpty(value.getFirstName) && !isStringNullOrEmpty(value.getLastName)
-    }
+    private def isUserRepresentationComplete: Boolean =
+      isValuePresent(value.getFirstName) && isValuePresent(value.getLastName) && isValuePresent(value.getEmail)
+
+    def toUserDetails: UserDetails = if (isUserRepresentationComplete) {
+      UserDetails(s"${value.getFirstName} ${value.getLastName}", value.getEmail)
+    } else { throw new RuntimeException(s"Incomplete details for user ${value.getId}") }
   }
 
   private def getConsignmentDetails(consignment: GetConsignment, exportDatetime: ZonedDateTime): Map[String, Option[String]] = {
@@ -28,7 +31,7 @@ class BagMetadata(keycloakClient: KeycloakClient)(implicit val logger: SelfAware
     val consignmentType: Option[String] = consignment.consignmentType
     val startDatetime: Option[String] = consignment.createdDatetime.map(_.toFormattedPrecisionString)
     val completedDatetime: Option[String] = consignment.transferInitiatedDatetime.map(_.toFormattedPrecisionString)
-    val contactName: String = getContactName(consignment.userid)
+    val userDetails: UserDetails = keycloakClient.getUserRepresentation(consignment.userid.toString).toUserDetails
 
     Map(
       InternalSenderIdentifierKey -> Some(consignment.consignmentReference),
@@ -38,7 +41,8 @@ class BagMetadata(keycloakClient: KeycloakClient)(implicit val logger: SelfAware
       ConsignmentStartDatetimeKey -> startDatetime,
       ConsignmentCompletedDatetimeKey -> completedDatetime,
       ConsignmentExportDatetimeKey -> Some(exportDatetime.toFormattedPrecisionString),
-      ContactNameKey -> Some(contactName),
+      ContactNameKey -> Some(userDetails.contactName),
+      ContactEmailKey -> Some(userDetails.contactEmail),
       BagCreator -> Some(s"TDRExportv$version")
     )
   }
@@ -55,19 +59,6 @@ class BagMetadata(keycloakClient: KeycloakClient)(implicit val logger: SelfAware
     })
     IO(metadata)
   }
-
-  private def getContactName(userId: UUID): String = {
-    val userDetails = getUserDetails(userId.toString)
-    s"${userDetails.getFirstName} ${userDetails.getLastName}"
-  }
-
-  private def getUserDetails(userId: String): UserRepresentation = {
-    val userDetails = keycloakClient.getUserDetails(userId)
-    userDetails.isUserRepresentationComplete match {
-      case true => userDetails
-      case _ => throw new RuntimeException(s"Incomplete details for user $userId")
-    }
-  }
 }
 
 object BagMetadata {
@@ -76,6 +67,7 @@ object BagMetadata {
   val ConsignmentStartDatetimeKey = "Consignment-Start-Datetime"
   val ConsignmentCompletedDatetimeKey = "Consignment-Completed-Datetime"
   val ContactNameKey = "Contact-Name"
+  val ContactEmailKey = "Contact-Email"
   val ConsignmentExportDatetimeKey = "Consignment-Export-Datetime"
   val BagCreator = "Bag-Creator"
   val InternalSenderIdentifierKey = "Internal-Sender-Identifier"
@@ -83,3 +75,5 @@ object BagMetadata {
 
   def apply(keycloakClient: KeycloakClient)(implicit logger: SelfAwareStructuredLogger[IO]): BagMetadata = new BagMetadata(keycloakClient)(logger)
 }
+
+case class UserDetails(contactName: String, contactEmail: String)

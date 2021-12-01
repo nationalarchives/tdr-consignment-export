@@ -13,7 +13,7 @@ class KeycloakClient(keycloakAdminClient: Keycloak, config: Configuration) {
   private def realmResource(client: Keycloak): RealmResource = client.realm(config.auth.realm)
   private def usersResource(realm: RealmResource): UsersResource = realm.users()
 
-  def getUserDetails(userId: String): UserRepresentation = {
+  def getUserRepresentation(userId: String): UserRepresentation = {
     val realm = realmResource(keycloakAdminClient)
     val users = usersResource(realm)
 
