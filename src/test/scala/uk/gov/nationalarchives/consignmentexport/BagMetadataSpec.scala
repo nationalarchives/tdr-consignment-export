@@ -16,9 +16,10 @@ class BagMetadataSpec extends ExportSpec {
   private val series = Series("series-code")
   private val transferringBody = TransferringBody("tb-code")
   private val consignmentRef = "consignmentReference-1234"
-  private val consignmentType = "standard"
+  private val standardConsignmentType = "standard"
+  private val JudgmentConsignmentType = "judgment"
   private val consignment = GetConsignment(
-    userId, Some(fixedDateTime), Some(fixedDateTime), Some(fixedDateTime), consignmentRef, Some(consignmentType), Some(series), Some(transferringBody), List()
+    userId, Some(fixedDateTime), Some(fixedDateTime), Some(fixedDateTime), consignmentRef, Some(standardConsignmentType), Some(series), Some(transferringBody), List()
   )
   private val userRepresentation = new UserRepresentation()
   userRepresentation.setId(userId.toString)
@@ -49,7 +50,7 @@ class BagMetadataSpec extends ExportSpec {
     val consignmentId = UUID.randomUUID()
     val missingPropertyKey = "Consignment-Start-Datetime"
     val incompleteConsignment = GetConsignment(
-      userId, None, Some(fixedDateTime), Some(fixedDateTime), consignmentRef, Some(consignmentType), Some(series), Some(transferringBody), List()
+      userId, None, Some(fixedDateTime), Some(fixedDateTime), consignmentRef, Some(standardConsignmentType), Some(series), Some(transferringBody), List()
     )
     val mockKeycloakClient = mock[KeycloakClient]
 
@@ -74,5 +75,18 @@ class BagMetadataSpec extends ExportSpec {
       BagMetadata(mockKeycloakClient).generateMetadata(consignmentId, consignment, fixedDateTime).unsafeRunSync()
     }
     exception.getMessage should equal(s"Incomplete details for user $userId")
+  }
+
+  "the getBagMetadata method" should "return an empty series id for a 'judgment' consignment type" in {
+    val consignmentId = UUID.randomUUID()
+    val judgmentTypeConsignment = GetConsignment(
+      userId, Some(fixedDateTime), Some(fixedDateTime), Some(fixedDateTime), consignmentRef, Some(JudgmentConsignmentType), None, Some(transferringBody), List()
+    )
+    val mockKeycloakClient = mock[KeycloakClient]
+
+    doAnswer(() => userRepresentation).when(mockKeycloakClient).getUserRepresentation(any[String])
+    val bagMetadata = BagMetadata(mockKeycloakClient).generateMetadata(consignmentId, judgmentTypeConsignment, fixedDateTime).unsafeRunSync()
+
+    bagMetadata.get("Consignment-Series").get(0) should be("")
   }
 }
