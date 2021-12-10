@@ -77,16 +77,15 @@ class BagMetadataSpec extends ExportSpec {
     exception.getMessage should equal(s"Incomplete details for user $userId")
   }
 
-  //Judgments don't have a series. So will be set to empty for export to succeed
-  "the getBagMetadata method" should "return an empty series id if one hasn't been provided for judgments" in {
+  "the getBagMetadata method" should "return an empty series id for a 'judgment' consignment type" in {
     val consignmentId = UUID.randomUUID()
-    val incompleteConsignment = GetConsignment(
+    val judgmentTypeConsignment = GetConsignment(
       userId, Some(fixedDateTime), Some(fixedDateTime), Some(fixedDateTime), consignmentRef, Some(JudgmentConsignmentType), None, Some(transferringBody), List()
     )
     val mockKeycloakClient = mock[KeycloakClient]
 
     doAnswer(() => userRepresentation).when(mockKeycloakClient).getUserRepresentation(any[String])
-    val bagMetadata = BagMetadata(mockKeycloakClient).generateMetadata(consignmentId, incompleteConsignment, fixedDateTime).unsafeRunSync()
+    val bagMetadata = BagMetadata(mockKeycloakClient).generateMetadata(consignmentId, judgmentTypeConsignment, fixedDateTime).unsafeRunSync()
 
     bagMetadata.get("Consignment-Series").get(0) should be("")
   }
