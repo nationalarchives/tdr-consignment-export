@@ -16,9 +16,10 @@ class BagMetadataSpec extends ExportSpec {
   private val series = Series("series-code")
   private val transferringBody = TransferringBody("tb-code")
   private val consignmentRef = "consignmentReference-1234"
-  private val consignmentType = "standard"
+  private val standardConsignmentType = "standard"
+  private val JudgmentConsignmentType = "judgment"
   private val consignment = GetConsignment(
-    userId, Some(fixedDateTime), Some(fixedDateTime), Some(fixedDateTime), consignmentRef, Some(consignmentType), Some(series), Some(transferringBody), List()
+    userId, Some(fixedDateTime), Some(fixedDateTime), Some(fixedDateTime), consignmentRef, Some(standardConsignmentType), Some(series), Some(transferringBody), List()
   )
   private val userRepresentation = new UserRepresentation()
   userRepresentation.setId(userId.toString)
@@ -49,7 +50,7 @@ class BagMetadataSpec extends ExportSpec {
     val consignmentId = UUID.randomUUID()
     val missingPropertyKey = "Consignment-Start-Datetime"
     val incompleteConsignment = GetConsignment(
-      userId, None, Some(fixedDateTime), Some(fixedDateTime), consignmentRef, Some(consignmentType), Some(series), Some(transferringBody), List()
+      userId, None, Some(fixedDateTime), Some(fixedDateTime), consignmentRef, Some(standardConsignmentType), Some(series), Some(transferringBody), List()
     )
     val mockKeycloakClient = mock[KeycloakClient]
 
@@ -77,10 +78,10 @@ class BagMetadataSpec extends ExportSpec {
   }
 
   //Judgments don't have a series. So will be set to empty for export to succeed
-  "the getBagMetadata method" should "return an empty series id if one hasn't been provided" in {
+  "the getBagMetadata method" should "return an empty series id if one hasn't been provided for judgments" in {
     val consignmentId = UUID.randomUUID()
     val incompleteConsignment = GetConsignment(
-      userId, Some(fixedDateTime), Some(fixedDateTime), Some(fixedDateTime), consignmentRef, Some(consignmentType), None, Some(transferringBody), List()
+      userId, Some(fixedDateTime), Some(fixedDateTime), Some(fixedDateTime), consignmentRef, Some(JudgmentConsignmentType), None, Some(transferringBody), List()
     )
     val mockKeycloakClient = mock[KeycloakClient]
 
