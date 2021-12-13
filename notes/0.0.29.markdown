@@ -1,0 +1,3 @@
+ca28119 Make series blank for judgment export (#88)
+b7c9091 Merge pull request #87 from nationalarchives/version-bump-67
+482a311 Setting version to 0.0.29-SNAPSHOT
