@@ -8,7 +8,7 @@ import pureconfig.{CamelCase, ConfigFieldMapping, ConfigSource}
 
 object Config {
 
-  case class S3(endpoint: String, cleanBucket: String, outputBucket: String)
+  case class S3(endpoint: String, cleanBucket: String, outputBucket: String, outputBucketJudgment: String)
   case class Api(url: String)
   case class Auth(url: String, clientId: String, clientSecret: String, realm: String)
   case class EFS(rootLocation: String)
