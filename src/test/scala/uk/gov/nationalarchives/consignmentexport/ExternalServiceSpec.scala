@@ -55,11 +55,12 @@ class ExternalServiceSpec extends AnyFlatSpec with BeforeAndAfterEach with Befor
 
   def deleteBucket(bucket: String): DeleteBucketResponse = s3Client.deleteBucket(DeleteBucketRequest.builder.bucket(bucket).build)
 
-  def outputBucketObjects(): List[S3Object] = s3Client.listObjects(ListObjectsRequest.builder.bucket("test-output-bucket").build)
+  def outputBucketObjects(bucket: String): List[S3Object] =
+    s3Client.listObjects(ListObjectsRequest.builder.bucket(bucket).build)
     .contents().asScala.toList
 
-  def getObject(key: String, path: Path): GetObjectResponse =
-    s3Client.getObject(GetObjectRequest.builder.bucket("test-output-bucket").key(key).build, path)
+  def getObject(key: String, path: Path, bucket: String): GetObjectResponse =
+    s3Client.getObject(GetObjectRequest.builder.bucket(bucket).key(key).build, path)
 
   def putFile(key: String): PutObjectResponse = {
     val path = new File(getClass.getResource(s"/testfiles/testfile").getPath).toPath
@@ -83,9 +84,9 @@ class ExternalServiceSpec extends AnyFlatSpec with BeforeAndAfterEach with Befor
 
   def graphQlUrl: String = wiremockGraphqlServer.url(graphQlPath)
 
-  def graphQlGetConsignmentMetadata: StubMapping = wiremockGraphqlServer.stubFor(post(urlEqualTo(graphQlPath))
+  def graphQlGetConsignmentMetadata(response: String): StubMapping = wiremockGraphqlServer.stubFor(post(urlEqualTo(graphQlPath))
     .withRequestBody(equalToJson("{\"query\":\"query getConsignmentForExport($consignmentId:UUID!){getConsignment(consignmentid:$consignmentId){userid createdDatetime transferInitiatedDatetime exportDatetime consignmentReference consignmentType series{code} transferringBody{name} files{fileId metadata{clientSideFileSize clientSideLastModifiedDate clientSideOriginalFilePath foiExemptionCode heldBy language legalStatus rightsCopyright sha256ClientSideChecksum} ffidMetadata{software softwareVersion binarySignatureFileVersion containerSignatureFileVersion method matches{extension identificationBasis puid}} antivirusMetadata{software softwareVersion}}}}\",\"variables\":{\"consignmentId\":\"50df01e6-2e5e-4269-97e7-531a755b417d\"}}"))
-    .willReturn(okJson(fromResource(s"json/get_consignment_for_export.json").mkString)))
+    .willReturn(okJson(fromResource(s"json/$response").mkString)))
 
   def graphQlGetConsignmentMetadataNoFiles: StubMapping = wiremockGraphqlServer.stubFor(post(urlEqualTo(graphQlPath))
     .withRequestBody(equalToJson("{\"query\":\"query getConsignmentForExport($consignmentId:UUID!){getConsignment(consignmentid:$consignmentId){userid createdDatetime transferInitiatedDatetime exportDatetime consignmentReference consignmentType series{code} transferringBody{name} files{fileId metadata{clientSideFileSize clientSideLastModifiedDate clientSideOriginalFilePath foiExemptionCode heldBy language legalStatus rightsCopyright sha256ClientSideChecksum} ffidMetadata{software softwareVersion binarySignatureFileVersion containerSignatureFileVersion method matches{extension identificationBasis puid}} antivirusMetadata{software softwareVersion}}}}\",\"variables\":{\"consignmentId\":\"069d225e-b0e6-4425-8f8b-c2f6f3263221\"}}"))
@@ -145,6 +146,7 @@ class ExternalServiceSpec extends AnyFlatSpec with BeforeAndAfterEach with Befor
     graphqlUpdateExportLocation
     createBucket("test-clean-bucket")
     createBucket("test-output-bucket")
+    createBucket("test-output-bucket-judgment")
   }
 
   override def afterAll(): Unit = {
@@ -157,6 +159,7 @@ class ExternalServiceSpec extends AnyFlatSpec with BeforeAndAfterEach with Befor
     s3Api.stop
     deleteBucket("test-clean-bucket")
     deleteBucket("test-output-bucket")
+    deleteBucket("test-output-bucket-judgment")
     wiremockAuthServer.resetAll()
     wiremockGraphqlServer.resetAll()
     wiremockSfnServer.resetAll()

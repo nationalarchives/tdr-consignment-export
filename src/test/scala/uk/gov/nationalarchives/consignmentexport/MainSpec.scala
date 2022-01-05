@@ -17,9 +17,11 @@ import scala.sys.process._
 class MainSpec extends ExternalServiceSpec {
 
   private val taskTokenValue = "taskToken1234"
+  private val standardOutputBucket = "test-output-bucket"
+  private val judgmentOutputBucket = "test-output-bucket-judgment"
 
-  "the export job" should "export the correct tar and checksum file" in {
-    setUpValidExternalServices()
+  "the export job" should "export the correct tar and checksum file to the correct s3 bucket for a 'standard' consignment type" in {
+    setUpValidExternalServices("get_consignment_for_export.json")
 
     val consignmentId = UUID.fromString("50df01e6-2e5e-4269-97e7-531a755b417d")
     val consignmentRef = "consignmentReference-1234"
@@ -29,7 +31,25 @@ class MainSpec extends ExternalServiceSpec {
 
     Main.run(List("export", "--consignmentId", consignmentId.toString, "--taskToken", taskTokenValue)).unsafeRunSync()
     checkStepFunctionSuccessCalled
-    val objects = outputBucketObjects().map(_.key())
+    val objects = outputBucketObjects(standardOutputBucket).map(_.key())
+
+    objects.size should equal(2)
+    objects.head should equal(s"$consignmentRef.tar.gz")
+    objects.last should equal(s"$consignmentRef.tar.gz.sha256")
+  }
+
+  "the export job" should "export the correct tar and checksum file to the correct s3 bucket for a 'judgment' consignment type" in {
+    setUpValidExternalServices("get_judgment_consignment_for_export.json")
+
+    val consignmentId = UUID.fromString("50df01e6-2e5e-4269-97e7-531a755b417d")
+    val consignmentRef = "consignmentReference-1234"
+    val fileId = "7b19b272-d4d1-4d77-bf25-511dc6489d12"
+
+    putFile(s"$consignmentId/$fileId")
+
+    Main.run(List("export", "--consignmentId", consignmentId.toString, "--taskToken", taskTokenValue)).unsafeRunSync()
+    checkStepFunctionSuccessCalled
+    val objects = outputBucketObjects(judgmentOutputBucket).map(_.key())
 
     objects.size should equal(2)
     objects.head should equal(s"$consignmentRef.tar.gz")
@@ -37,7 +57,7 @@ class MainSpec extends ExternalServiceSpec {
   }
 
   "the export job" should "export a valid tar and checksum file" in {
-    setUpValidExternalServices()
+    setUpValidExternalServices("get_consignment_for_export.json")
 
     val consignmentId = UUID.fromString("50df01e6-2e5e-4269-97e7-531a755b417d")
     val consignmentRef = "consignmentReference-1234"
@@ -51,8 +71,8 @@ class MainSpec extends ExternalServiceSpec {
 
     val downloadDirectory = s"$scratchDirectory/download"
     new File(s"$downloadDirectory").mkdirs()
-    getObject(s"$consignmentRef.tar.gz", s"$downloadDirectory/result.tar.gz".toPath)
-    getObject(s"$consignmentRef.tar.gz.sha256", s"$downloadDirectory/result.tar.gz.sha256".toPath)
+    getObject(s"$consignmentRef.tar.gz", s"$downloadDirectory/result.tar.gz".toPath, standardOutputBucket)
+    getObject(s"$consignmentRef.tar.gz.sha256", s"$downloadDirectory/result.tar.gz.sha256".toPath, standardOutputBucket)
 
     val exitCode = Seq("sh", "-c", s"tar -tf $downloadDirectory/result.tar.gz > /dev/null").!
     exitCode should equal(0)
@@ -67,7 +87,7 @@ class MainSpec extends ExternalServiceSpec {
   }
 
   "the export job" should "update the export location in the api" in {
-    setUpValidExternalServices()
+    setUpValidExternalServices("get_consignment_for_export.json")
 
     val consignmentId = UUID.fromString("50df01e6-2e5e-4269-97e7-531a755b417d")
     val consignmentRef = "consignmentReference-1234"
@@ -172,7 +192,7 @@ class MainSpec extends ExternalServiceSpec {
   }
 
   "the export job" should "throw an error if no valid Keycloak user found" in {
-    graphQlGetConsignmentMetadata
+    graphQlGetConsignmentMetadata("get_consignment_for_export.json")
     stepFunctionPublish
 
     val consignmentId = UUID.fromString("50df01e6-2e5e-4269-97e7-531a755b417d")
@@ -189,7 +209,7 @@ class MainSpec extends ExternalServiceSpec {
   }
 
   "the export job" should "throw an error if an incomplete Keycloak user details found" in {
-    graphQlGetConsignmentMetadata
+    graphQlGetConsignmentMetadata("get_consignment_for_export.json")
     keycloakGetIncompleteUser
     stepFunctionPublish
 
@@ -225,7 +245,7 @@ class MainSpec extends ExternalServiceSpec {
   }
 
   "the export job" should "call the step function heartbeat endpoint" in {
-    setUpValidExternalServices()
+    setUpValidExternalServices("get_consignment_for_export.json")
 
     val consignmentId = UUID.fromString("50df01e6-2e5e-4269-97e7-531a755b417d")
     val fileId = "7b19b272-d4d1-4d77-bf25-511dc6489d12"
@@ -240,8 +260,8 @@ class MainSpec extends ExternalServiceSpec {
       ) should equal(1)
   }
 
-  private def setUpValidExternalServices() = {
-    graphQlGetConsignmentMetadata
+  private def setUpValidExternalServices(jsonResponse: String) = {
+    graphQlGetConsignmentMetadata(jsonResponse)
     keycloakGetUser
     stepFunctionPublish
   }
