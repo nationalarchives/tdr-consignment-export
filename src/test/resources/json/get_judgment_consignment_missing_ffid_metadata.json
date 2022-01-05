@@ -1,0 +1,34 @@
+{
+  "data": {
+    "getConsignment": {
+      "series": {
+        "code": "MOCK1 123"
+      },
+      "exportDatetime": "2021-01-27T13:35:15Z",
+      "createdDatetime": "2021-01-15T07:47:19Z",
+      "transferInitiatedDatetime": "2021-01-15T07:47:19Z",
+      "userid": "b2657adf-6e93-424f-b0f1-aadd26762a96",
+      "consignmentReference": "consignmentReference-1234",
+      "consignmentType": "judgment",
+      "transferringBody": {
+        "name": "MOCK1 Department"
+      },
+      "files": [
+        {
+          "fileId": "3381a880-4e9a-4663-b4c6-97dc4018835e",
+          "metadata": {
+            "clientSideOriginalFilePath": "originalPath",
+            "legalStatus": "Public Record",
+            "clientSideFileSize": 1024,
+            "clientSideLastModifiedDate": "2021-01-26T17:10:58.047",
+            "rightsCopyright": "Crown Copyright",
+            "heldBy": "TNA",
+            "foiExemptionCode": "open",
+            "language": "English",
+            "sha256ClientSideChecksum": "cd0aa9856147b6c5b4ff2b7dfee5da20aa38253099ef1b4a64aced233c9afe29"
+          }
+        }
+      ]
+    }
+  }
+}
