@@ -133,7 +133,7 @@ class MainSpec extends ExternalServiceSpec {
     exportLocationEvent.isDefined should be(true)
 
     exportLocationEvent.get.getRequest.getBodyAsString.contains(s""""consignmentId":"$consignmentId"""") should be(true)
-    exportLocationEvent.get.getRequest.getBodyAsString.contains(s""""exportLocation":"s3://test-output-bucket/$consignmentRef.tar.gz"""") should be(true)
+    exportLocationEvent.get.getRequest.getBodyAsString.contains(s""""exportLocation":"s3://$standardOutputBucket/$consignmentRef.tar.gz"""") should be(true)
   }
 
   "the export job" should "update the export location in the api for a 'judgment' consignment type" in {
@@ -154,7 +154,7 @@ class MainSpec extends ExternalServiceSpec {
     exportLocationEvent.isDefined should be(true)
 
     exportLocationEvent.get.getRequest.getBodyAsString.contains(s""""consignmentId":"$consignmentId"""") should be(true)
-    exportLocationEvent.get.getRequest.getBodyAsString.contains(s""""exportLocation":"s3://test-output-bucket/$consignmentRef.tar.gz"""") should be(true)
+    exportLocationEvent.get.getRequest.getBodyAsString.contains(s""""exportLocation":"s3://$judgmentOutputBucket/$consignmentRef.tar.gz"""") should be(true)
   }
 
   "the export job" should "throw an error if the api returns no files for a 'standard' consignment type" in {
