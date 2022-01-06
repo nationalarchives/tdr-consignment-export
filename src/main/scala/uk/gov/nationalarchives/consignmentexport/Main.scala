@@ -75,7 +75,7 @@ object Main extends CommandIOApp("tdr-consignment-export", "Exports tdr files in
           _ <- bashCommands.runCommand(s"sha256sum $tarPath > $tarPath.sha256")
           s3Bucket = if(consignmentData.consignmentType.contains("judgment")) { config.s3.outputBucketJudgment } else { config.s3.outputBucket}
           _ <- s3Files.uploadFiles(s3Bucket, consignmentId, consignmentReference, tarPath)
-          _ <- graphQlApi.updateExportLocation(config, consignmentId, s"s3://${s3Bucket}/$consignmentReference.tar.gz", exportDatetime)
+          _ <- graphQlApi.updateExportLocation(config, consignmentId, s"s3://$s3Bucket/$consignmentReference.tar.gz", exportDatetime)
           _ <- stepFunction.publishSuccess(taskToken,
             ExportOutput(consignmentData.userid,
               bagMetadata.get(InternalSenderIdentifierKey).get(0),
