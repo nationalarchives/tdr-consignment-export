@@ -1,0 +1,29 @@
+{
+  "data": {
+    "getConsignment": {
+      "series": {
+        "code": "MOCK1 123"
+      },
+      "exportDatetime": "2021-01-27T13:35:15Z",
+      "createdDatetime": "2021-01-15T07:47:19Z",
+      "transferInitiatedDatetime": "2021-01-15T07:47:19Z",
+      "userid": "b2657adf-6e93-424f-b0f1-aadd26762a96",
+      "consignmentReference": "consignmentReference-1234",
+      "consignmentType": "judgment",
+      "transferringBody": {
+        "name": "MOCK1 Department"
+      },
+      "files": [
+        {
+          "fileId": "7b19b272-d4d1-4d77-bf25-511dc6489d12",
+          "metadata": {
+            "clientSideOriginalFilePath": "originalPath",
+            "legalStatus": "Public Record",
+            "clientSideFileSize": 1024,
+            "clientSideLastModifiedDate": "2021-01-26T17:10:58.047"
+          }
+        }
+      ]
+    }
+  }
+}

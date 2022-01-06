@@ -28,7 +28,7 @@ class GraphQlApiSpec extends ExportSpec {
   private val fixedDateTime = ZonedDateTime.now()
 
   val config = Configuration(
-    S3("", "", ""),
+    S3("", "", "", ""),
     Api(""),
     Auth("authUrl", "clientId", "clientSecret", "realm"),
     EFS(""),

@@ -4,7 +4,7 @@ import uk.gov.nationalarchives.consignmentexport.Config._
 
 class KeycloakClientSpec extends ExternalServiceSpec {
   private val config = Configuration(
-    S3("", "", ""),
+    S3("", "", "", ""),
     Api(""),
     Auth("http://localhost:9002/auth", "tdr-backend-checks", "client-secret", "tdr"),
     EFS(""),
