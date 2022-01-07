@@ -30,5 +30,5 @@ object StepFunction {
   def apply(stepFunctionUtils: StepFunctionUtils)
            (implicit logger: SelfAwareStructuredLogger[IO]): StepFunction = new StepFunction(stepFunctionUtils)(logger)
 
-  case class ExportOutput(userId: UUID, consignmentReference: String, transferringBodyCode: String)
+  case class ExportOutput(userId: UUID, consignmentReference: String, transferringBodyName: String)
 }
