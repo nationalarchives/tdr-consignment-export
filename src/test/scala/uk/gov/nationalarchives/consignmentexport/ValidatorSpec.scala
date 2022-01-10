@@ -35,7 +35,7 @@ class ValidatorSpec extends ExportSpec {
     "consignmentRef",
     Some("standard"),
     Series("series-code").some,
-    TransferringBody("tb-code").some,
+    TransferringBody("tb-name").some,
     metadata
   )
 

@@ -14,7 +14,7 @@ class BagMetadataSpec extends ExportSpec {
   private val fixedDateTime = ZonedDateTime.now()
   private val userId = UUID.randomUUID()
   private val series = Series("series-code")
-  private val transferringBody = TransferringBody("tb-code")
+  private val transferringBody = TransferringBody("tb-name")
   private val consignmentRef = "consignmentReference-1234"
   private val standardConsignmentType = "standard"
   private val JudgmentConsignmentType = "judgment"
@@ -35,7 +35,7 @@ class BagMetadataSpec extends ExportSpec {
     val bagMetadata = BagMetadata(mockKeycloakClient).generateMetadata(consignmentId, consignment, fixedDateTime).unsafeRunSync()
 
     bagMetadata.get("Consignment-Series").get(0) should be("series-code")
-    bagMetadata.get("Source-Organization").get(0) should be("tb-code")
+    bagMetadata.get("Source-Organization").get(0) should be("tb-name")
     bagMetadata.get("Consignment-Type").get(0) should be ("standard")
     bagMetadata.get("Internal-Sender-Identifier").get(0) should be("consignmentReference-1234")
     bagMetadata.get("Consignment-Start-Datetime").get(0) should be(fixedDateTime.toFormattedPrecisionString)
