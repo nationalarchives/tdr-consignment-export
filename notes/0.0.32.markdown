@@ -1,0 +1,6 @@
+d2154f3 Merge pull request #93 from nationalarchives/TDR-1586-upgrade-keycloak-v16
+2a14da6 Merge branch 'master' into TDR-1586-upgrade-keycloak-v16
+2c8a5ab Merge pull request #94 from nationalarchives/version-bump-70
+d610d8b Setting version to 0.0.32-SNAPSHOT
+e895fdb Update tdr-auth-utils library version
+4c7d0c5 Upgrade Keycloak libraries to v16.1.0
