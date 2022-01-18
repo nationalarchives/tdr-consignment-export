@@ -1,0 +1,4 @@
+3429f57 Merge pull request #96 from nationalarchives/changeGraphqlQueryAndMutationPascalCaseReferences
+a6343dc Apply Pascal case-related changes made in Generated GraphQL Library
+9579c23 Merge pull request #95 from nationalarchives/version-bump-71
+2bd831d Setting version to 0.0.33-SNAPSHOT
