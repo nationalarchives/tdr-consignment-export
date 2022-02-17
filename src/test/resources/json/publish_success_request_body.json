@@ -1,1 +1,1 @@
-{"taskToken":"taskToken1234","output":"{\n  \"userId\" : \"b2657adf-6e93-424f-b0f1-aadd26762a96\",\n  \"consignmentReference\" : \"consignmentReference-1234\",\n  \"transferringBodyName\" : \"MOCK1 Department\",\n  \"consignmentType\" : \"standard\"\n}"}
+{"taskToken":"taskToken1234","output":"{\n  \"userId\" : \"b2657adf-6e93-424f-b0f1-aadd26762a96\",\n  \"consignmentReference\" : \"consignmentReference-1234\",\n  \"transferringBodyName\" : \"MOCK1 Department\",\n  \"consignmentType\" : \"standard\",\n  \"exportBucket\" : \"test-output-bucket\"\n}"}

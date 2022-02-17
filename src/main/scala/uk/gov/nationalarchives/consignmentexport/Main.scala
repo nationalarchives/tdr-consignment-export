@@ -81,7 +81,8 @@ object Main extends CommandIOApp("tdr-consignment-export", "Exports tdr files in
             ExportOutput(consignmentData.userid,
               bagMetadata.get(InternalSenderIdentifierKey).get(0),
               bagMetadata.get(SourceOrganisationKey).get(0),
-              consignmentType
+              consignmentType,
+              s3Bucket
             ))
           _ <- heartbeat.cancel
         } yield ExitCode.Success
