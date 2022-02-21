@@ -29,7 +29,7 @@ class MainSpec extends ExternalServiceSpec {
     putFile(s"$consignmentId/$fileId")
 
     Main.run(List("export", "--consignmentId", consignmentId.toString, "--taskToken", taskTokenValue)).unsafeRunSync()
-    checkStepFunctionSuccessCalled
+    checkStepFunctionSuccessCalled()
     val objects = outputBucketObjects(standardOutputBucket).map(_.key())
 
     objects.size should equal(2)
@@ -47,7 +47,7 @@ class MainSpec extends ExternalServiceSpec {
     putFile(s"$consignmentId/$fileId")
 
     Main.run(List("export", "--consignmentId", consignmentId.toString, "--taskToken", taskTokenValue)).unsafeRunSync()
-    checkStepFunctionSuccessCalled
+    checkStepFunctionSuccessCalled("publish_judgment_success_request_body")
     val objects = outputBucketObjects(judgmentOutputBucket).map(_.key())
 
     objects.size should equal(2)
@@ -66,7 +66,7 @@ class MainSpec extends ExternalServiceSpec {
 
     Main.run(List("export", "--consignmentId", consignmentId.toString, "--taskToken", taskTokenValue)).unsafeRunSync()
 
-    checkStepFunctionSuccessCalled
+    checkStepFunctionSuccessCalled()
 
     val downloadDirectory = s"$scratchDirectory/download"
     new File(s"$downloadDirectory").mkdirs()
@@ -96,7 +96,7 @@ class MainSpec extends ExternalServiceSpec {
 
     Main.run(List("export", "--consignmentId", consignmentId.toString, "--taskToken", taskTokenValue)).unsafeRunSync()
 
-    checkStepFunctionSuccessCalled
+    checkStepFunctionSuccessCalled("publish_judgment_success_request_body")
 
     val downloadDirectory = s"$scratchDirectory/download"
     new File(s"$downloadDirectory").mkdirs()
@@ -125,7 +125,7 @@ class MainSpec extends ExternalServiceSpec {
     putFile(s"$consignmentId/$fileId")
     Main.run(List("export", "--consignmentId", consignmentId.toString, "--taskToken", taskTokenValue)).unsafeRunSync()
 
-    checkStepFunctionSuccessCalled
+    checkStepFunctionSuccessCalled()
 
     val exportLocationEvent: Option[ServeEvent] = wiremockGraphqlServer.getAllServeEvents.asScala
       .find(p => p.getRequest.getBodyAsString.contains("mutation updateExportLocation"))
@@ -146,7 +146,7 @@ class MainSpec extends ExternalServiceSpec {
     putFile(s"$consignmentId/$fileId")
     Main.run(List("export", "--consignmentId", consignmentId.toString, "--taskToken", taskTokenValue)).unsafeRunSync()
 
-    checkStepFunctionSuccessCalled
+    checkStepFunctionSuccessCalled("publish_judgment_success_request_body")
 
     val exportLocationEvent: Option[ServeEvent] = wiremockGraphqlServer.getAllServeEvents.asScala
       .find(p => p.getRequest.getBodyAsString.contains("mutation updateExportLocation"))
@@ -439,8 +439,8 @@ class MainSpec extends ExternalServiceSpec {
     stepFunctionPublish
   }
 
-  private def checkStepFunctionSuccessCalled: Assertion =
-    checkStepFunctionPublishCalled("publish_success_request_body", "SendTaskSuccess")
+  private def checkStepFunctionSuccessCalled(expectedJsonPath: String = "publish_success_request_body"): Assertion =
+    checkStepFunctionPublishCalled(expectedJsonPath, "SendTaskSuccess")
 
   private def checkStepFunctionFailureCalled(expectedJsonRequestFilePath: String) =
     checkStepFunctionPublishCalled(expectedJsonRequestFilePath, "SendTaskFailure")
