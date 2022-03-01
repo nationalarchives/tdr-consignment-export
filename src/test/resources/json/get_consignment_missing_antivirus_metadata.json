@@ -43,7 +43,8 @@
             "binarySignatureFileVersion": "container-signature-20200121.xml"
           }
         }
-      ]
+      ],
+      "emptyFolders": []
     }
   }
 }

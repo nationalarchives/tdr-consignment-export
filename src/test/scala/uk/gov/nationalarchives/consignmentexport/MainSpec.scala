@@ -131,8 +131,18 @@ class MainSpec extends ExternalServiceSpec {
     getObject(s"$consignmentRef.tar.gz", s"$downloadDirectory/result.tar.gz".toPath, standardOutputBucket)
 
     Seq("sh", "-c", s"tar -tf $downloadDirectory/result.tar.gz > /dev/null").!
-    print("OK")
+    val exportId: String = new File(scratchDirectory).list.toList.find(_ != "download").head
+    val basePath = s"$scratchDirectory/$exportId/$consignmentRef/data/"
+    val firstEmptyDirectory = new File(s"$basePath/empty")
+    val secondEmptyDirectory = new File(s"$basePath/empty2/empty3")
 
+    firstEmptyDirectory.exists should be(true)
+    firstEmptyDirectory.isDirectory should be (true)
+    firstEmptyDirectory.list().length should be (0)
+
+    secondEmptyDirectory.exists() should be(true)
+    secondEmptyDirectory.isDirectory should be (true)
+    secondEmptyDirectory.list().length should be (0)
   }
 
   "the export job" should "update the export location in the api for a 'standard' consignment type" in {

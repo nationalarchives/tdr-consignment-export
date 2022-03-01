@@ -13,7 +13,8 @@
       "transferringBody": {
         "name": "MOCK1 Department"
       },
-      "files": []
+      "files": [],
+      "emptyFolders": []
     }
   }
 }
