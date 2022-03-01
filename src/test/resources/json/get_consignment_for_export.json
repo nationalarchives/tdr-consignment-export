@@ -47,6 +47,10 @@
             "softwareVersion": "softwareVersion"
           }
         }
+      ],
+      "emptyFolders" : [
+        "empty",
+        "empty/empty2"
       ]
     }
   }

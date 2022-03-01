@@ -36,7 +36,8 @@ class ValidatorSpec extends ExportSpec {
     Some("standard"),
     Series("series-code").some,
     TransferringBody("tb-name").some,
-    metadata
+    metadata,
+    Nil
   )
 
   "validateConsignmentHasFiles" should "return an error if the consignment has no files" in {

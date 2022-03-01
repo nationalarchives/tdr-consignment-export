@@ -115,6 +115,26 @@ class MainSpec extends ExternalServiceSpec {
     source.close()
   }
 
+  "the export job" should "create directories for empty folders" in {
+    setUpValidExternalServices("get_consignment_for_export.json")
+
+    val consignmentId = UUID.fromString("50df01e6-2e5e-4269-97e7-531a755b417d")
+    val consignmentRef = "consignmentReference-1234"
+    val fileId = "7b19b272-d4d1-4d77-bf25-511dc6489d12"
+
+    putFile(s"$consignmentId/$fileId")
+
+    Main.run(List("export", "--consignmentId", consignmentId.toString, "--taskToken", taskTokenValue)).unsafeRunSync()
+
+    val downloadDirectory = s"$scratchDirectory/download"
+    new File(s"$downloadDirectory").mkdirs()
+    getObject(s"$consignmentRef.tar.gz", s"$downloadDirectory/result.tar.gz".toPath, standardOutputBucket)
+
+    Seq("sh", "-c", s"tar -tf $downloadDirectory/result.tar.gz > /dev/null").!
+    print("OK")
+
+  }
+
   "the export job" should "update the export location in the api for a 'standard' consignment type" in {
     setUpValidExternalServices("get_consignment_for_export.json")
 

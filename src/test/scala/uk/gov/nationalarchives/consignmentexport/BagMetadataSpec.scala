@@ -19,7 +19,7 @@ class BagMetadataSpec extends ExportSpec {
   private val standardConsignmentType = "standard"
   private val JudgmentConsignmentType = "judgment"
   private val consignment = GetConsignment(
-    userId, Some(fixedDateTime), Some(fixedDateTime), Some(fixedDateTime), consignmentRef, Some(standardConsignmentType), Some(series), Some(transferringBody), List()
+    userId, Some(fixedDateTime), Some(fixedDateTime), Some(fixedDateTime), consignmentRef, Some(standardConsignmentType), Some(series), Some(transferringBody), List(), Nil
   )
   private val userRepresentation = new UserRepresentation()
   userRepresentation.setId(userId.toString)
@@ -50,7 +50,7 @@ class BagMetadataSpec extends ExportSpec {
     val consignmentId = UUID.randomUUID()
     val missingPropertyKey = "Consignment-Start-Datetime"
     val incompleteConsignment = GetConsignment(
-      userId, None, Some(fixedDateTime), Some(fixedDateTime), consignmentRef, Some(standardConsignmentType), Some(series), Some(transferringBody), List()
+      userId, None, Some(fixedDateTime), Some(fixedDateTime), consignmentRef, Some(standardConsignmentType), Some(series), Some(transferringBody), List(), Nil
     )
     val mockKeycloakClient = mock[KeycloakClient]
 
@@ -80,7 +80,7 @@ class BagMetadataSpec extends ExportSpec {
   "the getBagMetadata method" should "return an empty series id for a 'judgment' consignment type" in {
     val consignmentId = UUID.randomUUID()
     val judgmentTypeConsignment = GetConsignment(
-      userId, Some(fixedDateTime), Some(fixedDateTime), Some(fixedDateTime), consignmentRef, Some(JudgmentConsignmentType), None, Some(transferringBody), List()
+      userId, Some(fixedDateTime), Some(fixedDateTime), Some(fixedDateTime), consignmentRef, Some(JudgmentConsignmentType), None, Some(transferringBody), List(), Nil
     )
     val mockKeycloakClient = mock[KeycloakClient]
 
