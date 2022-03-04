@@ -16,6 +16,7 @@
       "files": [
         {
           "fileId": "3381a880-4e9a-4663-b4c6-97dc4018835e",
+          "fileType": "File",
           "metadata": {
             "clientSideOriginalFilePath": "originalPath",
             "legalStatus": "Public Record",
@@ -28,8 +29,7 @@
             "sha256ClientSideChecksum": "cd0aa9856147b6c5b4ff2b7dfee5da20aa38253099ef1b4a64aced233c9afe29"
           }
         }
-      ],
-      "emptyFolders": []
+      ]
     }
   }
 }

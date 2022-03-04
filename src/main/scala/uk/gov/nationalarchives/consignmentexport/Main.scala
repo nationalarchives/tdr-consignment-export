@@ -2,6 +2,7 @@ package uk.gov.nationalarchives.consignmentexport
 
 import java.time.{ZoneOffset, ZonedDateTime}
 import java.util.UUID
+
 import cats.effect._
 import cats.syntax.all._
 import com.monovore.decline.Opts
@@ -18,7 +19,6 @@ import uk.gov.nationalarchives.consignmentexport.GraphQlApi.backend
 import uk.gov.nationalarchives.consignmentexport.StepFunction.ExportOutput
 import uk.gov.nationalarchives.tdr.keycloak.TdrKeycloakDeployment
 
-import java.io.File
 import scala.concurrent.duration._
 import scala.language.{implicitConversions, postfixOps}
 
@@ -28,6 +28,8 @@ object Main extends CommandIOApp("tdr-consignment-export", "Exports tdr files in
   implicit def logger: SelfAwareStructuredLogger[IO] = Slf4jLogger.getLogger[IO]
   implicit val tdrKeycloakDeployment: TdrKeycloakDeployment = TdrKeycloakDeployment(configuration.getString("auth.url"), "tdr", 3600)
   private val stepFunctionPublishEndpoint = configuration.getString("stepFunction.endpoint")
+
+  val directoryType = "Folder"
 
   override def main: Opts[IO[ExitCode]] =
      exportOps.map {
@@ -58,7 +60,6 @@ object Main extends CommandIOApp("tdr-consignment-export", "Exports tdr files in
           validatedFileMetadata <- IO.fromEither(validator.extractFileMetadata(consignmentData.files))
           validatedFfidMetadata <- IO.fromEither(validator.extractFFIDMetadata(consignmentData.files))
           validatedAntivirusMetadata <- IO.fromEither(validator.extractAntivirusMetadata(consignmentData.files))
-          _ <- IO(consignmentData.emptyFolders.foreach(id => new File(s"$basePath/${consignmentData.consignmentReference}/$id").mkdirs()))
           _ <- s3Files.downloadFiles(validatedFileMetadata, config.s3.cleanBucket, consignmentId, consignmentData.consignmentReference, basePath)
           bag <- bagit.createBag(consignmentData.consignmentReference, basePath, bagMetadata)
           checkSumMismatches = ChecksumValidator().findChecksumMismatches(bag, validatedFileMetadata)

@@ -20,13 +20,14 @@ class BagAdditionalFiles(rootDirectory: Path) {
     val header = List("Filepath", "Filesize", "RightsCopyright", "LegalStatus", "HeldBy", "Language", "FoiExemptionCode", "LastModified")
     val fileMetadataRows = fileMetadataList.map(f => List(
       dataPath(f.clientSideOriginalFilePath),
-      f.clientSideFileSize,
-      f.rightsCopyright,
-      f.legalStatus,
-      f.heldBy,
-      f.language,
-      f.foiExemptionCode,
-      DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss").format(f.clientSideLastModifiedDate))
+      f.clientSideFileSize.getOrElse(""),
+      f.rightsCopyright.getOrElse(""),
+      f.legalStatus.getOrElse(""),
+      f.heldBy.getOrElse(""),
+      f.language.getOrElse(""),
+      f.foiExemptionCode.getOrElse(""),
+      f.clientSideLastModifiedDate.map(d => DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss").format(d)).getOrElse(""),
+    )
     )
     writeToCsv("file-metadata.csv", header, fileMetadataRows)
   }

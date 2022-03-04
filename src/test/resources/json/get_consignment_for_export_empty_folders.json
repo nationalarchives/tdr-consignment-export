@@ -47,6 +47,27 @@
             "software": "software",
             "softwareVersion": "softwareVersion"
           }
+        },
+        {
+          "fileId": "30c67d00-8e75-4134-82c6-d84cf5ebb3fe",
+          "fileType": "Folder",
+          "metadata": {
+            "clientSideOriginalFilePath": "empty"
+          }
+        },
+        {
+          "fileId": "9a03f3cf-cfe4-47e7-8937-b332e771cb8a",
+          "fileType": "Folder",
+          "metadata": {
+            "clientSideOriginalFilePath": "empty2"
+          }
+        },
+        {
+          "fileId": "56481c5b-2a5e-4e54-8514-3122f9b5300f",
+          "fileType": "Folder",
+          "metadata": {
+            "clientSideOriginalFilePath": "empty2/empty3"
+          }
         }
       ]
     }

@@ -3,6 +3,7 @@ package uk.gov.nationalarchives.consignmentexport
 import cats.implicits._
 import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignment
 import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignment.Files
+import uk.gov.nationalarchives.consignmentexport.Main.directoryType
 import uk.gov.nationalarchives.consignmentexport.Validator.{ValidatedAntivirusMetadata, ValidatedFFIDMetadata, ValidatedFileMetadata}
 
 import java.time.LocalDateTime
@@ -18,7 +19,9 @@ class Validator(consignmentId: UUID) {
   }
 
   def extractFileMetadata(filesList: List[Files]): Either[RuntimeException, List[ValidatedFileMetadata]] = {
-    val fileErrors: Seq[String] = filesList.flatMap(file => {
+    val fileErrors: Seq[String] = filesList
+      .filter(f => f.fileType.isDefined && f.fileType.get != directoryType)
+      .flatMap(file => {
       val metadataPropertyNames = file.metadata.productElementNames
       val metadataValues = file.metadata.productIterator
       val missingPropertyNames = metadataPropertyNames.zip(metadataValues).filter(propertyNameToValue => {
@@ -30,17 +33,22 @@ class Validator(consignmentId: UUID) {
         case _ => s"${file.fileId} is missing the following properties: ${missingPropertyNames.mkString(", ")}".some
       }
     })
+    val directoryErrors = filesList
+      .filter(f => f.fileType.isDefined && f.fileType.get != directoryType)
+      .filter(_.metadata.clientSideOriginalFilePath.isEmpty)
+      .map(_ => "ClientSideOriginalFilePath")
 
-    fileErrors match {
+    directoryErrors ++ fileErrors match {
       case Nil => Right(filesList.map(validatedMetadata))
       case _ => Left(new RuntimeException(fileErrors.mkString("\n")))
     }
   }
 
   def extractFFIDMetadata(filesList: List[Files]): Either[RuntimeException, List[ValidatedFFIDMetadata]] = {
-    val fileErrors = filesList.filter(_.ffidMetadata.isEmpty).map(f => s"FFID metadata is missing for file id ${f.fileId}")
+    val fileErrors = filesList.filter(file => file.ffidMetadata.isEmpty && file.fileType.get != directoryType)
+      .map(f => s"FFID metadata is missing for file id ${f.fileId}")
     fileErrors match {
-      case Nil => Right(filesList.flatMap(file => {
+      case Nil => Right(filesList.filter(_.fileType.get != directoryType).flatMap(file => {
         val metadata = file.ffidMetadata.get
         metadata.matches.map(mm => {
           ValidatedFFIDMetadata(file.metadata.clientSideOriginalFilePath.get, mm.extension.getOrElse(""), mm.puid.getOrElse(""), metadata.software, metadata.softwareVersion, metadata.binarySignatureFileVersion, metadata.containerSignatureFileVersion)
@@ -51,10 +59,11 @@ class Validator(consignmentId: UUID) {
   }
 
   def extractAntivirusMetadata(filesList: List[Files]): Either[RuntimeException, List[ValidatedAntivirusMetadata]] = {
-    val fileErrors = filesList.filter(_.antivirusMetadata.isEmpty).map(f => s"Antivirus metadata is missing for file id ${f.fileId}")
+    val fileErrors = filesList.filter(file => file.antivirusMetadata.isEmpty && file.fileType.get != directoryType)
+      .map(f => s"Antivirus metadata is missing for file id ${f.fileId}")
     fileErrors match {
       case Nil => Right(
-        filesList.map(f => {
+        filesList.filter(_.fileType.get != directoryType).map(f => {
           val antivirus = f.antivirusMetadata.get
           ValidatedAntivirusMetadata(f.metadata.clientSideOriginalFilePath.get, antivirus.software, antivirus.softwareVersion)
         })
@@ -63,16 +72,18 @@ class Validator(consignmentId: UUID) {
     }
   }
 
-  private def validatedMetadata(f: Files): ValidatedFileMetadata = ValidatedFileMetadata(f.fileId,
-    f.metadata.clientSideFileSize.get,
-    f.metadata.clientSideLastModifiedDate.get,
+  private def validatedMetadata(f: Files): ValidatedFileMetadata =
+    ValidatedFileMetadata(f.fileId,
+    f.fileType.get,
+    f.metadata.clientSideFileSize,
+    f.metadata.clientSideLastModifiedDate,
     f.metadata.clientSideOriginalFilePath.get,
-    f.metadata.foiExemptionCode.get,
-    f.metadata.heldBy.get,
-    f.metadata.language.get,
-    f.metadata.legalStatus.get,
-    f.metadata.rightsCopyright.get,
-    f.metadata.sha256ClientSideChecksum.get
+    f.metadata.foiExemptionCode,
+    f.metadata.heldBy,
+    f.metadata.language,
+    f.metadata.legalStatus,
+    f.metadata.rightsCopyright,
+    f.metadata.sha256ClientSideChecksum
   )
 
 }
@@ -88,15 +99,16 @@ object Validator {
                                    containerSignatureFileVersion: String)
 
   case class ValidatedFileMetadata(fileId: UUID,
-                                   clientSideFileSize: Long,
-                                   clientSideLastModifiedDate: LocalDateTime,
+                                   fileType: String,
+                                   clientSideFileSize: Option[Long],
+                                   clientSideLastModifiedDate: Option[LocalDateTime],
                                    clientSideOriginalFilePath: String,
-                                   foiExemptionCode: String,
-                                   heldBy: String,
-                                   language: String,
-                                   legalStatus: String,
-                                   rightsCopyright: String,
-                                   clientSideChecksum: String)
+                                   foiExemptionCode: Option[String],
+                                   heldBy: Option[String],
+                                   language: Option[String],
+                                   legalStatus: Option[String],
+                                   rightsCopyright: Option[String],
+                                   clientSideChecksum: Option[String])
 
   case class ValidatedAntivirusMetadata(filePath: String,
                                         software: String,

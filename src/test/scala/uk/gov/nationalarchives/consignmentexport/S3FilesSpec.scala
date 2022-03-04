@@ -5,6 +5,7 @@ import java.time.LocalDateTime
 import java.util.UUID
 
 import cats.effect.IO
+import cats.implicits.catsSyntaxOptionId
 import org.mockito.ArgumentCaptor
 import software.amazon.awssdk.services.s3.model.{GetObjectResponse, PutObjectResponse}
 import uk.gov.nationalarchives.aws.utils.S3Utils
@@ -25,15 +26,16 @@ class S3FilesSpec extends ExportSpec {
     val fileId = UUID.randomUUID()
     val metadata = ValidatedFileMetadata(
       fileId,
-      1L,
-      LocalDateTime.now(),
+      "File",
+      1L.some,
+      LocalDateTime.now().some,
       "originalPath",
-      "foiExemption",
-      "heldBy",
-      "language",
-      "legalStatus",
-      "rightsCopyright",
-      "clientSideChecksumValue"
+      "foiExemption".some,
+      "heldBy".some,
+      "language".some,
+      "legalStatus".some,
+      "rightsCopyright".some,
+      "clientSideChecksumValue".some
     )
     val validatedMetadata = List(metadata)
 
@@ -56,15 +58,16 @@ class S3FilesSpec extends ExportSpec {
     val fileId = UUID.randomUUID()
     val metadata = ValidatedFileMetadata(
       fileId,
-      1L,
-      LocalDateTime.now(),
+      "File",
+      1L.some,
+      LocalDateTime.now().some,
       """a/path'with/quotes"""",
-      "foiExemption",
-      "heldBy",
-      "language",
-      "legalStatus",
-      "rightsCopyright",
-      "clientSideChecksumValue"
+      "foiExemption".some,
+      "heldBy".some,
+      "language".some,
+      "legalStatus".some,
+      "rightsCopyright".some,
+      "clientSideChecksumValue".some
     )
     val validatedMetadata = List(metadata)
 

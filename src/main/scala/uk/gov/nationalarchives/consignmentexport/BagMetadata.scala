@@ -57,7 +57,7 @@ class BagMetadata(keycloakClient: KeycloakClient)(implicit val logger: SelfAware
 
     details.map(e => {
       e._2 match {
-        case Some(_) => metadata.add(e._1, e._2.get)
+        case Some(_) => metadata.add(e._1, e._2.getOrElse(""))
         case None => throw new RuntimeException(s"Missing consignment metadata property ${e._1} for consignment $consignmentId")
       }
     })
