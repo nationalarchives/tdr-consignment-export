@@ -74,7 +74,7 @@ class Validator(consignmentId: UUID) {
 
   private def validatedMetadata(f: Files): ValidatedFileMetadata =
     ValidatedFileMetadata(f.fileId,
-    "name",
+    f.fileName.get,
     f.fileType.get,
     f.metadata.clientSideFileSize,
     f.metadata.clientSideLastModifiedDate,

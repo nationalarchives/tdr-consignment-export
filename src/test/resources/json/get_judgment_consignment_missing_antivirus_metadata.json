@@ -16,6 +16,7 @@
       "files": [
         {
           "fileId": "5e271e33-ae7e-4471-9f89-005c5d15c5a1",
+          "fileName": "name",
           "fileType": "File",
           "metadata": {
             "clientSideOriginalFilePath": "originalPath",

@@ -16,6 +16,7 @@
       "files": [
         {
           "fileId": "7b19b272-d4d1-4d77-bf25-511dc6489d12",
+          "fileName": "name",
           "fileType": "File",
           "metadata": {
             "clientSideOriginalFilePath": "originalPath",
@@ -50,6 +51,7 @@
         },
         {
           "fileId": "30c67d00-8e75-4134-82c6-d84cf5ebb3fe",
+          "fileName": "empty",
           "fileType": "Folder",
           "metadata": {
             "clientSideOriginalFilePath": "empty"
@@ -57,6 +59,7 @@
         },
         {
           "fileId": "9a03f3cf-cfe4-47e7-8937-b332e771cb8a",
+          "fileName": "empty2",
           "fileType": "Folder",
           "metadata": {
             "clientSideOriginalFilePath": "empty2"
@@ -64,6 +67,7 @@
         },
         {
           "fileId": "56481c5b-2a5e-4e54-8514-3122f9b5300f",
+          "fileName": "empty3",
           "fileType": "Folder",
           "metadata": {
             "clientSideOriginalFilePath": "empty2/empty3"
