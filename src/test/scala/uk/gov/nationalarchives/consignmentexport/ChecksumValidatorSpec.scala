@@ -51,6 +51,7 @@ class ChecksumValidatorSpec extends ExportSpec {
  private def createValidatedMetadata(fileId: UUID, checksumValue: String): ValidatedFileMetadata = {
     ValidatedFileMetadata(
       fileId,
+      "name",
       "File",
       1L.some,
       LocalDateTime.parse("2021-02-03T10:33:30.414").some,

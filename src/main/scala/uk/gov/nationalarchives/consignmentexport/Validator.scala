@@ -74,6 +74,7 @@ class Validator(consignmentId: UUID) {
 
   private def validatedMetadata(f: Files): ValidatedFileMetadata =
     ValidatedFileMetadata(f.fileId,
+    "name",
     f.fileType.get,
     f.metadata.clientSideFileSize,
     f.metadata.clientSideLastModifiedDate,
@@ -99,6 +100,7 @@ object Validator {
                                    containerSignatureFileVersion: String)
 
   case class ValidatedFileMetadata(fileId: UUID,
+                                   fileName: String,
                                    fileType: String,
                                    clientSideFileSize: Option[Long],
                                    clientSideLastModifiedDate: Option[LocalDateTime],

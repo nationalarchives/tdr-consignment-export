@@ -16,6 +16,7 @@ class BagAdditionalFilesSpec extends ExportSpec {
     val lastModified = LocalDateTime.parse("2021-02-03T10:33:30.414")
     val validatedFileMetadata = ValidatedFileMetadata(
       UUID.randomUUID(),
+      "name",
       "File",
       1L.some,
       lastModified.some,
@@ -29,6 +30,7 @@ class BagAdditionalFilesSpec extends ExportSpec {
     )
     val validatedDirectoryMetadata = ValidatedFileMetadata(
       UUID.randomUUID(),
+      "folderName",
       "Folder",
       None, None,
       "folder",
@@ -40,10 +42,10 @@ class BagAdditionalFilesSpec extends ExportSpec {
     val csvLines = source.getLines().toList
     val header = csvLines.head
     val rest = csvLines.tail
-    header should equal("Filepath,Filesize,RightsCopyright,LegalStatus,HeldBy,Language,FoiExemptionCode,LastModified")
+    header should equal("Filepath,FileName,FileType,Filesize,RightsCopyright,LegalStatus,HeldBy,Language,FoiExemptionCode,LastModified")
     rest.length should equal(2)
-    rest.head should equal(s"data/originalPath,1,rightsCopyright,legalStatus,heldBy,language,foiExemption,2021-02-03T10:33:30")
-    rest.last should equal(s"data/folder,,,,,,,")
+    rest.head should equal(s"data/originalPath,name,File,1,rightsCopyright,legalStatus,heldBy,language,foiExemption,2021-02-03T10:33:30")
+    rest.last should equal(s"data/folder,folderName,Folder,,,,,,,")
     source.close()
     new File("exporter/src/test/resources/file-metadata.csv").delete()
   }
@@ -53,6 +55,7 @@ class BagAdditionalFilesSpec extends ExportSpec {
     val lastModified = LocalDateTime.parse("2021-02-03T10:33:00.0")
     val metadata = ValidatedFileMetadata(
       UUID.randomUUID(),
+      "name",
       "File",
       1L.some,
       lastModified.some,
@@ -70,9 +73,9 @@ class BagAdditionalFilesSpec extends ExportSpec {
     val csvLines = source.getLines().toList
     val header = csvLines.head
     val rest = csvLines.tail
-    header should equal("Filepath,Filesize,RightsCopyright,LegalStatus,HeldBy,Language,FoiExemptionCode,LastModified")
+    header should equal("Filepath,FileName,FileType,Filesize,RightsCopyright,LegalStatus,HeldBy,Language,FoiExemptionCode,LastModified")
     rest.length should equal(1)
-    rest.head should equal(s"data/originalPath,1,rightsCopyright,legalStatus,heldBy,language,foiExemption,2021-02-03T10:33:00")
+    rest.head should equal(s"data/originalPath,name,File,1,rightsCopyright,legalStatus,heldBy,language,foiExemption,2021-02-03T10:33:00")
     source.close()
     new File("exporter/src/test/resources/file-metadata.csv").delete()
   }

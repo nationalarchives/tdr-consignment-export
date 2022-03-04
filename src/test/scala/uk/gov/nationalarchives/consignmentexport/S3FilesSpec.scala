@@ -26,6 +26,7 @@ class S3FilesSpec extends ExportSpec {
     val fileId = UUID.randomUUID()
     val metadata = ValidatedFileMetadata(
       fileId,
+      "name",
       "File",
       1L.some,
       LocalDateTime.now().some,
@@ -58,6 +59,7 @@ class S3FilesSpec extends ExportSpec {
     val fileId = UUID.randomUUID()
     val metadata = ValidatedFileMetadata(
       fileId,
+      "name",
       "File",
       1L.some,
       LocalDateTime.now().some,
