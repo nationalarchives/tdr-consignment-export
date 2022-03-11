@@ -112,8 +112,8 @@ class ExternalServiceSpec extends AnyFlatSpec with BeforeAndAfterEach with Befor
     .withRequestBody(equalToJson("{\"query\":\"query getConsignmentForExport($consignmentId:UUID!){getConsignment(consignmentid:$consignmentId){userid createdDatetime transferInitiatedDatetime exportDatetime consignmentReference consignmentType series{code} transferringBody{name} files{fileId fileType fileName metadata{clientSideFileSize clientSideLastModifiedDate clientSideOriginalFilePath foiExemptionCode heldBy language legalStatus rightsCopyright sha256ClientSideChecksum} ffidMetadata{software softwareVersion binarySignatureFileVersion containerSignatureFileVersion method matches{extension identificationBasis puid}} antivirusMetadata{software softwareVersion}}}}\",\"variables\":{\"consignmentId\":\"50df01e6-2e5e-4269-97e7-531a755b417d\"}}"))
     .willReturn(okJson(fromResource(s"json/$response").mkString)))
 
-  def graphqlUpdateExportLocation: StubMapping = wiremockGraphqlServer.stubFor(post(urlEqualTo(graphQlPath))
-    .willReturn(okJson(fromResource(s"json/update_export_location.json").mkString)))
+  def graphqlUpdateExportData: StubMapping = wiremockGraphqlServer.stubFor(post(urlEqualTo(graphQlPath))
+    .willReturn(okJson(fromResource(s"json/update_export_data.json").mkString)))
 
   def authOk: StubMapping = wiremockAuthServer.stubFor(post(urlEqualTo(authPath))
     .willReturn(okJson(fromResource(s"json/access_token.json").mkString)))
@@ -143,7 +143,7 @@ class ExternalServiceSpec extends AnyFlatSpec with BeforeAndAfterEach with Befor
     authOk
     wiremockGraphqlServer.resetAll()
     wiremockSfnServer.resetAll()
-    graphqlUpdateExportLocation
+    graphqlUpdateExportData
     createBucket("test-clean-bucket")
     createBucket("test-output-bucket")
     createBucket("test-output-bucket-judgment")

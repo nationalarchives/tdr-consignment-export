@@ -145,7 +145,7 @@ class MainSpec extends ExternalServiceSpec {
     secondEmptyDirectory.list().length should be (0)
   }
 
-  "the export job" should "update the export location in the api for a 'standard' consignment type" in {
+  "the export job" should "update the export data in the api for a 'standard' consignment type" in {
     setUpValidExternalServices("get_consignment_for_export.json")
 
     val consignmentId = UUID.fromString("50df01e6-2e5e-4269-97e7-531a755b417d")
@@ -157,16 +157,17 @@ class MainSpec extends ExternalServiceSpec {
 
     checkStepFunctionSuccessCalled()
 
-    val exportLocationEvent: Option[ServeEvent] = wiremockGraphqlServer.getAllServeEvents.asScala
-      .find(p => p.getRequest.getBodyAsString.contains("mutation updateExportLocation"))
+    val exportDataEvent: Option[ServeEvent] = wiremockGraphqlServer.getAllServeEvents.asScala
+      .find(p => p.getRequest.getBodyAsString.contains("mutation updateExportData"))
 
-    exportLocationEvent.isDefined should be(true)
+    exportDataEvent.isDefined should be(true)
 
-    exportLocationEvent.get.getRequest.getBodyAsString.contains(s""""consignmentId":"$consignmentId"""") should be(true)
-    exportLocationEvent.get.getRequest.getBodyAsString.contains(s""""exportLocation":"s3://$standardOutputBucket/$consignmentRef.tar.gz"""") should be(true)
+    exportDataEvent.get.getRequest.getBodyAsString.contains(s""""consignmentId":"$consignmentId"""") should be(true)
+    exportDataEvent.get.getRequest.getBodyAsString.contains(s""""exportLocation":"s3://$standardOutputBucket/$consignmentRef.tar.gz"""") should be(true)
+    exportDataEvent.get.getRequest.getBodyAsString.contains(s""""exportVersion":"${BuildInfo.version}"""") should be(true)
   }
 
-  "the export job" should "update the export location in the api for a 'judgment' consignment type" in {
+  "the export job" should "update the export data in the api for a 'judgment' consignment type" in {
     setUpValidExternalServices("get_judgment_consignment_for_export.json")
 
     val consignmentId = UUID.fromString("50df01e6-2e5e-4269-97e7-531a755b417d")
@@ -178,13 +179,14 @@ class MainSpec extends ExternalServiceSpec {
 
     checkStepFunctionSuccessCalled("publish_judgment_success_request_body")
 
-    val exportLocationEvent: Option[ServeEvent] = wiremockGraphqlServer.getAllServeEvents.asScala
-      .find(p => p.getRequest.getBodyAsString.contains("mutation updateExportLocation"))
+    val exportDataEvent: Option[ServeEvent] = wiremockGraphqlServer.getAllServeEvents.asScala
+      .find(p => p.getRequest.getBodyAsString.contains("mutation updateExportData"))
 
-    exportLocationEvent.isDefined should be(true)
+    exportDataEvent.isDefined should be(true)
 
-    exportLocationEvent.get.getRequest.getBodyAsString.contains(s""""consignmentId":"$consignmentId"""") should be(true)
-    exportLocationEvent.get.getRequest.getBodyAsString.contains(s""""exportLocation":"s3://$judgmentOutputBucket/$consignmentRef.tar.gz"""") should be(true)
+    exportDataEvent.get.getRequest.getBodyAsString.contains(s""""consignmentId":"$consignmentId"""") should be(true)
+    exportDataEvent.get.getRequest.getBodyAsString.contains(s""""exportLocation":"s3://$judgmentOutputBucket/$consignmentRef.tar.gz"""") should be(true)
+    exportDataEvent.get.getRequest.getBodyAsString.contains(s""""exportVersion":"${BuildInfo.version}"""") should be(true)
   }
 
   "the export job" should "throw an error if the api returns no files for a 'standard' consignment type" in {
