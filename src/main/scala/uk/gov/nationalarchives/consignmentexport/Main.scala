@@ -29,6 +29,8 @@ object Main extends CommandIOApp("tdr-consignment-export", "Exports tdr files in
   implicit val tdrKeycloakDeployment: TdrKeycloakDeployment = TdrKeycloakDeployment(configuration.getString("auth.url"), "tdr", 3600)
   private val stepFunctionPublishEndpoint = configuration.getString("stepFunction.endpoint")
 
+  val directoryType = "Folder"
+
   override def main: Opts[IO[ExitCode]] =
      exportOps.map {
       case FileExport(consignmentId, taskToken) =>

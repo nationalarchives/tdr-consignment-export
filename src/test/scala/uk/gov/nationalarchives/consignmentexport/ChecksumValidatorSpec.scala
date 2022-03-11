@@ -1,5 +1,7 @@
 package uk.gov.nationalarchives.consignmentexport
 
+import cats.implicits.catsSyntaxOptionId
+
 import java.nio.file.Paths
 import java.time.LocalDateTime
 import java.util.UUID
@@ -49,15 +51,17 @@ class ChecksumValidatorSpec extends ExportSpec {
  private def createValidatedMetadata(fileId: UUID, checksumValue: String): ValidatedFileMetadata = {
     ValidatedFileMetadata(
       fileId,
-      1L,
-      LocalDateTime.parse("2021-02-03T10:33:30.414"),
+      "name",
+      "File",
+      1L.some,
+      LocalDateTime.parse("2021-02-03T10:33:30.414").some,
       "clientSideOriginalFilePath",
-      "foiExemption",
-      "heldBy",
-      "language",
-      "legalStatus",
-      "rightsCopyright",
-      checksumValue)
+      "foiExemption".some,
+      "heldBy".some,
+      "language".some,
+      "legalStatus".some,
+      "rightsCopyright".some,
+      checksumValue.some)
   }
 
   private def createBag(checksums: List[String]): Bag = {

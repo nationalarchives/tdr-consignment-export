@@ -7,6 +7,7 @@ import cats.effect.IO
 import cats.implicits._
 import io.chrisdavenport.log4cats.SelfAwareStructuredLogger
 import uk.gov.nationalarchives.aws.utils.S3Utils
+import uk.gov.nationalarchives.consignmentexport.Main.directoryType
 import uk.gov.nationalarchives.consignmentexport.Utils._
 import uk.gov.nationalarchives.consignmentexport.Validator.ValidatedFileMetadata
 
@@ -14,10 +15,16 @@ import scala.language.postfixOps
 
 class S3Files(s3Utils: S3Utils)(implicit val logger: SelfAwareStructuredLogger[IO]) {
 
+  def createDownloadDirectories(files: List[ValidatedFileMetadata], consignmentReference: String, rootLocation: String) = {
+    IO {
+      new File(s"$rootLocation/$consignmentReference").mkdirs()
+      files.filter(_.fileType == "Folder").map(f => new File(s"$rootLocation/$consignmentReference/${f.clientSideOriginalFilePath}").mkdirs())
+    }
+  }
+
   def downloadFiles(files: List[ValidatedFileMetadata], bucket: String, consignmentId: UUID, consignmentReference: String, rootLocation: String): IO[Unit] = for {
-    _ <- files.map(file => {
-      val writeDirectory = file.clientSideOriginalFilePath.split("/").init.mkString("/")
-      new File(s"$rootLocation/$consignmentReference/$writeDirectory").mkdirs()
+    _ <- createDownloadDirectories(files, consignmentReference, rootLocation)
+    _ <- files.filter(_.fileType != directoryType).map(file => {
       s3Utils.downloadFiles(bucket, s"$consignmentId/${file.fileId}", s"$rootLocation/$consignmentReference/${file.clientSideOriginalFilePath}".toPath.some)
     }).sequence
     _ <- logger.info(s"Files downloaded from S3 for consignment $consignmentId")

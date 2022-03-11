@@ -9,7 +9,7 @@
       "transferInitiatedDatetime": "2021-01-15T07:47:19Z",
       "userid": "b2657adf-6e93-424f-b0f1-aadd26762a96",
       "consignmentReference": "consignmentReference-1234",
-      "consignmentType": "judgment",
+      "consignmentType": "standard",
       "transferringBody": {
         "name": "MOCK1 Department"
       },
@@ -27,7 +27,7 @@
             "heldBy": "TNA",
             "foiExemptionCode": "open",
             "language": "English",
-            "sha256ClientSideChecksum": "differentChecksum"
+            "sha256ClientSideChecksum": "cd0aa9856147b6c5b4ff2b7dfee5da20aa38253099ef1b4a64aced233c9afe29"
           },
           "ffidMetadata": {
             "method": "pronom",
@@ -47,6 +47,30 @@
           "antivirusMetadata": {
             "software": "software",
             "softwareVersion": "softwareVersion"
+          }
+        },
+        {
+          "fileId": "30c67d00-8e75-4134-82c6-d84cf5ebb3fe",
+          "fileName": "empty",
+          "fileType": "Folder",
+          "metadata": {
+            "clientSideOriginalFilePath": "empty"
+          }
+        },
+        {
+          "fileId": "9a03f3cf-cfe4-47e7-8937-b332e771cb8a",
+          "fileName": "empty2",
+          "fileType": "Folder",
+          "metadata": {
+            "clientSideOriginalFilePath": "empty2"
+          }
+        },
+        {
+          "fileId": "56481c5b-2a5e-4e54-8514-3122f9b5300f",
+          "fileName": "empty3",
+          "fileType": "Folder",
+          "metadata": {
+            "clientSideOriginalFilePath": "empty2/empty3"
           }
         }
       ]

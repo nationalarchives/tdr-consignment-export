@@ -1,5 +1,7 @@
 package uk.gov.nationalarchives.consignmentexport
 
+import cats.implicits.catsSyntaxOptionId
+
 import java.io.File
 import java.time.LocalDateTime
 import java.util.UUID
@@ -12,27 +14,38 @@ class BagAdditionalFilesSpec extends ExportSpec {
   "fileMetadataCsv" should "produce a file with the correct rows" in {
     val bagAdditionalFiles = BagAdditionalFiles(getClass.getResource(".").getPath.toPath)
     val lastModified = LocalDateTime.parse("2021-02-03T10:33:30.414")
-    val metadata = ValidatedFileMetadata(
+    val validatedFileMetadata = ValidatedFileMetadata(
       UUID.randomUUID(),
-      1L,
-      lastModified,
+      "name",
+      "File",
+      1L.some,
+      lastModified.some,
       "originalPath",
-      "foiExemption",
-      "heldBy",
-      "language",
-      "legalStatus",
-      "rightsCopyright",
-      "clientSideChecksumValue"
+      "foiExemption".some,
+      "heldBy".some,
+      "language".some,
+      "legalStatus".some,
+      "rightsCopyright".some,
+      "clientSideChecksumValue".some
     )
-    val file = bagAdditionalFiles.createFileMetadataCsv(List(metadata)).unsafeRunSync()
+    val validatedDirectoryMetadata = ValidatedFileMetadata(
+      UUID.randomUUID(),
+      "folderName",
+      "Folder",
+      None, None,
+      "folder",
+      None, None, None, None, None, None,
+    )
+    val file = bagAdditionalFiles.createFileMetadataCsv(List(validatedFileMetadata, validatedDirectoryMetadata)).unsafeRunSync()
 
     val source = Source.fromFile(file)
     val csvLines = source.getLines().toList
     val header = csvLines.head
     val rest = csvLines.tail
-    header should equal("Filepath,Filesize,RightsCopyright,LegalStatus,HeldBy,Language,FoiExemptionCode,LastModified")
-    rest.length should equal(1)
-    rest.head should equal(s"data/originalPath,1,rightsCopyright,legalStatus,heldBy,language,foiExemption,2021-02-03T10:33:30")
+    header should equal("Filepath,FileName,FileType,Filesize,RightsCopyright,LegalStatus,HeldBy,Language,FoiExemptionCode,LastModified")
+    rest.length should equal(2)
+    rest.head should equal(s"data/originalPath,name,File,1,rightsCopyright,legalStatus,heldBy,language,foiExemption,2021-02-03T10:33:30")
+    rest.last should equal(s"data/folder,folderName,Folder,,,,,,,")
     source.close()
     new File("exporter/src/test/resources/file-metadata.csv").delete()
   }
@@ -42,15 +55,17 @@ class BagAdditionalFilesSpec extends ExportSpec {
     val lastModified = LocalDateTime.parse("2021-02-03T10:33:00.0")
     val metadata = ValidatedFileMetadata(
       UUID.randomUUID(),
-      1L,
-      lastModified,
+      "name",
+      "File",
+      1L.some,
+      lastModified.some,
       "originalPath",
-      "foiExemption",
-      "heldBy",
-      "language",
-      "legalStatus",
-      "rightsCopyright",
-      "clientSideChecksumValue"
+      "foiExemption".some,
+      "heldBy".some,
+      "language".some,
+      "legalStatus".some,
+      "rightsCopyright".some,
+      "clientSideChecksumValue".some
     )
     val file = bagAdditionalFiles.createFileMetadataCsv(List(metadata)).unsafeRunSync()
 
@@ -58,9 +73,9 @@ class BagAdditionalFilesSpec extends ExportSpec {
     val csvLines = source.getLines().toList
     val header = csvLines.head
     val rest = csvLines.tail
-    header should equal("Filepath,Filesize,RightsCopyright,LegalStatus,HeldBy,Language,FoiExemptionCode,LastModified")
+    header should equal("Filepath,FileName,FileType,Filesize,RightsCopyright,LegalStatus,HeldBy,Language,FoiExemptionCode,LastModified")
     rest.length should equal(1)
-    rest.head should equal(s"data/originalPath,1,rightsCopyright,legalStatus,heldBy,language,foiExemption,2021-02-03T10:33:00")
+    rest.head should equal(s"data/originalPath,name,File,1,rightsCopyright,legalStatus,heldBy,language,foiExemption,2021-02-03T10:33:00")
     source.close()
     new File("exporter/src/test/resources/file-metadata.csv").delete()
   }
