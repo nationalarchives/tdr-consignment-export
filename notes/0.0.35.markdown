@@ -1,0 +1,11 @@
+1d67340 Merge pull request #100 from nationalarchives/add-empty-folders-to-export
+89dd8da Code review changes
+253a7dc Version bump for the generated grapqhl
+c838826 Add file name and file type to metadata csv
+4214760 Add filename and file type fields to the file metadata
+e8bfde6 Add folders to file metadata csv
+4acd8bb Update the tests to work with the new query
+0b9bf86 Merge branch 'master' into add-empty-folders-to-export
+9f3a9d7 Add empty folders to export
+5953f8d Merge pull request #99 from nationalarchives/version-bump-73
+3769a39 Setting version to 0.0.35-SNAPSHOT
