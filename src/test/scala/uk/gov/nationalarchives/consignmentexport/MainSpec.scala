@@ -115,7 +115,7 @@ class MainSpec extends ExternalServiceSpec {
     source.close()
   }
 
-  "the export job" should "create directories for folders" in {
+  "the export job" should "create directories for empty 'folder' type" in {
     setUpValidExternalServices("get_consignment_for_export_empty_folders.json")
 
     val consignmentId = UUID.fromString("50df01e6-2e5e-4269-97e7-531a755b417d")

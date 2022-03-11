@@ -15,7 +15,7 @@ import scala.language.postfixOps
 
 class S3Files(s3Utils: S3Utils)(implicit val logger: SelfAwareStructuredLogger[IO]) {
 
-  def createDirectories(files: List[ValidatedFileMetadata], consignmentReference: String, rootLocation: String) = {
+  def createDownloadDirectories(files: List[ValidatedFileMetadata], consignmentReference: String, rootLocation: String) = {
     IO {
       new File(s"$rootLocation/$consignmentReference").mkdirs()
       files.filter(_.fileType == "Folder").map(f => new File(s"$rootLocation/$consignmentReference/${f.clientSideOriginalFilePath}").mkdirs())
@@ -23,7 +23,7 @@ class S3Files(s3Utils: S3Utils)(implicit val logger: SelfAwareStructuredLogger[I
   }
 
   def downloadFiles(files: List[ValidatedFileMetadata], bucket: String, consignmentId: UUID, consignmentReference: String, rootLocation: String): IO[Unit] = for {
-    _ <- createDirectories(files, consignmentReference, rootLocation)
+    _ <- createDownloadDirectories(files, consignmentReference, rootLocation)
     _ <- files.filter(_.fileType != directoryType).map(file => {
       s3Utils.downloadFiles(bucket, s"$consignmentId/${file.fileId}", s"$rootLocation/$consignmentReference/${file.clientSideOriginalFilePath}".toPath.some)
     }).sequence
