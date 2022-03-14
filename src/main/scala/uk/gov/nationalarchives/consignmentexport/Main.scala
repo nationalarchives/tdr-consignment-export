@@ -23,7 +23,7 @@ import uk.gov.nationalarchives.consignmentexport.BuildInfo.version
 import scala.concurrent.duration._
 import scala.language.{implicitConversions, postfixOps}
 
-object Main extends CommandIOApp("tdr-consignment-export", "Exports tdr files in bagit format", version = "0.0.1") {
+object Main extends CommandIOApp("tdr-consignment-export", "Exports tdr files in bagit format", version = version) {
   private val configuration = ConfigFactory.load()
 
   implicit def logger: SelfAwareStructuredLogger[IO] = Slf4jLogger.getLogger[IO]
