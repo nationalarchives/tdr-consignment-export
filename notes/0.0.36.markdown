@@ -1,0 +1,6 @@
+94f1eb4 Merge pull request #102 from nationalarchives/saveExportVersionToAPI
+4c1a248 Change the default version in 'Main' to the BuildInfo.version
+2d4d2b8 Add 'getConsignmentForExport' test query to method to remove redundancy
+627c109 Save export version to API & rename 'UpdateExportLocation' to 'UpdateExportData'
+5971fbf Merge pull request #101 from nationalarchives/version-bump-74
+6a5472a Setting version to 0.0.36-SNAPSHOT
