@@ -46,7 +46,7 @@ class ExternalServiceSpec extends AnyFlatSpec with BeforeAndAfterEach with Befor
     .grantType(OAuth2Constants.CLIENT_CREDENTIALS)
     .build()
 
-  val sfnClient = SfnAsyncClient.builder
+  val sfnClient: SfnAsyncClient = SfnAsyncClient.builder
     .region(Region.EU_WEST_2)
     .endpointOverride(URI.create("http://localhost:9003/"))
     .build
@@ -85,35 +85,35 @@ class ExternalServiceSpec extends AnyFlatSpec with BeforeAndAfterEach with Befor
   def graphQlUrl: String = wiremockGraphqlServer.url(graphQlPath)
 
   def graphQlGetConsignmentMetadata(response: String): StubMapping = wiremockGraphqlServer.stubFor(post(urlEqualTo(graphQlPath))
-    .withRequestBody(equalToJson("{\"query\":\"query getConsignmentForExport($consignmentId:UUID!){getConsignment(consignmentid:$consignmentId){userid createdDatetime transferInitiatedDatetime exportDatetime consignmentReference consignmentType series{code} transferringBody{name} files{fileId fileType fileName metadata{clientSideFileSize clientSideLastModifiedDate clientSideOriginalFilePath foiExemptionCode heldBy language legalStatus rightsCopyright sha256ClientSideChecksum} ffidMetadata{software softwareVersion binarySignatureFileVersion containerSignatureFileVersion method matches{extension identificationBasis puid}} antivirusMetadata{software softwareVersion}}}}\",\"variables\":{\"consignmentId\":\"50df01e6-2e5e-4269-97e7-531a755b417d\"}}"))
+    .withRequestBody(equalToJson(generateGetConsignmentForExportQuery("50df01e6-2e5e-4269-97e7-531a755b417d")))
     .willReturn(okJson(fromResource(s"json/$response").mkString)))
 
   def graphQlGetConsignmentMetadataNoFiles(response: String): StubMapping = wiremockGraphqlServer.stubFor(post(urlEqualTo(graphQlPath))
-    .withRequestBody(equalToJson("{\"query\":\"query getConsignmentForExport($consignmentId:UUID!){getConsignment(consignmentid:$consignmentId){userid createdDatetime transferInitiatedDatetime exportDatetime consignmentReference consignmentType series{code} transferringBody{name} files{fileId fileType fileName metadata{clientSideFileSize clientSideLastModifiedDate clientSideOriginalFilePath foiExemptionCode heldBy language legalStatus rightsCopyright sha256ClientSideChecksum} ffidMetadata{software softwareVersion binarySignatureFileVersion containerSignatureFileVersion method matches{extension identificationBasis puid}} antivirusMetadata{software softwareVersion}}}}\",\"variables\":{\"consignmentId\":\"069d225e-b0e6-4425-8f8b-c2f6f3263221\"}}"))
+    .withRequestBody(equalToJson(generateGetConsignmentForExportQuery("069d225e-b0e6-4425-8f8b-c2f6f3263221")))
     .willReturn(okJson(fromResource(s"json/$response").mkString)))
 
   def graphQlGetConsignmentIncompleteMetadata(response: String): StubMapping = wiremockGraphqlServer.stubFor(post(urlEqualTo(graphQlPath))
-    .withRequestBody(equalToJson("{\"query\":\"query getConsignmentForExport($consignmentId:UUID!){getConsignment(consignmentid:$consignmentId){userid createdDatetime transferInitiatedDatetime exportDatetime consignmentReference consignmentType series{code} transferringBody{name} files{fileId fileType fileName metadata{clientSideFileSize clientSideLastModifiedDate clientSideOriginalFilePath foiExemptionCode heldBy language legalStatus rightsCopyright sha256ClientSideChecksum} ffidMetadata{software softwareVersion binarySignatureFileVersion containerSignatureFileVersion method matches{extension identificationBasis puid}} antivirusMetadata{software softwareVersion}}}}\",\"variables\":{\"consignmentId\":\"0e634655-1563-4705-be99-abb437f971e0\"}}"))
+    .withRequestBody(equalToJson(generateGetConsignmentForExportQuery("0e634655-1563-4705-be99-abb437f971e0")))
     .willReturn(okJson(fromResource(s"json/$response").mkString)))
 
   def graphQlGetConsignmentMissingFfidMetadata(response: String): StubMapping = wiremockGraphqlServer.stubFor(post(urlEqualTo(graphQlPath))
-    .withRequestBody(equalToJson("{\"query\":\"query getConsignmentForExport($consignmentId:UUID!){getConsignment(consignmentid:$consignmentId){userid createdDatetime transferInitiatedDatetime exportDatetime consignmentReference consignmentType series{code} transferringBody{name} files{fileId fileType fileName metadata{clientSideFileSize clientSideLastModifiedDate clientSideOriginalFilePath foiExemptionCode heldBy language legalStatus rightsCopyright sha256ClientSideChecksum} ffidMetadata{software softwareVersion binarySignatureFileVersion containerSignatureFileVersion method matches{extension identificationBasis puid}} antivirusMetadata{software softwareVersion}}}}\",\"variables\":{\"consignmentId\":\"2bb446f2-eb15-4b83-9c69-53b559232d84\"}}"))
+    .withRequestBody(equalToJson(generateGetConsignmentForExportQuery("2bb446f2-eb15-4b83-9c69-53b559232d84")))
     .willReturn(okJson(fromResource(s"json/$response").mkString)))
 
   def graphQlGetConsignmentMissingAntivirusMetadata(response: String): StubMapping = wiremockGraphqlServer.stubFor(post(urlEqualTo(graphQlPath))
-    .withRequestBody(equalToJson("{\"query\":\"query getConsignmentForExport($consignmentId:UUID!){getConsignment(consignmentid:$consignmentId){userid createdDatetime transferInitiatedDatetime exportDatetime consignmentReference consignmentType series{code} transferringBody{name} files{fileId fileType fileName metadata{clientSideFileSize clientSideLastModifiedDate clientSideOriginalFilePath foiExemptionCode heldBy language legalStatus rightsCopyright sha256ClientSideChecksum} ffidMetadata{software softwareVersion binarySignatureFileVersion containerSignatureFileVersion method matches{extension identificationBasis puid}} antivirusMetadata{software softwareVersion}}}}\",\"variables\":{\"consignmentId\":\"fbb543d0-7690-4d58-837c-464d431713fc\"}}"))
+    .withRequestBody(equalToJson(generateGetConsignmentForExportQuery("fbb543d0-7690-4d58-837c-464d431713fc")))
     .willReturn(okJson(fromResource(s"json/$response").mkString)))
 
   def graphQlGetDifferentConsignmentMetadata: StubMapping = wiremockGraphqlServer.stubFor(post(urlEqualTo(graphQlPath))
-    .withRequestBody(equalToJson("{\"query\":\"query getConsignmentForExport($consignmentId:UUID!){getConsignment(consignmentid:$consignmentId){userid createdDatetime transferInitiatedDatetime exportDatetime consignmentReference consignmentType series{code} transferringBody{name} files{fileId fileType fileName metadata{clientSideFileSize clientSideLastModifiedDate clientSideOriginalFilePath foiExemptionCode heldBy language legalStatus rightsCopyright sha256ClientSideChecksum} ffidMetadata{software softwareVersion binarySignatureFileVersion containerSignatureFileVersion method matches{extension identificationBasis puid}} antivirusMetadata{software softwareVersion}}}}\",\"variables\":{\"consignmentId\":\"6794231c-39fe-41e0-a498-b6a077563282\"}}"))
+    .withRequestBody(equalToJson(generateGetConsignmentForExportQuery("6794231c-39fe-41e0-a498-b6a077563282")))
     .willReturn(okJson(fromResource(s"json/get_consignment_for_export.json").mkString)))
 
   def graphQlGetIncorrectCheckSumConsignmentMetadata(response: String): StubMapping = wiremockGraphqlServer.stubFor(post(urlEqualTo(graphQlPath))
-    .withRequestBody(equalToJson("{\"query\":\"query getConsignmentForExport($consignmentId:UUID!){getConsignment(consignmentid:$consignmentId){userid createdDatetime transferInitiatedDatetime exportDatetime consignmentReference consignmentType series{code} transferringBody{name} files{fileId fileType fileName metadata{clientSideFileSize clientSideLastModifiedDate clientSideOriginalFilePath foiExemptionCode heldBy language legalStatus rightsCopyright sha256ClientSideChecksum} ffidMetadata{software softwareVersion binarySignatureFileVersion containerSignatureFileVersion method matches{extension identificationBasis puid}} antivirusMetadata{software softwareVersion}}}}\",\"variables\":{\"consignmentId\":\"50df01e6-2e5e-4269-97e7-531a755b417d\"}}"))
+    .withRequestBody(equalToJson(generateGetConsignmentForExportQuery("50df01e6-2e5e-4269-97e7-531a755b417d")))
     .willReturn(okJson(fromResource(s"json/$response").mkString)))
 
-  def graphqlUpdateExportLocation: StubMapping = wiremockGraphqlServer.stubFor(post(urlEqualTo(graphQlPath))
-    .willReturn(okJson(fromResource(s"json/update_export_location.json").mkString)))
+  def graphqlUpdateExportData: StubMapping = wiremockGraphqlServer.stubFor(post(urlEqualTo(graphQlPath))
+    .willReturn(okJson(fromResource(s"json/update_export_data.json").mkString)))
 
   def authOk: StubMapping = wiremockAuthServer.stubFor(post(urlEqualTo(authPath))
     .willReturn(okJson(fromResource(s"json/access_token.json").mkString)))
@@ -143,7 +143,7 @@ class ExternalServiceSpec extends AnyFlatSpec with BeforeAndAfterEach with Befor
     authOk
     wiremockGraphqlServer.resetAll()
     wiremockSfnServer.resetAll()
-    graphqlUpdateExportLocation
+    graphqlUpdateExportData
     createBucket("test-clean-bucket")
     createBucket("test-output-bucket")
     createBucket("test-output-bucket-judgment")
@@ -164,5 +164,62 @@ class ExternalServiceSpec extends AnyFlatSpec with BeforeAndAfterEach with Befor
     wiremockGraphqlServer.resetAll()
     wiremockSfnServer.resetAll()
     Seq("sh", "-c", s"rm -r $scratchDirectory/*").!
+  }
+
+  private def generateGetConsignmentForExportQuery(consignmentId: String): String = {
+    val formattedJsonBody =
+      s"""{"query":"query getConsignmentForExport($$consignmentId:UUID!){
+                           getConsignment(consignmentid:$$consignmentId){
+                             userid;
+                             createdDatetime;
+                             transferInitiatedDatetime;
+                             exportDatetime;
+                             consignmentReference;
+                             consignmentType;
+                             series{
+                               code
+                             };
+                             transferringBody{
+                               name
+                             };
+                             files{
+                               fileId;
+                               fileType;
+                               fileName;
+                               metadata{
+                                 clientSideFileSize;
+                                 clientSideLastModifiedDate;
+                                 clientSideOriginalFilePath;
+                                 foiExemptionCode;
+                                 heldBy;
+                                 language;
+                                 legalStatus;
+                                 rightsCopyright;
+                                 sha256ClientSideChecksum
+                             };
+                             ffidMetadata{
+                               software;
+                               softwareVersion;
+                               binarySignatureFileVersion;
+                               containerSignatureFileVersion;
+                               method;
+                               matches{
+                                 extension;
+                                 identificationBasis;
+                                 puid
+                               }
+                             };
+                             antivirusMetadata{
+                               software;
+                               softwareVersion
+                             }
+                           }
+                         }
+                  }",
+                  "variables":{
+                    "consignmentId":"$consignmentId"
+                  }
+          }"""
+    formattedJsonBody.replaceAll("\n\\s*", "").replaceAll(";", " ")
   }
 }

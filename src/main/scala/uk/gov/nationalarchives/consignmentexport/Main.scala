@@ -18,11 +18,12 @@ import uk.gov.nationalarchives.consignmentexport.Config.config
 import uk.gov.nationalarchives.consignmentexport.GraphQlApi.backend
 import uk.gov.nationalarchives.consignmentexport.StepFunction.ExportOutput
 import uk.gov.nationalarchives.tdr.keycloak.TdrKeycloakDeployment
+import uk.gov.nationalarchives.consignmentexport.BuildInfo.version
 
 import scala.concurrent.duration._
 import scala.language.{implicitConversions, postfixOps}
 
-object Main extends CommandIOApp("tdr-consignment-export", "Exports tdr files in bagit format", version = "0.0.1") {
+object Main extends CommandIOApp("tdr-consignment-export", "Exports tdr files in bagit format", version = version) {
   private val configuration = ConfigFactory.load()
 
   implicit def logger: SelfAwareStructuredLogger[IO] = Slf4jLogger.getLogger[IO]
@@ -78,7 +79,7 @@ object Main extends CommandIOApp("tdr-consignment-export", "Exports tdr files in
           consignmentType = consignmentData.consignmentType.getOrElse("standard")
           s3Bucket = if(consignmentType.contains("judgment")) { config.s3.outputBucketJudgment } else { config.s3.outputBucket}
           _ <- s3Files.uploadFiles(s3Bucket, consignmentId, consignmentReference, tarPath)
-          _ <- graphQlApi.updateExportLocation(config, consignmentId, s"s3://$s3Bucket/$consignmentReference.tar.gz", exportDatetime)
+          _ <- graphQlApi.updateExportData(config, consignmentId, s"s3://$s3Bucket/$consignmentReference.tar.gz", exportDatetime, version)
           _ <- stepFunction.publishSuccess(taskToken,
             ExportOutput(consignmentData.userid,
               bagMetadata.get(InternalSenderIdentifierKey).get(0),

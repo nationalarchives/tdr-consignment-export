@@ -10,7 +10,7 @@ import graphql.codegen.GetConsignmentExport
 import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignment.Files.Metadata
 import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignment.{Files, Series, TransferringBody}
 import graphql.codegen.GetConsignmentExport.{getConsignmentForExport => gce}
-import graphql.codegen.UpdateExportLocation.{updateExportLocation => uel}
+import graphql.codegen.UpdateExportData.{updateExportData => ued}
 import sangria.ast.Document
 import sttp.client.{HttpURLConnectionBackend, Identity, NothingT, SttpBackend}
 import uk.gov.nationalarchives.consignmentexport.Config._
@@ -36,37 +36,37 @@ class GraphQlApiSpec extends ExportSpec {
 
   implicit val tdrKeycloakDeployment: TdrKeycloakDeployment = TdrKeycloakDeployment("authUrl", "realm", 3600)
 
-  "the updateExportLocation method" should "return the correct value" in {
+  "the updateExportData method" should "return the correct value" in {
     val consignmentClient = mock[GraphQLClient[gce.Data, gce.Variables]]
-    val updateExportClient = mock[GraphQLClient[uel.Data, uel.Variables]]
+    val updateExportClient = mock[GraphQLClient[ued.Data, ued.Variables]]
     val keycloak = mock[KeycloakUtils]
     val api = new GraphQlApi(keycloak, consignmentClient, updateExportClient)
     val consignmentId = UUID.randomUUID()
 
     doAnswer(() => Future(new BearerAccessToken("token"))).when(keycloak).serviceAccountToken[Identity](
       any[String], any[String])(any[SttpBackend[Identity, Nothing, NothingT]], any[ClassTag[Identity[_]]], any[TdrKeycloakDeployment])
-    val data = new GraphQlResponse[uel.Data](uel.Data(1.some).some, List())
-    doAnswer(() => Future(data)).when(updateExportClient).getResult[Identity](any[BearerAccessToken], any[Document], any[Option[uel.Variables]])(any[SttpBackend[Identity, Nothing, NothingT]], any[ClassTag[Identity[_]]])
+    val data = new GraphQlResponse[ued.Data](ued.Data(1.some).some, List())
+    doAnswer(() => Future(data)).when(updateExportClient).getResult[Identity](any[BearerAccessToken], any[Document], any[Option[ued.Variables]])(any[SttpBackend[Identity, Nothing, NothingT]], any[ClassTag[Identity[_]]])
 
-    val response = api.updateExportLocation(config, consignmentId, s"s3://testbucket/$consignmentId.tar.gz", fixedDateTime).unsafeRunSync()
+    val response = api.updateExportData(config, consignmentId, s"s3://testbucket/$consignmentId.tar.gz", fixedDateTime, "0.0.Version").unsafeRunSync()
     response.isDefined should be(true)
     response.get should equal(1)
   }
 
-  "the updateExportLocation method" should "throw an exception if no data is returned" in {
+  "the updateExportData method" should "throw an exception if no data is returned" in {
     val consignmentClient = mock[GraphQLClient[gce.Data, gce.Variables]]
-    val updateExportClient = mock[GraphQLClient[uel.Data, uel.Variables]]
+    val updateExportClient = mock[GraphQLClient[ued.Data, ued.Variables]]
     val keycloak = mock[KeycloakUtils]
     val api = new GraphQlApi(keycloak, consignmentClient, updateExportClient)
     val consignmentId = UUID.randomUUID()
 
     doAnswer(() => Future(new BearerAccessToken("token"))).when(keycloak).serviceAccountToken[Identity](any[String], any[String])(
       any[SttpBackend[Identity, Nothing, NothingT]], any[ClassTag[Identity[_]]], any[TdrKeycloakDeployment])
-    val data = new GraphQlResponse[uel.Data](Option.empty[uel.Data], List())
-    doAnswer(() => Future(data)).when(updateExportClient).getResult[Identity](any[BearerAccessToken], any[Document], any[Option[uel.Variables]])(any[SttpBackend[Identity, Nothing, NothingT]], any[ClassTag[Identity[_]]])
+    val data = new GraphQlResponse[ued.Data](Option.empty[ued.Data], List())
+    doAnswer(() => Future(data)).when(updateExportClient).getResult[Identity](any[BearerAccessToken], any[Document], any[Option[ued.Variables]])(any[SttpBackend[Identity, Nothing, NothingT]], any[ClassTag[Identity[_]]])
 
     val exception = intercept[RuntimeException] {
-      api.updateExportLocation(config, consignmentId, s"s3://testbucket/$consignmentId.tar.gz", fixedDateTime).unsafeRunSync()
+      api.updateExportData(config, consignmentId, s"s3://testbucket/$consignmentId.tar.gz", fixedDateTime, "0.0.Version").unsafeRunSync()
     }
     exception.getMessage should equal(s"No data returned from the update export call for consignment $consignmentId ")
   }
@@ -79,7 +79,7 @@ class GraphQlApiSpec extends ExportSpec {
     val transferringBody = TransferringBody("tb-name")
     val consignmentType = "standard"
     val consignmentClient = mock[GraphQLClient[gce.Data, gce.Variables]]
-    val updateExportClient = mock[GraphQLClient[uel.Data, uel.Variables]]
+    val updateExportClient = mock[GraphQLClient[ued.Data, ued.Variables]]
     val keycloak = mock[KeycloakUtils]
     val api = new GraphQlApi(keycloak, consignmentClient, updateExportClient)
     val consignmentId = UUID.randomUUID()
@@ -107,7 +107,7 @@ class GraphQlApiSpec extends ExportSpec {
 
   "the getConsignmentMetadata method" should "throw an exception if no data is returned" in {
     val consignmentClient = mock[GraphQLClient[gce.Data, gce.Variables]]
-    val updateExportClient = mock[GraphQLClient[uel.Data, uel.Variables]]
+    val updateExportClient = mock[GraphQLClient[ued.Data, ued.Variables]]
     val keycloak = mock[KeycloakUtils]
     val api = new GraphQlApi(keycloak, consignmentClient, updateExportClient)
     val consignmentId = UUID.randomUUID()
