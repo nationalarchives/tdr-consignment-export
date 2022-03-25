@@ -7,7 +7,7 @@ import java.io.File
 import java.nio.charset.StandardCharsets
 
 
-ThisBuild / scalaVersion := "2.13.3"
+ThisBuild / scalaVersion := "2.13.8"
 ThisBuild / organization := "com.example"
 ThisBuild / organizationName := "example"
 
