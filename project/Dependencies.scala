@@ -5,7 +5,7 @@ object Dependencies {
   private val keycloakVersion = "16.1.0"
   private val log4CatsVersion = "1.1.1"
   private val mockitoScalaVersion = "1.16.0"
-  private val monovoreDeclineVersion = "1.3.0"
+  private val monovoreDeclineVersion = "1.4.0"
 
   lazy val authUtils = "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.30"
   lazy val awsUtils =  "uk.gov.nationalarchives.aws.utils" %% "tdr-aws-utils" % "0.1.18"
