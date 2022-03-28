@@ -1,0 +1,34 @@
+5d1db43 Merge pull request #124 from nationalarchives/dependency-updates
+97444b8 Manually fix dependencies
+87316b1 Merge pull request #107 from nationalarchives/update/sbt-buildinfo-0.11.0
+207eb14 Merge branch 'dependency-updates' into update/sbt-buildinfo-0.11.0
+513c4b8 Merge pull request #108 from nationalarchives/update/fm-sbt-s3-resolver-0.21.0
+84e432f Merge branch 'dependency-updates' into update/fm-sbt-s3-resolver-0.21.0
+515a48f Merge pull request #110 from nationalarchives/update/pureconfig-0.14.1
+f125a4a Merge branch 'dependency-updates' into update/pureconfig-0.14.1
+9a5fbf9 Merge pull request #111 from nationalarchives/update/scala-csv-1.3.10
+d933d92 Merge branch 'dependency-updates' into update/scala-csv-1.3.10
+d115edb Merge pull request #114 from nationalarchives/update/log4cats-core-1.5.1
+718b6c0 Merge pull request #112 from nationalarchives/update/decline-1.4.0
+2c4c450 Merge branch 'dependency-updates' into update/decline-1.4.0
+e391c41 Merge branch 'dependency-updates' into update/log4cats-core-1.5.1
+8498aec Update sbt-release to 1.0.15
+e292c54 Update sbt-native-packager to 1.7.6
+36ae2bf Update keycloak-admin-client, ... to 16.1.1
+dc4f894 Update mockito-scala, ... to 1.16.55
+20747a9 Update scala-library to 2.13.8
+f17c0be Update sbt to 1.4.9
+1c85a1e Update scalatest to 3.2.11
+88aeb0a Update slf4j-simple to 1.7.36
+5f05ce1 Update cats-effect to 2.5.4
+ace0774 Merge pull request #122 from nationalarchives/update/tdr-generated-graphql-0.0.222
+24e4ba0 Merge pull request #123 from nationalarchives/version-bump-77
+15d49b3 Setting version to 0.0.39-SNAPSHOT
+57d447e Merge branch 'master' into update/sbt-buildinfo-0.11.0
+e44edd1 Update tdr-generated-graphql to 0.0.222
+a5238b9 Update log4cats-core, log4cats-slf4j to 1.5.1
+4c2fa01 Update decline, decline-effect to 1.4.0
+08665f7 Update scala-csv to 1.3.10
+eff33e1 Update pureconfig, pureconfig-cats-effect to 0.14.1
+627552c Update fm-sbt-s3-resolver to 0.21.0
+e81cd1c Update sbt-buildinfo to 0.11.0
