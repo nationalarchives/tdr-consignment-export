@@ -1,0 +1,27 @@
+eaaf7d3 Merge pull request #136 from nationalarchives/dependency-updates
+94c1ed1 Upgrade cats-effect
+1bb3fd9 Merge pull request #128 from nationalarchives/update/decline-2.2.0
+b35ade0 Merge branch 'dependency-updates' into update/decline-2.2.0
+e1f095c Merge pull request #130 from nationalarchives/update/log4cats-core-1.5.1
+7624aa1 Merge branch 'dependency-updates' into update/log4cats-core-1.5.1
+817673f Merge pull request #126 from nationalarchives/update/sbt-assembly-1.1.1
+6a65544 Merge pull request #127 from nationalarchives/update/pureconfig-0.17.1
+2438c62 Merge pull request #129 from nationalarchives/update/sbt-native-packager-1.8.1
+be90792 Merge pull request #131 from nationalarchives/update/mockito-scala-1.17.5
+74d1398 Merge pull request #132 from nationalarchives/update/sbt-1.6.2
+0a6235e Merge pull request #133 from nationalarchives/update/cats-effect-3.3.9
+b6f609e Merge pull request #134 from nationalarchives/update/tdr-auth-utils-0.0.37
+26ae32d Merge pull request #135 from nationalarchives/update/tdr-generated-graphql-0.0.225
+a3300bc Update tdr-generated-graphql to 0.0.225
+35afb8b Update tdr-auth-utils to 0.0.37
+123aebc Update cats-effect to 3.3.9
+459c647 Update sbt to 1.6.2
+8a5c128 Applied Scalafix rule(s) https://gist.githubusercontent.com/eed3si9n/57e83f5330592d968ce49f0d5030d4d5/raw/7f576f16a90e432baa49911c9a66204c354947bb/Sbt0_13BuildSyntax.scala
+84f83d8 Update mockito-scala, ... to 1.17.5
+898afd7 Update log4cats-core, log4cats-slf4j to 1.5.1
+17768bf Update sbt-native-packager to 1.8.1
+4ce314d Update decline, decline-effect to 2.2.0
+dfc8032 Update pureconfig, pureconfig-cats-effect to 0.17.1
+4caf946 Update sbt-assembly to 1.1.1
+15c3e5b Merge pull request #125 from nationalarchives/version-bump-78
+9cb5d82 Setting version to 0.0.40-SNAPSHOT
