@@ -4,7 +4,7 @@ object Dependencies {
   private val githubPureConfigVersion = "0.14.1"
   private val keycloakVersion = "16.1.1"
   private val log4CatsVersion = "1.1.1"
-  private val mockitoScalaVersion = "1.16.55"
+  private val mockitoScalaVersion = "1.17.5"
   private val monovoreDeclineVersion = "1.4.0"
 
   lazy val authUtils = "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.30"
