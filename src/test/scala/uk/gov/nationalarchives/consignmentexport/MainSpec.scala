@@ -12,6 +12,7 @@ import scala.io.Source
 import scala.io.Source.fromResource
 import scala.jdk.CollectionConverters._
 import scala.sys.process._
+import cats.effect.unsafe.implicits.global
 
 class MainSpec extends ExternalServiceSpec {
 

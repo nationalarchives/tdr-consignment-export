@@ -2,12 +2,11 @@ package uk.gov.nationalarchives.consignmentexport
 
 import java.time.ZonedDateTime
 import java.util.UUID
-
 import cats.effect.IO
 import gov.loc.repository.bagit.domain.Metadata
 import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignment
-import io.chrisdavenport.log4cats.SelfAwareStructuredLogger
 import org.keycloak.representations.idm.UserRepresentation
+import org.typelevel.log4cats.SelfAwareStructuredLogger
 import uk.gov.nationalarchives.consignmentexport.BagMetadata.{BagCreator, _}
 import uk.gov.nationalarchives.consignmentexport.BuildInfo.version
 import uk.gov.nationalarchives.consignmentexport.Utils._

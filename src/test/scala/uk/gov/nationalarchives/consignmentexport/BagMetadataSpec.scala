@@ -8,6 +8,7 @@ import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignme
 import org.keycloak.representations.idm.UserRepresentation
 import uk.gov.nationalarchives.consignmentexport.BuildInfo.version
 import uk.gov.nationalarchives.consignmentexport.Utils._
+import cats.effect.unsafe.implicits.global
 
 class BagMetadataSpec extends ExportSpec {
 

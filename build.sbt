@@ -56,11 +56,11 @@ lazy val root = (project in file("."))
       scalaTest % Test,
       slf4j
     ),
-    packageName in Universal := "tdr-consignment-export",
-    fork in Test := true,
-    javaOptions in Test += s"-Dconfig.file=${sourceDirectory.value}/test/resources/application.conf",
+    (Universal / packageName) := "tdr-consignment-export",
+    (Test / fork) := true,
+    (Test / javaOptions) += s"-Dconfig.file=${sourceDirectory.value}/test/resources/application.conf",
     ghreleaseRepoOrg := "nationalarchives",
-    ghreleaseAssets := Seq(file(s"${(target in Universal).value}/${(packageName in Universal).value}.tgz")),
+    ghreleaseAssets := Seq(file(s"${(Universal / target).value}/${(Universal / packageName).value}.tgz")),
     releaseProcess := Seq[ReleaseStep](
       inquireVersions,
       setReleaseVersion,
@@ -68,7 +68,7 @@ lazy val root = (project in file("."))
       commitReleaseVersion,
       tagRelease,
       pushChanges,
-      releaseStepTask(packageZipTarball in Universal),
+      releaseStepTask((Universal / packageZipTarball)),
       releaseStepInputTask(githubRelease),
       setNextVersion,
       commitNextVersion,
@@ -76,5 +76,5 @@ lazy val root = (project in file("."))
     ),
     buildInfoKeys := Seq[BuildInfoKey](version),
     buildInfoPackage := "uk.gov.nationalarchives.consignmentexport",
-    javaOptions in Test += s"-Dconfig.file=${sourceDirectory.value}/test/resources/application.conf"
+    (Test / javaOptions) += s"-Dconfig.file=${sourceDirectory.value}/test/resources/application.conf"
   ).enablePlugins(JavaAppPackaging, UniversalPlugin, BuildInfoPlugin)

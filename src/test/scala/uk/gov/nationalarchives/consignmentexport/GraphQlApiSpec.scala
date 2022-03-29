@@ -3,7 +3,7 @@ package uk.gov.nationalarchives.consignmentexport
 import java.time.{LocalDateTime, ZonedDateTime}
 import java.util.UUID
 
-import cats.effect.{ContextShift, IO}
+import cats.effect.IO
 import cats.implicits._
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import graphql.codegen.GetConsignmentExport
@@ -19,15 +19,15 @@ import uk.gov.nationalarchives.tdr.{GraphQLClient, GraphQlResponse}
 
 import scala.concurrent.{ExecutionContextExecutor, Future}
 import scala.reflect.ClassTag
+import cats.effect.unsafe.implicits.global
 
 class GraphQlApiSpec extends ExportSpec {
   implicit val executionContext: ExecutionContextExecutor = scala.concurrent.ExecutionContext.global
-  implicit val contextShift: ContextShift[IO] = IO.contextShift(executionContext)
   implicit val backend: SttpBackend[Identity, Nothing, NothingT] = HttpURLConnectionBackend()
 
   private val fixedDateTime = ZonedDateTime.now()
 
-  val config = Configuration(
+  val config: Configuration = Configuration(
     S3("", "", "", ""),
     Api(""),
     Auth("authUrl", "clientId", "clientSecret", "realm"),

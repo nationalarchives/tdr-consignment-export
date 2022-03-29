@@ -10,6 +10,8 @@ import uk.gov.nationalarchives.consignmentexport.Utils.PathUtils
 import scala.io.Source
 import uk.gov.nationalarchives.consignmentexport.Validator.{ValidatedAntivirusMetadata, ValidatedFFIDMetadata, ValidatedFileMetadata}
 
+import cats.effect.unsafe.implicits.global
+
 class BagAdditionalFilesSpec extends ExportSpec {
   "fileMetadataCsv" should "produce a file with the correct rows" in {
     val bagAdditionalFiles = BagAdditionalFiles(getClass.getResource(".").getPath.toPath)
