@@ -4,6 +4,7 @@ import java.io.File
 
 import cats.effect.IO
 import org.mockito.ArgumentCaptor
+import cats.effect.unsafe.implicits.global
 
 class BashCommandsSpec extends ExportSpec {
   "the runCommand method" should "returns the correct output for a successful command" in {

@@ -1,6 +1,6 @@
 package uk.gov.nationalarchives.consignmentexport
 
-import cats.effect.{Blocker, ContextShift, IO}
+import cats.effect.IO
 import pureconfig.generic.ProductHint
 import pureconfig.generic.auto._
 import pureconfig.module.catseffect.syntax._
@@ -17,5 +17,5 @@ object Config {
 
   implicit def hint[A]: ProductHint[A] = ProductHint[A](ConfigFieldMapping(CamelCase, CamelCase))
 
-  def config()(implicit contextShift: ContextShift[IO]): IO[Configuration] = Blocker[IO].use(ConfigSource.default.loadF[IO, Configuration])
+  def config(): IO[Configuration] = ConfigSource.default.loadF[IO, Configuration]
 }

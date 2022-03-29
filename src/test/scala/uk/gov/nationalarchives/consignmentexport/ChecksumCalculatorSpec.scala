@@ -1,6 +1,7 @@
 package uk.gov.nationalarchives.consignmentexport
 
 import java.io.File
+import cats.effect.unsafe.implicits.global
 
 class ChecksumCalculatorSpec extends ExportSpec {
   "calculateChecksum" should "calculate the checksum for a single file" in {

@@ -3,15 +3,13 @@ package uk.gov.nationalarchives.consignmentexport
 import java.nio.charset.Charset
 import java.nio.file.Path
 import java.util
-import java.util.UUID
-
 import cats.effect.IO
 import gov.loc.repository.bagit.creator.BagCreator
-import gov.loc.repository.bagit.domain.{Bag, Metadata, Manifest}
+import gov.loc.repository.bagit.domain.{Bag, Manifest, Metadata}
 import gov.loc.repository.bagit.hash.{StandardSupportedAlgorithms, SupportedAlgorithm}
 import gov.loc.repository.bagit.verify.BagVerifier
 import gov.loc.repository.bagit.writer.ManifestWriter
-import io.chrisdavenport.log4cats.SelfAwareStructuredLogger
+import org.typelevel.log4cats.SelfAwareStructuredLogger
 import uk.gov.nationalarchives.consignmentexport.ChecksumCalculator.ChecksumFile
 import uk.gov.nationalarchives.consignmentexport.Utils._
 

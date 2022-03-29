@@ -2,8 +2,6 @@ package uk.gov.nationalarchives.consignmentexport
 
 import java.time.ZonedDateTime
 import java.util.UUID
-
-import cats.effect.{ContextShift, IO}
 import cats.implicits._
 import uk.gov.nationalarchives.tdr.{GraphQLClient, GraphQlResponse}
 import graphql.codegen.GetConsignmentExport.{getConsignmentForExport => gce}
@@ -12,7 +10,8 @@ import graphql.codegen.UpdateExportData.{updateExportData => ued}
 import graphql.codegen.types.UpdateExportDataInput
 import sttp.client.{HttpURLConnectionBackend, Identity, NothingT, SttpBackend}
 import GraphQlApi._
-import io.chrisdavenport.log4cats.SelfAwareStructuredLogger
+import cats.effect.IO
+import org.typelevel.log4cats.SelfAwareStructuredLogger
 import uk.gov.nationalarchives.consignmentexport.Config.Configuration
 
 import scala.concurrent.{ExecutionContextExecutor, Future}
@@ -20,8 +19,7 @@ import scala.concurrent.{ExecutionContextExecutor, Future}
 class GraphQlApi(keycloak: KeycloakUtils,
                  consignmentClient: GraphQLClient[gce.Data, gce.Variables],
                  updateExportDataClient: GraphQLClient[ued.Data, ued.Variables])(
-  implicit val contextShift: ContextShift[IO],
-  val logger: SelfAwareStructuredLogger[IO],
+  implicit val logger: SelfAwareStructuredLogger[IO],
   keycloakDeployment: TdrKeycloakDeployment,
   backend: SttpBackend[Identity, Nothing, NothingT]) {
 
@@ -50,18 +48,17 @@ object GraphQlApi {
   implicit val backend: SttpBackend[Identity, Nothing, NothingT] = HttpURLConnectionBackend()
 
   def apply(apiUrl: String)(
-    implicit contextShift: ContextShift[IO],
-    logger: SelfAwareStructuredLogger[IO],
+    implicit logger: SelfAwareStructuredLogger[IO],
     keycloakDeployment: TdrKeycloakDeployment,
     backend: SttpBackend[Identity, Nothing, NothingT]
   ): GraphQlApi = {
     val keycloak = new KeycloakUtils()
     val getConsignmentClient = new GraphQLClient[gce.Data, gce.Variables](apiUrl)
     val updateExportDataClient = new GraphQLClient[ued.Data, ued.Variables](apiUrl)
-    new GraphQlApi(keycloak, getConsignmentClient, updateExportDataClient)(contextShift, logger, keycloakDeployment, backend)
+    new GraphQlApi(keycloak, getConsignmentClient, updateExportDataClient)(logger, keycloakDeployment, backend)
   }
 
-  implicit class FutureUtils[T](f: Future[T])(implicit contextShift: ContextShift[IO]) {
+  implicit class FutureUtils[T](f: Future[T]) {
     def toIO: IO[T] = IO.fromFuture(IO(f))
   }
 }

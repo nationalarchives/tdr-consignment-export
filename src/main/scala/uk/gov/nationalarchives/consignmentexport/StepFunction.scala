@@ -3,7 +3,7 @@ package uk.gov.nationalarchives.consignmentexport
 import java.util.UUID
 
 import cats.effect.IO
-import io.chrisdavenport.log4cats.SelfAwareStructuredLogger
+import org.typelevel.log4cats.SelfAwareStructuredLogger
 import io.circe.generic.auto._
 import io.circe.syntax._
 import software.amazon.awssdk.services.sfn.model.{SendTaskFailureResponse, SendTaskHeartbeatResponse, SendTaskSuccessResponse}

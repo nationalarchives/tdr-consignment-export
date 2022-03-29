@@ -10,7 +10,7 @@ import gov.loc.repository.bagit.domain.{Bag, Manifest, Metadata, Version}
 import gov.loc.repository.bagit.hash.{StandardSupportedAlgorithms, SupportedAlgorithm}
 import org.mockito.ArgumentCaptor
 import uk.gov.nationalarchives.consignmentexport.ChecksumCalculator.ChecksumFile
-
+import cats.effect.unsafe.implicits.global
 import scala.jdk.CollectionConverters._
 
 class BagitSpec extends ExportSpec {

@@ -2,14 +2,12 @@ package uk.gov.nationalarchives.consignmentexport
 
 import java.time.{ZoneOffset, ZonedDateTime}
 import java.util.UUID
-
 import cats.effect._
-import cats.syntax.all._
 import com.monovore.decline.Opts
 import com.monovore.decline.effect.CommandIOApp
 import com.typesafe.config.ConfigFactory
-import io.chrisdavenport.log4cats.SelfAwareStructuredLogger
-import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
+import org.typelevel.log4cats.SelfAwareStructuredLogger
+import org.typelevel.log4cats.slf4j.Slf4jLogger
 import uk.gov.nationalarchives.aws.utils.Clients.{s3Async, sfnAsyncClient}
 import uk.gov.nationalarchives.aws.utils.{S3Utils, StepFunctionUtils}
 import uk.gov.nationalarchives.consignmentexport.Arguments._

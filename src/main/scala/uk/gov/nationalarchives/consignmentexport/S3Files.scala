@@ -5,7 +5,7 @@ import java.util.UUID
 
 import cats.effect.IO
 import cats.implicits._
-import io.chrisdavenport.log4cats.SelfAwareStructuredLogger
+import org.typelevel.log4cats.SelfAwareStructuredLogger
 import uk.gov.nationalarchives.aws.utils.S3Utils
 import uk.gov.nationalarchives.consignmentexport.Main.directoryType
 import uk.gov.nationalarchives.consignmentexport.Utils._

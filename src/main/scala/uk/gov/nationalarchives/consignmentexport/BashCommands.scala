@@ -4,7 +4,7 @@ import java.io.{File, FileOutputStream}
 import java.nio.charset.Charset
 
 import cats.effect.{IO, Resource}
-import io.chrisdavenport.log4cats.SelfAwareStructuredLogger
+import org.typelevel.log4cats.SelfAwareStructuredLogger
 
 import scala.language.postfixOps
 import scala.sys.process._
