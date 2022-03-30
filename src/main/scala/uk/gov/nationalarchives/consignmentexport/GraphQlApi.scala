@@ -8,7 +8,7 @@ import graphql.codegen.GetConsignmentExport.{getConsignmentForExport => gce}
 import uk.gov.nationalarchives.tdr.keycloak.{KeycloakUtils, TdrKeycloakDeployment}
 import graphql.codegen.UpdateExportData.{updateExportData => ued}
 import graphql.codegen.types.UpdateExportDataInput
-import sttp.client.{HttpURLConnectionBackend, Identity, NothingT, SttpBackend}
+import sttp.client3.{HttpURLConnectionBackend, Identity, SttpBackend}
 import GraphQlApi._
 import cats.effect.IO
 import org.typelevel.log4cats.SelfAwareStructuredLogger
@@ -21,7 +21,7 @@ class GraphQlApi(keycloak: KeycloakUtils,
                  updateExportDataClient: GraphQLClient[ued.Data, ued.Variables])(
   implicit val logger: SelfAwareStructuredLogger[IO],
   keycloakDeployment: TdrKeycloakDeployment,
-  backend: SttpBackend[Identity, Nothing, NothingT]) {
+  backend: SttpBackend[Identity, Any]) {
 
   implicit class ErrorUtils[D](response: GraphQlResponse[D]) {
     val errorString: String = response.errors.map(_.message).mkString("\n")
@@ -45,12 +45,12 @@ class GraphQlApi(keycloak: KeycloakUtils,
 
 object GraphQlApi {
   implicit val ec: ExecutionContextExecutor = scala.concurrent.ExecutionContext.global
-  implicit val backend: SttpBackend[Identity, Nothing, NothingT] = HttpURLConnectionBackend()
+  implicit val backend: SttpBackend[Identity, Any] = HttpURLConnectionBackend()
 
   def apply(apiUrl: String)(
     implicit logger: SelfAwareStructuredLogger[IO],
     keycloakDeployment: TdrKeycloakDeployment,
-    backend: SttpBackend[Identity, Nothing, NothingT]
+    backend: SttpBackend[Identity, Any]
   ): GraphQlApi = {
     val keycloak = new KeycloakUtils()
     val getConsignmentClient = new GraphQLClient[gce.Data, gce.Variables](apiUrl)

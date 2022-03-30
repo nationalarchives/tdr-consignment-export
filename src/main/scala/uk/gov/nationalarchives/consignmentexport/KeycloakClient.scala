@@ -4,7 +4,7 @@ import org.keycloak.OAuth2Constants
 import org.keycloak.admin.client.resource.{RealmResource, UsersResource}
 import org.keycloak.admin.client.{Keycloak, KeycloakBuilder}
 import org.keycloak.representations.idm.UserRepresentation
-import sttp.client.{HttpURLConnectionBackend, Identity, NothingT, SttpBackend}
+import sttp.client3.{HttpURLConnectionBackend, Identity, SttpBackend}
 import uk.gov.nationalarchives.consignmentexport.Config.Configuration
 
 import scala.language.postfixOps
@@ -27,7 +27,7 @@ class KeycloakClient(keycloakAdminClient: Keycloak, config: Configuration) {
 }
 
 object KeycloakClient {
-  implicit val backend: SttpBackend[Identity, Nothing, NothingT] = HttpURLConnectionBackend()
+  implicit val backend: SttpBackend[Identity, Any] = HttpURLConnectionBackend()
 
   def apply(config: Configuration): KeycloakClient = {
     val keycloakAdminClient = KeycloakBuilder.builder()
