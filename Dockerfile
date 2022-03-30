@@ -1,4 +1,4 @@
-FROM alpine
+FROM alpine:3.15.3
 RUN apk add --no-cache bash tar curl wget && \
     apk update && \
     apk upgrade p11-kit busybox libretls && \
