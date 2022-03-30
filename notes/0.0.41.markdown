@@ -1,0 +1,12 @@
+75598c2 Merge pull request #143 from nationalarchives/dependency-updates
+7741800 Upgrade to latest versions
+0f9ef47 Merge pull request #138 from nationalarchives/update/sbt-assembly-1.2.0
+071c744 Merge pull request #139 from nationalarchives/update/sbt-native-packager-1.9.9
+c1888dd Merge pull request #140 from nationalarchives/update/tdr-auth-utils-0.0.38
+ca07d54 Merge pull request #141 from nationalarchives/update/tdr-graphql-client-0.0.19
+5c923ec Update tdr-graphql-client to 0.0.19
+bec271f Update tdr-auth-utils to 0.0.38
+66b0ede Update sbt-native-packager to 1.9.9
+72709fc Update sbt-assembly to 1.2.0
+0d4a7f9 Merge pull request #137 from nationalarchives/version-bump-79
+e866eda Setting version to 0.0.41-SNAPSHOT
