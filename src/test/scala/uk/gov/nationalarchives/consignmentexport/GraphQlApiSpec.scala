@@ -12,7 +12,7 @@ import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignme
 import graphql.codegen.GetConsignmentExport.{getConsignmentForExport => gce}
 import graphql.codegen.UpdateExportData.{updateExportData => ued}
 import sangria.ast.Document
-import sttp.client.{HttpURLConnectionBackend, Identity, NothingT, SttpBackend}
+import sttp.client3.{HttpURLConnectionBackend, Identity, SttpBackend}
 import uk.gov.nationalarchives.consignmentexport.Config._
 import uk.gov.nationalarchives.tdr.keycloak.{KeycloakUtils, TdrKeycloakDeployment}
 import uk.gov.nationalarchives.tdr.{GraphQLClient, GraphQlResponse}
@@ -23,7 +23,7 @@ import cats.effect.unsafe.implicits.global
 
 class GraphQlApiSpec extends ExportSpec {
   implicit val executionContext: ExecutionContextExecutor = scala.concurrent.ExecutionContext.global
-  implicit val backend: SttpBackend[Identity, Nothing, NothingT] = HttpURLConnectionBackend()
+  implicit val backend: SttpBackend[Identity, Any] = HttpURLConnectionBackend()
 
   private val fixedDateTime = ZonedDateTime.now()
 
@@ -44,9 +44,9 @@ class GraphQlApiSpec extends ExportSpec {
     val consignmentId = UUID.randomUUID()
 
     doAnswer(() => Future(new BearerAccessToken("token"))).when(keycloak).serviceAccountToken[Identity](
-      any[String], any[String])(any[SttpBackend[Identity, Nothing, NothingT]], any[ClassTag[Identity[_]]], any[TdrKeycloakDeployment])
+      any[String], any[String])(any[SttpBackend[Identity, Any]], any[ClassTag[Identity[_]]], any[TdrKeycloakDeployment])
     val data = new GraphQlResponse[ued.Data](ued.Data(1.some).some, List())
-    doAnswer(() => Future(data)).when(updateExportClient).getResult[Identity](any[BearerAccessToken], any[Document], any[Option[ued.Variables]])(any[SttpBackend[Identity, Nothing, NothingT]], any[ClassTag[Identity[_]]])
+    doAnswer(() => Future(data)).when(updateExportClient).getResult[Identity](any[BearerAccessToken], any[Document], any[Option[ued.Variables]])(any[SttpBackend[Identity, Any]], any[ClassTag[Identity[_]]])
 
     val response = api.updateExportData(config, consignmentId, s"s3://testbucket/$consignmentId.tar.gz", fixedDateTime, "0.0.Version").unsafeRunSync()
     response.isDefined should be(true)
@@ -61,9 +61,9 @@ class GraphQlApiSpec extends ExportSpec {
     val consignmentId = UUID.randomUUID()
 
     doAnswer(() => Future(new BearerAccessToken("token"))).when(keycloak).serviceAccountToken[Identity](any[String], any[String])(
-      any[SttpBackend[Identity, Nothing, NothingT]], any[ClassTag[Identity[_]]], any[TdrKeycloakDeployment])
+      any[SttpBackend[Identity, Any]], any[ClassTag[Identity[_]]], any[TdrKeycloakDeployment])
     val data = new GraphQlResponse[ued.Data](Option.empty[ued.Data], List())
-    doAnswer(() => Future(data)).when(updateExportClient).getResult[Identity](any[BearerAccessToken], any[Document], any[Option[ued.Variables]])(any[SttpBackend[Identity, Nothing, NothingT]], any[ClassTag[Identity[_]]])
+    doAnswer(() => Future(data)).when(updateExportClient).getResult[Identity](any[BearerAccessToken], any[Document], any[Option[ued.Variables]])(any[SttpBackend[Identity, Any]], any[ClassTag[Identity[_]]])
 
     val exception = intercept[RuntimeException] {
       api.updateExportData(config, consignmentId, s"s3://testbucket/$consignmentId.tar.gz", fixedDateTime, "0.0.Version").unsafeRunSync()
@@ -91,9 +91,9 @@ class GraphQlApiSpec extends ExportSpec {
     )
 
     doAnswer(() => Future(new BearerAccessToken("token"))).when(keycloak).serviceAccountToken[Identity](any[String], any[String])(
-      any[SttpBackend[Identity, Nothing, NothingT]], any[ClassTag[Identity[_]]], any[TdrKeycloakDeployment])
+      any[SttpBackend[Identity, Any]], any[ClassTag[Identity[_]]], any[TdrKeycloakDeployment])
     val data = new GraphQlResponse[gce.Data](gce.Data(Some(consignment)).some, List())
-    doAnswer(() => Future(data)).when(consignmentClient).getResult[Identity](any[BearerAccessToken], any[Document], any[Option[gce.Variables]])(any[SttpBackend[Identity, Nothing, NothingT]], any[ClassTag[Identity[_]]])
+    doAnswer(() => Future(data)).when(consignmentClient).getResult[Identity](any[BearerAccessToken], any[Document], any[Option[gce.Variables]])(any[SttpBackend[Identity, Any]], any[ClassTag[Identity[_]]])
 
     val response = api.getConsignmentMetadata(config, consignmentId).unsafeRunSync()
     response.get.userid should be(userId)
@@ -113,9 +113,9 @@ class GraphQlApiSpec extends ExportSpec {
     val consignmentId = UUID.randomUUID()
 
     doAnswer(() => Future(new BearerAccessToken("token"))).when(keycloak).serviceAccountToken[Identity](any[String], any[String])(
-      any[SttpBackend[Identity, Nothing, NothingT]], any[ClassTag[Identity[_]]], any[TdrKeycloakDeployment])
+      any[SttpBackend[Identity, Any]], any[ClassTag[Identity[_]]], any[TdrKeycloakDeployment])
     val data = new GraphQlResponse[gce.Data](Option.empty[gce.Data], List())
-    doAnswer(() => Future(data)).when(consignmentClient).getResult[Identity](any[BearerAccessToken], any[Document], any[Option[gce.Variables]])(any[SttpBackend[Identity, Nothing, NothingT]], any[ClassTag[Identity[_]]])
+    doAnswer(() => Future(data)).when(consignmentClient).getResult[Identity](any[BearerAccessToken], any[Document], any[Option[gce.Variables]])(any[SttpBackend[Identity, Any]], any[ClassTag[Identity[_]]])
 
     val exception = intercept[RuntimeException] {
       api.getConsignmentMetadata(config, consignmentId).unsafeRunSync()
