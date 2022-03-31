@@ -1,0 +1,8 @@
+6f92400 Merge pull request #145 from nationalarchives/update/tdr-generated-graphql-0.0.226
+c55ae50 Update tdr-generated-graphql to 0.0.226
+078d198 Merge pull request #144 from nationalarchives/version-bump-80
+73af4a0 Merge branch 'master' into version-bump-80
+925fc5a Merge pull request #142 from nationalarchives/snyk-fix-aa17f6d671fc56e4557e1d55520148dd
+dc85f37 Merge branch 'master' into snyk-fix-aa17f6d671fc56e4557e1d55520148dd
+0260566 Setting version to 0.0.42-SNAPSHOT
+e6195ac fix: Dockerfile to reduce vulnerabilities
