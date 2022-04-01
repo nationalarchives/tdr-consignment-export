@@ -8,7 +8,7 @@ object Dependencies {
   private val monovoreDeclineVersion = "2.2.0"
 
   lazy val authUtils = "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.42"
-  lazy val awsUtils =  "uk.gov.nationalarchives" %% "tdr-aws-utils" % "0.1.24"
+  lazy val awsUtils =  "uk.gov.nationalarchives" %% "tdr-aws-utils" % "0.1.26"
   lazy val bagit = "gov.loc" % "bagit" % "5.2.0"
   lazy val catsEffect = "org.typelevel" %% "cats-effect" % "3.3.9"
   lazy val decline = "com.monovore" %% "decline" % monovoreDeclineVersion
