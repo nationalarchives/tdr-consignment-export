@@ -1,0 +1,13 @@
+b309d23 Merge pull request #151 from nationalarchives/dependency-updates
+a6de27d Merge pull request #147 from nationalarchives/update/tdr-auth-utils-0.0.42
+4427dcc Merge branch 'dependency-updates' into update/tdr-auth-utils-0.0.42
+a6efc9c Merge pull request #149 from nationalarchives/update/tdr-generated-graphql-0.0.230
+177bd67 Merge branch 'dependency-updates' into update/tdr-generated-graphql-0.0.230
+9781e1b Merge pull request #148 from nationalarchives/update/tdr-aws-utils-0.1.24
+e68b25f Merge pull request #150 from nationalarchives/update/tdr-graphql-client-0.0.23
+e16c09f Update tdr-graphql-client to 0.0.23
+92bb930 Update tdr-generated-graphql to 0.0.230
+5a5608e Update tdr-aws-utils to 0.1.24
+e7b806d Update tdr-auth-utils to 0.0.42
+a05355d Merge pull request #146 from nationalarchives/version-bump-82
+5164133 Setting version to 0.0.43-SNAPSHOT
