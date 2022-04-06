@@ -1,0 +1,4 @@
+b47eb36 Merge pull request #164 from nationalarchives/snyk-fix-d97d6d129376c6530b0496a02ebc5552
+02e9ae4 fix: Dockerfile to reduce vulnerabilities
+15b6449 Merge pull request #163 from nationalarchives/version-bump-87
+82a5e4c Setting version to 0.0.48-SNAPSHOT
