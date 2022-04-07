@@ -1,6 +1,6 @@
 name: TDR Run Consignment Export Tests
 on:
-  pull_request_target:
+  pull_request:
   push:
     branches-ignore:
       - master
