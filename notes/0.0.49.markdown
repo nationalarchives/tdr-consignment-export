@@ -1,0 +1,5 @@
+1a91cdf Merge pull request #166 from nationalarchives/temporary-add-thread-sleep
+7308b8a Pull request feedback
+362bf59 Temporarily add sleep for downloading files
+533e9e7 Merge pull request #165 from nationalarchives/version-bump-88
+930445b Setting version to 0.0.49-SNAPSHOT
