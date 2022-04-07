@@ -38,6 +38,7 @@ lazy val root = (project in file("."))
     ),
     (Universal / packageName) := "tdr-consignment-export",
     (Test / fork) := true,
+    (Test / envVars) := Map("AWS_ACCESS_KEY_ID" -> "test", "AWS_SECRET_ACCESS_KEY" -> "test"),
     (Test / javaOptions) += s"-Dconfig.file=${sourceDirectory.value}/test/resources/application.conf",
     releaseProcess := Seq[ReleaseStep](
       inquireVersions,
