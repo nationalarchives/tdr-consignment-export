@@ -2,7 +2,6 @@ name: Deploy Consignment Export
 permissions:
   id-token: write
 on:
-  push:
   workflow_dispatch:
     inputs:
       environment:
@@ -15,7 +14,6 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-    if: ${{ false }}
     steps:
       - name: Checkout
         uses: actions/checkout@v2
