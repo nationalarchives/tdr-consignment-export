@@ -14,7 +14,12 @@ jobs:
     steps:
       - uses: actions/checkout@v2
       - id: build
-        run: sbt 'release with-defaults'
+        run: |
+          git config --global user.email digitalpreservation@nationalarchives.gov.uk
+          git config --global user.name tna-digital-archiving-jenkins
+          git checkout -b $BRANCH_NAME
+          git push -u origin $BRANCH_NAME
+          sbt 'release with-defaults'
       - name: Configure AWS credentials from management account
         uses: aws-actions/configure-aws-credentials@v1
         with:
@@ -26,10 +31,6 @@ jobs:
         with:
           registry: ${{ secrets.MANAGEMENT_ACCOUNT }}.dkr.ecr.eu-west-2.amazonaws.com
       - run: |
-          git config --global user.email digitalpreservation@nationalarchives.gov.uk
-          git config --global user.name tna-digital-archiving-jenkins
-          git checkout -b $BRANCH_NAME
-          git push -u origin $BRANCH_NAME
           gh release create --generate-notes ${{ steps.build.outputs.latest-tag}} target/universal/tdr-consignment-export.tgz
           gh pr create --fill
           docker build --pull --no-cache -t ${{ secrets.MANAGEMENT_ACCOUNT }}.dkr.ecr.eu-west-2.amazonaws.com/consignment-export:${{ steps.build.outputs.latest-tag}}
