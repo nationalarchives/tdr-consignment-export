@@ -38,7 +38,7 @@ jobs:
           gh pr create --fill --label 'Version bump'
           docker build --pull --no-cache -t ${{ secrets.MANAGEMENT_ACCOUNT }}.dkr.ecr.eu-west-2.amazonaws.com/consignment-export:${{ steps.build.outputs.latest-tag}} .
           docker push ${{ secrets.MANAGEMENT_ACCOUNT }}.dkr.ecr.eu-west-2.amazonaws.com/consignment-export:${{ steps.build.outputs.latest-tag}}
-          gh workflow run deploy.yml -f environment=intg -f to-deploy=${{ steps.build.outputs.latest-tag}} --ref move-to-github-actions
+          gh workflow run deploy.yml -f environment=intg -f to-deploy=${{ steps.build.outputs.latest-tag}}
         env:
           GITHUB_TOKEN: ${{ secrets.WORKFLOW_PAT }}
       - name: Send success message
