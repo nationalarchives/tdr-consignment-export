@@ -11,8 +11,16 @@ import software.amazon.awssdk.services.s3.model.{GetObjectResponse, PutObjectRes
 import uk.gov.nationalarchives.aws.utils.S3Utils
 import uk.gov.nationalarchives.consignmentexport.Validator.ValidatedFileMetadata
 import cats.effect.unsafe.implicits.global
+import uk.gov.nationalarchives.consignmentexport.Config._
 
 class S3FilesSpec extends ExportSpec {
+  private val config = Configuration(
+    S3("", "", "", "", 1, 0),
+    Api(""),
+    Auth("http://localhost:9002/auth", "tdr-backend-checks", "client-secret", "tdr"),
+    EFS(""),
+    StepFunction("")
+  )
 
   "the downloadFiles method" should "call the library method with the correct arguments" in {
     val s3Utils = mock[S3Utils]
@@ -41,7 +49,7 @@ class S3FilesSpec extends ExportSpec {
     )
     val validatedMetadata = List(metadata)
 
-    S3Files(s3Utils).downloadFiles(validatedMetadata, "testbucket", consignmentId, consignmentReference, "root").unsafeRunSync()
+    S3Files(s3Utils, config).downloadFiles(validatedMetadata, "testbucket", consignmentId, consignmentReference, "root").unsafeRunSync()
 
     bucketCaptor.getValue should equal("testbucket")
     keyCaptor.getValue should equal(s"$consignmentId/$fileId")
@@ -74,7 +82,7 @@ class S3FilesSpec extends ExportSpec {
     )
     val validatedMetadata = List(metadata)
 
-    S3Files(s3Utils).downloadFiles(validatedMetadata, "testbucket", consignmentId, consignmentReference, "root").unsafeRunSync()
+    S3Files(s3Utils, config).downloadFiles(validatedMetadata, "testbucket", consignmentId, consignmentReference, "root").unsafeRunSync()
 
     pathCaptor.getValue.isDefined should equal(true)
     pathCaptor.getValue.get.toString should equal(s"""root/$consignmentReference/a/path'with/quotes"""")
@@ -91,7 +99,7 @@ class S3FilesSpec extends ExportSpec {
     val consignmentId = UUID.randomUUID()
     val consignmentRef = "TDR-2020-C57B"
 
-    S3Files(s3Utils).uploadFiles("testbucket", consignmentId, consignmentRef, "fakepath").unsafeRunSync()
+    S3Files(s3Utils, config).uploadFiles("testbucket", consignmentId, consignmentRef, "fakepath").unsafeRunSync()
 
     bucketCaptor.getAllValues.forEach(b => b should equal("testbucket"))
     val keyValues = keyCaptor.getAllValues

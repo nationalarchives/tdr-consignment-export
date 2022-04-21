@@ -9,6 +9,7 @@ import com.typesafe.config.ConfigFactory
 import org.typelevel.log4cats.SelfAwareStructuredLogger
 import software.amazon.awssdk.services.s3.model.GetObjectResponse
 import uk.gov.nationalarchives.aws.utils.S3Utils
+import uk.gov.nationalarchives.consignmentexport.Config.Configuration
 import uk.gov.nationalarchives.consignmentexport.Main.directoryType
 import uk.gov.nationalarchives.consignmentexport.Utils._
 import uk.gov.nationalarchives.consignmentexport.Validator.ValidatedFileMetadata
@@ -16,10 +17,9 @@ import uk.gov.nationalarchives.consignmentexport.Validator.ValidatedFileMetadata
 import scala.concurrent.duration._
 import scala.language.postfixOps
 
-class S3Files(s3Utils: S3Utils)(implicit val logger: SelfAwareStructuredLogger[IO]) {
-  private val configuration = ConfigFactory.load()
-  private val downloadBatchSize = configuration.getInt("s3.downloadFilesBatchSize")
-  private val downloadDelay = configuration.getInt("s3.downloadBatchDelayMs")
+class S3Files(s3Utils: S3Utils, config: Configuration)(implicit val logger: SelfAwareStructuredLogger[IO]) {
+  private val downloadBatchSize = config.s3.downloadFilesBatchSize
+  private val downloadDelay = config.s3.downloadBatchDelayMs
 
   def createDownloadDirectories(files: List[ValidatedFileMetadata], consignmentReference: String, rootLocation: String): IO[List[Boolean]] = {
     IO {
@@ -55,5 +55,5 @@ class S3Files(s3Utils: S3Utils)(implicit val logger: SelfAwareStructuredLogger[I
 }
 
 object S3Files {
-  def apply(s3Utils: S3Utils)(implicit logger: SelfAwareStructuredLogger[IO]): S3Files = new S3Files(s3Utils)(logger)
+  def apply(s3Utils: S3Utils, config: Configuration)(implicit logger: SelfAwareStructuredLogger[IO]): S3Files = new S3Files(s3Utils, config)(logger)
 }

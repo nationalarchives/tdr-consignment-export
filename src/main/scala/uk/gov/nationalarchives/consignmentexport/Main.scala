@@ -45,7 +45,7 @@ object Main extends CommandIOApp("tdr-consignment-export", "Exports tdr files in
           bashCommands = BashCommands()
           graphQlApi = GraphQlApi(config.api.url)
           keycloakClient = KeycloakClient(config)
-          s3Files = S3Files(S3Utils(s3Async))
+          s3Files = S3Files(S3Utils(s3Async), config)
           bagit = Bagit()
           validator = Validator(consignmentId)
           //Export datetime generated as value needed in bag metadata and DB table
