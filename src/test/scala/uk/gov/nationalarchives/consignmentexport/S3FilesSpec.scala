@@ -35,7 +35,7 @@ class S3FilesSpec extends ExportSpec {
     val fileId = UUID.randomUUID()
     val metadata = ValidatedFileMetadata(
       fileId,
-      "name",
+      "name1",
       "File",
       1L.some,
       LocalDateTime.now().some,
@@ -47,6 +47,7 @@ class S3FilesSpec extends ExportSpec {
       "rightsCopyright".some,
       "clientSideChecksumValue".some
     )
+
     val validatedMetadata = List(metadata)
 
     S3Files(s3Utils, config).downloadFiles(validatedMetadata, "testbucket", consignmentId, consignmentReference, "root").unsafeRunSync()
@@ -86,6 +87,34 @@ class S3FilesSpec extends ExportSpec {
 
     pathCaptor.getValue.isDefined should equal(true)
     pathCaptor.getValue.get.toString should equal(s"""root/$consignmentReference/a/path'with/quotes"""")
+  }
+
+  "the downloadFiles method" should "call the library method for each file" in {
+    val s3Utils = mock[S3Utils]
+    val bucketCaptor: ArgumentCaptor[String] = ArgumentCaptor.forClass(classOf[String])
+    val keyCaptor: ArgumentCaptor[String] = ArgumentCaptor.forClass(classOf[String])
+    val pathCaptor: ArgumentCaptor[Option[Path]] = ArgumentCaptor.forClass(classOf[Option[Path]])
+    val mockResponse = IO.pure(GetObjectResponse.builder.build())
+    doAnswer(() => mockResponse).when(s3Utils).downloadFiles(bucketCaptor.capture(), keyCaptor.capture(), pathCaptor.capture())
+
+    val consignmentId = UUID.randomUUID()
+    val consignmentReference = "Consignment-Reference"
+    val fileId1 = UUID.randomUUID()
+    val fileId2 = UUID.randomUUID()
+    val metadata1 = ValidatedFileMetadata(
+      fileId1, "name1", "File", 1L.some, LocalDateTime.now().some, "originalPath", "foiExemption".some, "heldBy".some,
+      "language".some, "legalStatus".some, "rightsCopyright".some, "clientSideChecksumValue".some
+    )
+    val metadata2 = ValidatedFileMetadata(
+      fileId2, "name2", "File", 1L.some, LocalDateTime.now().some, "originalPath", "foiExemption".some, "heldBy".some,
+      "language".some, "legalStatus".some, "rightsCopyright".some, "clientSideChecksumValue".some
+    )
+
+    val validatedMetadata = List(metadata1, metadata2)
+
+    S3Files(s3Utils, config).downloadFiles(validatedMetadata, "testbucket", consignmentId, consignmentReference, "root").unsafeRunSync()
+
+    verify(s3Utils, times(2)).downloadFiles(any[String], any[String], any[Option[Path]])
   }
 
   "the uploadFiles method" should "call the library method with the correct arguments" in {
