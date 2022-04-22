@@ -26,8 +26,8 @@ class S3Files(s3Utils: S3Utils)(implicit val logger: SelfAwareStructuredLogger[I
   def downloadFiles(files: List[ValidatedFileMetadata], bucket: String, consignmentId: UUID, consignmentReference: String, rootLocation: String): IO[Unit] = for {
     _ <- createDownloadDirectories(files, consignmentReference, rootLocation)
     _ <- files.filter(_.fileType != directoryType).map(file => {
-      IO.sleep(100 milliseconds).flatMap(_ =>
-        s3Utils.downloadFiles(bucket, s"$consignmentId/${file.fileId}", s"$rootLocation/$consignmentReference/${file.clientSideOriginalFilePath}".toPath.some))
+        Thread.sleep(1000)
+        s3Utils.downloadFiles(bucket, s"$consignmentId/${file.fileId}", s"$rootLocation/$consignmentReference/${file.clientSideOriginalFilePath}".toPath.some)
     }).sequence
     _ <- logger.info(s"Files downloaded from S3 for consignment $consignmentId")
   } yield ()
