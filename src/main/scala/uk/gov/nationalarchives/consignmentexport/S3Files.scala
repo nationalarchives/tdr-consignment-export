@@ -5,7 +5,6 @@ import java.util.UUID
 
 import cats.effect.IO
 import cats.implicits._
-import com.typesafe.config.ConfigFactory
 import org.typelevel.log4cats.SelfAwareStructuredLogger
 import software.amazon.awssdk.services.s3.model.GetObjectResponse
 import uk.gov.nationalarchives.aws.utils.S3Utils
