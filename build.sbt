@@ -54,5 +54,6 @@ lazy val root = (project in file("."))
     ),
     buildInfoKeys := Seq[BuildInfoKey](version),
     buildInfoPackage := "uk.gov.nationalarchives.consignmentexport",
+    dependencyOverrides += "org.scala-lang.modules" %% "scala-java8-compat" % "1.0.2",
     (Test / javaOptions) += s"-Dconfig.file=${sourceDirectory.value}/test/resources/application.conf"
   ).enablePlugins(JavaAppPackaging, UniversalPlugin, BuildInfoPlugin)
