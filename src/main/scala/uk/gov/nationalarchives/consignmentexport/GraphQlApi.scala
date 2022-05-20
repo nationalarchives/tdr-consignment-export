@@ -43,7 +43,7 @@ class GraphQlApi(keycloak: KeycloakUtils,
     consignmentStatus <-
       IO.fromOption(exportResult.data)(new RuntimeException(s"No consignment found for the update consignment call for consignment $consignmentId ${exportResult.errorString}"))
     updateConsignmentStatus = consignmentStatus.updateConsignmentStatus
-    _ <- logger.info(s"Export data completed for consignment $consignmentId")
+    _ <- logger.info(s"Updated consignment status '$statusType' as $status for consignment $consignmentId")
   } yield updateConsignmentStatus
 
   def updateExportData(config: Configuration, consignmentId: UUID, tarPath: String, exportDatetime: ZonedDateTime, exportVersion: String): IO[Option[Int]] = for {
