@@ -163,6 +163,6 @@ class GraphQlApiSpec extends ExportSpec {
     val exception = intercept[RuntimeException] {
       api.updateConsignmentStatus(config, consignmentId, StatusType.`export`, StatusValue.completed).unsafeRunSync()
     }
-    exception.getMessage should equal(s"No consignment found for the update consignment call for consignment $consignmentId ")
+    exception.getMessage should equal(s"No data returned from the update consignment status call for consignment$consignmentId ")
   }
 }
