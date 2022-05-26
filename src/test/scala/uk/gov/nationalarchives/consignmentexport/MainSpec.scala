@@ -13,6 +13,7 @@ import scala.io.Source.fromResource
 import scala.jdk.CollectionConverters._
 import scala.sys.process._
 import cats.effect.unsafe.implicits.global
+import uk.gov.nationalarchives.consignmentexport.ConsignmentStatus.{StatusType, StatusValue}
 
 class MainSpec extends ExternalServiceSpec {
 
@@ -146,7 +147,7 @@ class MainSpec extends ExternalServiceSpec {
     secondEmptyDirectory.list().length should be (0)
   }
 
-  "the export job" should "update the export data in the api for a 'standard' consignment type" in {
+  "the export job" should "update the export data and update the consignment status as 'Completed' in the api for a 'standard' consignment type" in {
     setUpValidExternalServices("get_consignment_for_export.json")
 
     val consignmentId = UUID.fromString("50df01e6-2e5e-4269-97e7-531a755b417d")
@@ -158,17 +159,21 @@ class MainSpec extends ExternalServiceSpec {
 
     checkStepFunctionSuccessCalled()
 
-    val exportDataEvent: Option[ServeEvent] = wiremockGraphqlServer.getAllServeEvents.asScala
-      .find(p => p.getRequest.getBodyAsString.contains("mutation updateExportData"))
+    val events = wiremockGraphqlServer.getAllServeEvents.asScala
+    val exportDataEvent: Option[ServeEvent] = events.find(p => p.getRequest.getBodyAsString.contains("mutation updateExportData"))
 
     exportDataEvent.isDefined should be(true)
 
     exportDataEvent.get.getRequest.getBodyAsString.contains(s""""consignmentId":"$consignmentId"""") should be(true)
     exportDataEvent.get.getRequest.getBodyAsString.contains(s""""exportLocation":"s3://$standardOutputBucket/$consignmentRef.tar.gz"""") should be(true)
     exportDataEvent.get.getRequest.getBodyAsString.contains(s""""exportVersion":"${BuildInfo.version}"""") should be(true)
+
+    val updateConsignmentEvent: Option[ServeEvent] = events.find(p => p.getRequest.getBodyAsString.contains("mutation updateConsignmentStatus"))
+    updateConsignmentEvent.isDefined should be(true)
+    updateConsignmentEvent.get.getRequest.getBodyAsString should include(s""""consignmentId":"$consignmentId","statusType":"${StatusType.export}","statusValue":"${StatusValue.completed}"""")
   }
 
-  "the export job" should "update the export data in the api for a 'judgment' consignment type" in {
+  "the export job" should "update the export data and update the consignment status as 'Completed' in the api for a 'judgment' consignment type" in {
     setUpValidExternalServices("get_judgment_consignment_for_export.json")
 
     val consignmentId = UUID.fromString("50df01e6-2e5e-4269-97e7-531a755b417d")
@@ -180,7 +185,8 @@ class MainSpec extends ExternalServiceSpec {
 
     checkStepFunctionSuccessCalled("publish_judgment_success_request_body")
 
-    val exportDataEvent: Option[ServeEvent] = wiremockGraphqlServer.getAllServeEvents.asScala
+    val events = wiremockGraphqlServer.getAllServeEvents.asScala
+    val exportDataEvent: Option[ServeEvent] = events
       .find(p => p.getRequest.getBodyAsString.contains("mutation updateExportData"))
 
     exportDataEvent.isDefined should be(true)
@@ -188,9 +194,13 @@ class MainSpec extends ExternalServiceSpec {
     exportDataEvent.get.getRequest.getBodyAsString.contains(s""""consignmentId":"$consignmentId"""") should be(true)
     exportDataEvent.get.getRequest.getBodyAsString.contains(s""""exportLocation":"s3://$judgmentOutputBucket/$consignmentRef.tar.gz"""") should be(true)
     exportDataEvent.get.getRequest.getBodyAsString.contains(s""""exportVersion":"${BuildInfo.version}"""") should be(true)
+
+    val updateConsignmentEvent: Option[ServeEvent] = events.find(p => p.getRequest.getBodyAsString.contains("mutation updateConsignmentStatus"))
+    updateConsignmentEvent.isDefined should be(true)
+    updateConsignmentEvent.get.getRequest.getBodyAsString should include(s""""consignmentId":"$consignmentId","statusType":"${StatusType.export}","statusValue":"${StatusValue.completed}"""")
   }
 
-  "the export job" should "throw an error if the api returns no files for a 'standard' consignment type" in {
+  "the export job" should "throw an error and update consignment status as 'Failed' if the api returns no files for a 'standard' consignment type" in {
     setUpInvalidExternalServices(graphQlGetConsignmentMetadataNoFiles("get_consignment_no_files.json"))
 
     val consignmentId = "069d225e-b0e6-4425-8f8b-c2f6f3263221"
@@ -201,9 +211,15 @@ class MainSpec extends ExternalServiceSpec {
 
     checkStepFunctionFailureCalled("publish_failure_no_files_for_consignment_request_body")
     ex.getMessage should equal(s"Consignment API returned no files for consignment $consignmentId")
+
+    val updateConsignmentEvent: Option[ServeEvent] = wiremockGraphqlServer.getAllServeEvents.asScala
+      .find(p => p.getRequest.getBodyAsString.contains("mutation updateConsignmentStatus"))
+
+    updateConsignmentEvent.isDefined should be(true)
+    updateConsignmentEvent.get.getRequest.getBodyAsString should include (s""""consignmentId":"$consignmentId","statusType":"${StatusType.export}","statusValue":"${StatusValue.failed}"""")
   }
 
-  "the export job" should "throw an error if the api returns no files for a 'judgment' consignment type" in {
+  "the export job" should "throw an error and update consignment status as 'Failed' if the api returns no files for a 'judgment' consignment type" in {
     setUpInvalidExternalServices(graphQlGetConsignmentMetadataNoFiles("get_judgment_consignment_no_files.json"))
 
     val consignmentId = "069d225e-b0e6-4425-8f8b-c2f6f3263221"
@@ -214,9 +230,15 @@ class MainSpec extends ExternalServiceSpec {
 
     checkStepFunctionFailureCalled("publish_failure_no_files_for_consignment_request_body")
     ex.getMessage should equal(s"Consignment API returned no files for consignment $consignmentId")
+
+    val updateConsignmentEvent: Option[ServeEvent] = wiremockGraphqlServer.getAllServeEvents.asScala
+      .find(p => p.getRequest.getBodyAsString.contains("mutation updateConsignmentStatus"))
+
+    updateConsignmentEvent.isDefined should be(true)
+    updateConsignmentEvent.get.getRequest.getBodyAsString should include (s""""consignmentId":"$consignmentId","statusType":"${StatusType.export}","statusValue":"${StatusValue.failed}"""")
   }
 
-  "the export job" should "throw an error if the file metadata is incomplete for a 'standard' consignment type" in {
+  "the export job" should "throw an error and update consignment status as 'Failed' if the file metadata is incomplete for a 'standard' consignment type" in {
     setUpInvalidExternalServices(graphQlGetConsignmentIncompleteMetadata("get_consignment_incomplete_metadata.json"))
 
     val consignmentId = UUID.fromString("0e634655-1563-4705-be99-abb437f971e0")
@@ -230,9 +252,15 @@ class MainSpec extends ExternalServiceSpec {
 
     checkStepFunctionFailureCalled("publish_failure_incomplete_file_properties_request_body")
     ex.getMessage should equal(s"$fileId is missing the following properties: foiExemptionCode, heldBy, language, rightsCopyright, sha256ClientSideChecksum")
+
+    val updateConsignmentEvent: Option[ServeEvent] = wiremockGraphqlServer.getAllServeEvents.asScala
+      .find(p => p.getRequest.getBodyAsString.contains("mutation updateConsignmentStatus"))
+
+    updateConsignmentEvent.isDefined should be(true)
+    updateConsignmentEvent.get.getRequest.getBodyAsString should include (s""""consignmentId":"$consignmentId","statusType":"${StatusType.export}","statusValue":"${StatusValue.failed}"""")
   }
 
-  "the export job" should "throw an error if the file metadata is incomplete for a 'judgment' consignment type" in {
+  "the export job" should "throw an error and update consignment status as 'Failed' if the file metadata is incomplete for a 'judgment' consignment type" in {
     setUpInvalidExternalServices(graphQlGetConsignmentIncompleteMetadata("get_judgment_consignment_incomplete_metadata.json"))
 
     val consignmentId = UUID.fromString("0e634655-1563-4705-be99-abb437f971e0")
@@ -246,9 +274,15 @@ class MainSpec extends ExternalServiceSpec {
 
     checkStepFunctionFailureCalled("publish_failure_incomplete_file_properties_request_body")
     ex.getMessage should equal(s"$fileId is missing the following properties: foiExemptionCode, heldBy, language, rightsCopyright, sha256ClientSideChecksum")
+
+    val updateConsignmentEvent: Option[ServeEvent] = wiremockGraphqlServer.getAllServeEvents.asScala
+      .find(p => p.getRequest.getBodyAsString.contains("mutation updateConsignmentStatus"))
+
+    updateConsignmentEvent.isDefined should be(true)
+    updateConsignmentEvent.get.getRequest.getBodyAsString should include (s""""consignmentId":"$consignmentId","statusType":"${StatusType.export}","statusValue":"${StatusValue.failed}"""")
   }
 
-  "the export job" should "throw an error if the ffid metadata is missing for a 'standard' consignment type" in {
+  "the export job" should "throw an error and update consignment status as 'Failed' if the ffid metadata is missing for a 'standard' consignment type" in {
     setUpInvalidExternalServices(graphQlGetConsignmentMissingFfidMetadata("get_consignment_missing_ffid_metadata.json"))
 
     val consignmentId = UUID.fromString("2bb446f2-eb15-4b83-9c69-53b559232d84")
@@ -262,9 +296,15 @@ class MainSpec extends ExternalServiceSpec {
 
     checkStepFunctionFailureCalled("publish_failure_missing_ffid_metadata_request_body")
     ex.getMessage should equal(s"FFID metadata is missing for file id $fileId")
+
+    val updateConsignmentEvent: Option[ServeEvent] = wiremockGraphqlServer.getAllServeEvents.asScala
+      .find(p => p.getRequest.getBodyAsString.contains("mutation updateConsignmentStatus"))
+
+    updateConsignmentEvent.isDefined should be(true)
+    updateConsignmentEvent.get.getRequest.getBodyAsString should include (s""""consignmentId":"$consignmentId","statusType":"${StatusType.export}","statusValue":"${StatusValue.failed}"""")
   }
 
-  "the export job" should "throw an error if the ffid metadata is missing for a 'judgment' consignment type" in {
+  "the export job" should "throw an error and update consignment status as 'Failed' if the ffid metadata is missing for a 'judgment' consignment type" in {
     setUpInvalidExternalServices(graphQlGetConsignmentMissingFfidMetadata("get_judgment_consignment_missing_ffid_metadata.json"))
 
     val consignmentId = UUID.fromString("2bb446f2-eb15-4b83-9c69-53b559232d84")
@@ -278,9 +318,15 @@ class MainSpec extends ExternalServiceSpec {
 
     checkStepFunctionFailureCalled("publish_failure_missing_ffid_metadata_request_body")
     ex.getMessage should equal(s"FFID metadata is missing for file id $fileId")
+
+    val updateConsignmentEvent: Option[ServeEvent] = wiremockGraphqlServer.getAllServeEvents.asScala
+      .find(p => p.getRequest.getBodyAsString.contains("mutation updateConsignmentStatus"))
+
+    updateConsignmentEvent.isDefined should be(true)
+    updateConsignmentEvent.get.getRequest.getBodyAsString should include (s""""consignmentId":"$consignmentId","statusType":"${StatusType.export}","statusValue":"${StatusValue.failed}"""")
   }
 
-  "the export job" should "throw an error if the antivirus metadata is missing for 'standard' consignment type" in {
+  "the export job" should "throw an error and update consignment status as 'Failed' if the antivirus metadata is missing for 'standard' consignment type" in {
     setUpInvalidExternalServices(graphQlGetConsignmentMissingAntivirusMetadata("get_consignment_missing_antivirus_metadata.json"))
 
     val consignmentId = UUID.fromString("fbb543d0-7690-4d58-837c-464d431713fc")
@@ -294,9 +340,15 @@ class MainSpec extends ExternalServiceSpec {
 
     checkStepFunctionFailureCalled("publish_failure_missing_antivirus_metadata_request_body")
     ex.getMessage should equal(s"Antivirus metadata is missing for file id $fileId")
+
+    val updateConsignmentEvent: Option[ServeEvent] = wiremockGraphqlServer.getAllServeEvents.asScala
+      .find(p => p.getRequest.getBodyAsString.contains("mutation updateConsignmentStatus"))
+
+    updateConsignmentEvent.isDefined should be(true)
+    updateConsignmentEvent.get.getRequest.getBodyAsString should include (s""""consignmentId":"$consignmentId","statusType":"${StatusType.export}","statusValue":"${StatusValue.failed}"""")
   }
 
-  "the export job" should "throw an error if the antivirus metadata is missing for 'judgment' consignment type" in {
+  "the export job" should "throw an error and update consignment status as 'Failed' if the antivirus metadata is missing for 'judgment' consignment type" in {
     setUpInvalidExternalServices(graphQlGetConsignmentMissingAntivirusMetadata("get_judgment_consignment_missing_antivirus_metadata.json"))
 
     val consignmentId = UUID.fromString("fbb543d0-7690-4d58-837c-464d431713fc")
@@ -310,9 +362,15 @@ class MainSpec extends ExternalServiceSpec {
 
     checkStepFunctionFailureCalled("publish_failure_missing_antivirus_metadata_request_body")
     ex.getMessage should equal(s"Antivirus metadata is missing for file id $fileId")
+
+    val updateConsignmentEvent: Option[ServeEvent] = wiremockGraphqlServer.getAllServeEvents.asScala
+      .find(p => p.getRequest.getBodyAsString.contains("mutation updateConsignmentStatus"))
+
+    updateConsignmentEvent.isDefined should be(true)
+    updateConsignmentEvent.get.getRequest.getBodyAsString should include (s""""consignmentId":"$consignmentId","statusType":"${StatusType.export}","statusValue":"${StatusValue.failed}"""")
   }
 
-  "the export job" should "throw an error if no consignment metadata found" in {
+  "the export job" should "throw an error and update consignment status as 'Failed' if no consignment metadata found" in {
     keycloakGetUser
     stepFunctionPublish
 
@@ -325,9 +383,15 @@ class MainSpec extends ExternalServiceSpec {
 
     checkStepFunctionFailureCalled("publish_failure_no_consignment_metadata_request_body")
     ex.getMessage should equal(s"No consignment metadata found for consignment $consignmentId")
+
+    val updateConsignmentEvent: Option[ServeEvent] = wiremockGraphqlServer.getAllServeEvents.asScala
+      .find(p => p.getRequest.getBodyAsString.contains("mutation updateConsignmentStatus"))
+
+    updateConsignmentEvent.isDefined should be(true)
+    updateConsignmentEvent.get.getRequest.getBodyAsString should include (s""""consignmentId":"$consignmentId","statusType":"${StatusType.export}","statusValue":"${StatusValue.failed}"""")
   }
 
-  "the export job" should "throw an error if no valid Keycloak user found for a 'standard' consignment type" in {
+  "the export job" should "throw an error and update consignment status as 'Failed' if no valid Keycloak user found for a 'standard' consignment type" in {
     graphQlGetConsignmentMetadata("get_consignment_for_export.json")
     stepFunctionPublish
 
@@ -342,9 +406,15 @@ class MainSpec extends ExternalServiceSpec {
 
     checkStepFunctionFailureCalled("publish_failure_no_valid_user_request_body")
     ex.getMessage should equal(s"No valid user found $keycloakUserId: HTTP 404 Not Found")
+
+    val updateConsignmentEvent: Option[ServeEvent] = wiremockGraphqlServer.getAllServeEvents.asScala
+      .find(p => p.getRequest.getBodyAsString.contains("mutation updateConsignmentStatus"))
+
+    updateConsignmentEvent.isDefined should be(true)
+    updateConsignmentEvent.get.getRequest.getBodyAsString should include (s""""consignmentId":"$consignmentId","statusType":"${StatusType.export}","statusValue":"${StatusValue.failed}"""")
   }
 
-  "the export job" should "throw an error if no valid Keycloak user found for a 'judgment' consignment type" in {
+  "the export job" should "throw an error and update consignment status as 'Failed' if no valid Keycloak user found for a 'judgment' consignment type" in {
     graphQlGetConsignmentMetadata("get_judgment_consignment_for_export.json")
     stepFunctionPublish
 
@@ -359,9 +429,15 @@ class MainSpec extends ExternalServiceSpec {
 
     checkStepFunctionFailureCalled("publish_failure_no_valid_user_request_body")
     ex.getMessage should equal(s"No valid user found $keycloakUserId: HTTP 404 Not Found")
+
+    val updateConsignmentEvent: Option[ServeEvent] = wiremockGraphqlServer.getAllServeEvents.asScala
+      .find(p => p.getRequest.getBodyAsString.contains("mutation updateConsignmentStatus"))
+
+    updateConsignmentEvent.isDefined should be(true)
+    updateConsignmentEvent.get.getRequest.getBodyAsString should include (s""""consignmentId":"$consignmentId","statusType":"${StatusType.export}","statusValue":"${StatusValue.failed}"""")
   }
 
-  "the export job" should "throw an error if an incomplete Keycloak user details found for a 'standard' consignment type" in {
+  "the export job" should "throw an error and update consignment status as 'Failed' if an incomplete Keycloak user details found for a 'standard' consignment type" in {
     graphQlGetConsignmentMetadata("get_consignment_for_export.json")
     keycloakGetIncompleteUser
     stepFunctionPublish
@@ -377,9 +453,15 @@ class MainSpec extends ExternalServiceSpec {
 
     checkStepFunctionFailureCalled("publish_failure_incomplete_user_request_body")
     ex.getMessage should equal(s"Incomplete details for user $keycloakUserId")
+
+    val updateConsignmentEvent: Option[ServeEvent] = wiremockGraphqlServer.getAllServeEvents.asScala
+      .find(p => p.getRequest.getBodyAsString.contains("mutation updateConsignmentStatus"))
+
+    updateConsignmentEvent.isDefined should be(true)
+    updateConsignmentEvent.get.getRequest.getBodyAsString should include (s""""consignmentId":"$consignmentId","statusType":"${StatusType.export}","statusValue":"${StatusValue.failed}"""")
   }
 
-  "the export job" should "throw an error if an incomplete Keycloak user details found for a 'judgment' consignment type" in {
+  "the export job" should "throw an error and update consignment status as 'Failed' if an incomplete Keycloak user details found for a 'judgment' consignment type" in {
     graphQlGetConsignmentMetadata("get_judgment_consignment_for_export.json")
     keycloakGetIncompleteUser
     stepFunctionPublish
@@ -395,9 +477,15 @@ class MainSpec extends ExternalServiceSpec {
 
     checkStepFunctionFailureCalled("publish_failure_incomplete_user_request_body")
     ex.getMessage should equal(s"Incomplete details for user $keycloakUserId")
+
+    val updateConsignmentEvent: Option[ServeEvent] = wiremockGraphqlServer.getAllServeEvents.asScala
+      .find(p => p.getRequest.getBodyAsString.contains("mutation updateConsignmentStatus"))
+
+    updateConsignmentEvent.isDefined should be(true)
+    updateConsignmentEvent.get.getRequest.getBodyAsString should include (s""""consignmentId":"$consignmentId","statusType":"${StatusType.export}","statusValue":"${StatusValue.failed}"""")
   }
 
-  "the export job" should "throw an error if there are checksum mismatches for a 'standard' consignment type" in {
+  "the export job" should "throw an error and update consignment status as 'Failed' if there are checksum mismatches for a 'standard' consignment type" in {
     setUpInvalidExternalServices(graphQlGetIncorrectCheckSumConsignmentMetadata("get_consignment_for_export_different_checksum.json"))
 
     val consignmentId = UUID.fromString("50df01e6-2e5e-4269-97e7-531a755b417d")
@@ -411,9 +499,15 @@ class MainSpec extends ExternalServiceSpec {
 
     checkStepFunctionFailureCalled("publish_failure_checksum_mismatch_request_body")
     ex.getMessage should equal(s"Checksum mismatch for file(s): $fileId")
+
+    val updateConsignmentEvent: Option[ServeEvent] = wiremockGraphqlServer.getAllServeEvents.asScala
+      .find(p => p.getRequest.getBodyAsString.contains("mutation updateConsignmentStatus"))
+
+    updateConsignmentEvent.isDefined should be(true)
+    updateConsignmentEvent.get.getRequest.getBodyAsString should include (s""""consignmentId":"$consignmentId","statusType":"${StatusType.export}","statusValue":"${StatusValue.failed}"""")
   }
 
-  "the export job" should "throw an error if there are checksum mismatches for a 'judgment' consignment type" in {
+  "the export job" should "throw an error and update consignment status as 'Failed' if there are checksum mismatches for a 'judgment' consignment type" in {
     setUpInvalidExternalServices(graphQlGetIncorrectCheckSumConsignmentMetadata("get_judgment_consignment_for_export_different_checksum.json"))
 
     val consignmentId = UUID.fromString("50df01e6-2e5e-4269-97e7-531a755b417d")
@@ -427,6 +521,12 @@ class MainSpec extends ExternalServiceSpec {
 
     checkStepFunctionFailureCalled("publish_failure_checksum_mismatch_request_body")
     ex.getMessage should equal(s"Checksum mismatch for file(s): $fileId")
+
+    val updateConsignmentEvent: Option[ServeEvent] = wiremockGraphqlServer.getAllServeEvents.asScala
+      .find(p => p.getRequest.getBodyAsString.contains("mutation updateConsignmentStatus"))
+
+    updateConsignmentEvent.isDefined should be(true)
+    updateConsignmentEvent.get.getRequest.getBodyAsString should include (s""""consignmentId":"$consignmentId","statusType":"${StatusType.export}","statusValue":"${StatusValue.failed}"""")
   }
 
   "the export job" should "call the step function heartbeat endpoint for a 'standard' consignment type" in {
