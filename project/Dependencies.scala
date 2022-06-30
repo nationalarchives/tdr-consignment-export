@@ -11,7 +11,7 @@ object Dependencies {
   lazy val generatedGraphql = "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.244"
   lazy val awsUtils =  "uk.gov.nationalarchives" %% "tdr-aws-utils" % "0.1.33"
   lazy val bagit = "gov.loc" % "bagit" % "5.2.0"
-  lazy val catsEffect = "org.typelevel" %% "cats-effect" % "3.3.12"
+  lazy val catsEffect = "org.typelevel" %% "cats-effect" % "3.3.13"
   lazy val decline = "com.monovore" %% "decline" % monovoreDeclineVersion
   lazy val declineEffect = "com.monovore" %% "decline-effect" % monovoreDeclineVersion
   lazy val graphqlClient = "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.38"
