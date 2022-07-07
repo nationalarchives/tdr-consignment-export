@@ -38,3 +38,12 @@ jobs:
         with:
           message: "*consignment-export* :whale: The '${{ github.event.inputs.to-deploy }}' image has been tagged with '${{ github.event.inputs.environment }}' in ECR"
           slack-url: ${{ secrets.SLACK_WEBHOOK }}
+      - name: Run E2E tests
+        if: inputs.environment != 'prod'
+        uses: octokit/request-action@v2.x
+        with:
+          route: POST /repos/nationalarchives/tdr-e2e-tests/actions/workflows/ci.yml/dispatches
+          ref: master
+          inputs: "{\"environment\": \"${{ inputs.environment }}\", \"wait\": \"0\"}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.WORKFLOW_PAT }}

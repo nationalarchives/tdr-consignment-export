@@ -52,7 +52,7 @@ There are multiple steps to the release process. On a merge to master:
 * The release branch is created.
 
 
-To deploy to staging/production, you need to run the [deploy](https://jenkins.tdr-management.nationalarchives.gov.uk/job/Consignment%20Export%20Deploy/) job with the stage and the <em>docker version number</em>, not the code version number. The docker version will be a git tag on the branch.
+To deploy to staging/production, you need to run the [deploy](https://github.com/nationalarchives/tdr-consignment-export/actions/workflows/deploy.yml) GitHub action with the stage and the <em>docker version number</em>, not the code version number. The docker version will be a git tag on the branch.
 
 ### Tests
 
