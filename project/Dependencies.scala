@@ -8,13 +8,13 @@ object Dependencies {
   private val monovoreDeclineVersion = "2.3.0"
 
   lazy val authUtils = "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.70"
-  lazy val generatedGraphql = "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.252"
-  lazy val awsUtils =  "uk.gov.nationalarchives" %% "tdr-aws-utils" % "0.1.34"
+  lazy val generatedGraphql = "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.253"
+  lazy val awsUtils =  "uk.gov.nationalarchives" %% "tdr-aws-utils" % "0.1.35"
   lazy val bagit = "gov.loc" % "bagit" % "5.2.0"
   lazy val catsEffect = "org.typelevel" %% "cats-effect" % "3.3.14"
   lazy val decline = "com.monovore" %% "decline" % monovoreDeclineVersion
   lazy val declineEffect = "com.monovore" %% "decline-effect" % monovoreDeclineVersion
-  lazy val graphqlClient = "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.46"
+  lazy val graphqlClient = "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.47"
   lazy val scalaTest = "org.scalatest" %% "scalatest" % "3.2.13"
   lazy val scalaCsv = "com.github.tototoshi" %% "scala-csv" % "1.3.10"
   lazy val log4cats = "org.typelevel" %% "log4cats-core" % log4CatsVersion
