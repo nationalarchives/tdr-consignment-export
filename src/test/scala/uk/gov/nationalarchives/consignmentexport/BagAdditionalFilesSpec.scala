@@ -16,6 +16,7 @@ class BagAdditionalFilesSpec extends ExportSpec {
   "fileMetadataCsv" should "produce a file with the correct rows" in {
     val bagAdditionalFiles = BagAdditionalFiles(getClass.getResource(".").getPath.toPath)
     val lastModified = LocalDateTime.parse("2021-02-03T10:33:30.414")
+    val originalFilePath = "/originalFilePath"
     val validatedFileMetadata = ValidatedFileMetadata(
       UUID.randomUUID(),
       "name",
@@ -28,7 +29,8 @@ class BagAdditionalFilesSpec extends ExportSpec {
       "language".some,
       "legalStatus".some,
       "rightsCopyright".some,
-      "clientSideChecksumValue".some
+      "clientSideChecksumValue".some,
+      originalFilePath.some
     )
     val validatedDirectoryMetadata = ValidatedFileMetadata(
       UUID.randomUUID(),
@@ -36,7 +38,7 @@ class BagAdditionalFilesSpec extends ExportSpec {
       "Folder",
       None, None,
       "folder",
-      None, None, None, None, None, None,
+      None, None, None, None, None, None, None
     )
     val file = bagAdditionalFiles.createFileMetadataCsv(List(validatedFileMetadata, validatedDirectoryMetadata)).unsafeRunSync()
 
@@ -44,10 +46,10 @@ class BagAdditionalFilesSpec extends ExportSpec {
     val csvLines = source.getLines().toList
     val header = csvLines.head
     val rest = csvLines.tail
-    header should equal("Filepath,FileName,FileType,Filesize,RightsCopyright,LegalStatus,HeldBy,Language,FoiExemptionCode,LastModified")
+    header should equal("Filepath,FileName,FileType,Filesize,RightsCopyright,LegalStatus,HeldBy,Language,FoiExemptionCode,LastModified,OriginalVersionId")
     rest.length should equal(2)
-    rest.head should equal(s"data/originalPath,name,File,1,rightsCopyright,legalStatus,heldBy,language,foiExemption,2021-02-03T10:33:30")
-    rest.last should equal(s"data/folder,folderName,Folder,,,,,,,")
+    rest.head should equal(s"data/originalPath,name,File,1,rightsCopyright,legalStatus,heldBy,language,foiExemption,2021-02-03T10:33:30,$originalFilePath")
+    rest.last should equal(s"data/folder,folderName,Folder,,,,,,,,")
     source.close()
     new File("exporter/src/test/resources/file-metadata.csv").delete()
   }
@@ -67,7 +69,8 @@ class BagAdditionalFilesSpec extends ExportSpec {
       "language".some,
       "legalStatus".some,
       "rightsCopyright".some,
-      "clientSideChecksumValue".some
+      "clientSideChecksumValue".some,
+      None
     )
     val file = bagAdditionalFiles.createFileMetadataCsv(List(metadata)).unsafeRunSync()
 
@@ -75,19 +78,19 @@ class BagAdditionalFilesSpec extends ExportSpec {
     val csvLines = source.getLines().toList
     val header = csvLines.head
     val rest = csvLines.tail
-    header should equal("Filepath,FileName,FileType,Filesize,RightsCopyright,LegalStatus,HeldBy,Language,FoiExemptionCode,LastModified")
+    header should equal("Filepath,FileName,FileType,Filesize,RightsCopyright,LegalStatus,HeldBy,Language,FoiExemptionCode,LastModified,OriginalVersionId")
     rest.length should equal(1)
-    rest.head should equal(s"data/originalPath,name,File,1,rightsCopyright,legalStatus,heldBy,language,foiExemption,2021-02-03T10:33:00")
+    rest.head should equal(s"data/originalPath,name,File,1,rightsCopyright,legalStatus,heldBy,language,foiExemption,2021-02-03T10:33:00,")
     source.close()
     new File("exporter/src/test/resources/file-metadata.csv").delete()
   }
-  
+
   "createFfidMetadataCsv" should "produce a file with the correct rows" in {
     val bagAdditionalFiles = BagAdditionalFiles(getClass.getResource(".").getPath.toPath)
     val metadata = ValidatedFFIDMetadata("path", "extension", "puid", "software", "softwareVersion", "binarySignatureFileVersion", "containerSignatureFileVersion")
-    
+
     val file = bagAdditionalFiles.createFfidMetadataCsv(List(metadata)).unsafeRunSync()
-    
+
     val source = Source.fromFile(file)
     val csvLines = source.getLines().toList
     val header = csvLines.head

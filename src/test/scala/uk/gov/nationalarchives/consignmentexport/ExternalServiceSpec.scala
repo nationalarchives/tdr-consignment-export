@@ -186,6 +186,7 @@ class ExternalServiceSpec extends AnyFlatSpec with BeforeAndAfterEach with Befor
                                fileId;
                                fileType;
                                fileName;
+                               originalFile;
                                metadata{
                                  clientSideFileSize;
                                  clientSideLastModifiedDate;
