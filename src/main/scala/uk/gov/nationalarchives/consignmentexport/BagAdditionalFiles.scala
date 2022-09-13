@@ -17,7 +17,7 @@ class BagAdditionalFiles(rootDirectory: Path) {
   }
 
   def createFileMetadataCsv(fileMetadataList: List[ValidatedFileMetadata]): IO[File] = {
-    val header = List("Filepath", "FileName", "FileType", "Filesize", "RightsCopyright", "LegalStatus", "HeldBy", "Language", "FoiExemptionCode", "LastModified", "OriginalVersionPath")
+    val header = List("Filepath", "FileName", "FileType", "Filesize", "RightsCopyright", "LegalStatus", "HeldBy", "Language", "FoiExemptionCode", "LastModified", "OriginalFilePath")
     val fileMetadataRows = fileMetadataList.map(f => List(
       dataPath(f.clientSideOriginalFilePath),
       f.fileName,
