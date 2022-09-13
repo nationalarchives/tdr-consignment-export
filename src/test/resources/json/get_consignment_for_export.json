@@ -18,7 +18,7 @@
           "fileId": "7b19b272-d4d1-4d77-bf25-511dc6489d12",
           "fileName": "name",
           "fileType": "File",
-          "originalFile": "cc5aa3d1-dd51-45bb-be48-44190ee8ad40",
+          "originalFilePath": "/original/file/path",
           "metadata": {
             "clientSideOriginalFilePath": "originalPath",
             "legalStatus": "Public Record",
