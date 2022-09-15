@@ -61,7 +61,7 @@ class ChecksumValidatorSpec extends ExportSpec {
       "language".some,
       "legalStatus".some,
       "rightsCopyright".some,
-      checksumValue.some)
+      checksumValue.some, None)
   }
 
   private def createBag(checksums: List[String]): Bag = {

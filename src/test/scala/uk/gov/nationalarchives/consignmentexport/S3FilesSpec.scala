@@ -45,7 +45,8 @@ class S3FilesSpec extends ExportSpec {
       "language".some,
       "legalStatus".some,
       "rightsCopyright".some,
-      "clientSideChecksumValue".some
+      "clientSideChecksumValue".some,
+      None
     )
 
     val validatedMetadata = List(metadata)
@@ -79,7 +80,8 @@ class S3FilesSpec extends ExportSpec {
       "language".some,
       "legalStatus".some,
       "rightsCopyright".some,
-      "clientSideChecksumValue".some
+      "clientSideChecksumValue".some,
+      None
     )
     val validatedMetadata = List(metadata)
 
@@ -103,11 +105,11 @@ class S3FilesSpec extends ExportSpec {
     val fileId2 = UUID.randomUUID()
     val metadata1 = ValidatedFileMetadata(
       fileId1, "name1", "File", 1L.some, LocalDateTime.now().some, "originalPath", "foiExemption".some, "heldBy".some,
-      "language".some, "legalStatus".some, "rightsCopyright".some, "clientSideChecksumValue".some
+      "language".some, "legalStatus".some, "rightsCopyright".some, "clientSideChecksumValue".some, None
     )
     val metadata2 = ValidatedFileMetadata(
       fileId2, "name2", "File", 1L.some, LocalDateTime.now().some, "originalPath", "foiExemption".some, "heldBy".some,
-      "language".some, "legalStatus".some, "rightsCopyright".some, "clientSideChecksumValue".some
+      "language".some, "legalStatus".some, "rightsCopyright".some, "clientSideChecksumValue".some, None
     )
 
     val validatedMetadata = List(metadata1, metadata2)

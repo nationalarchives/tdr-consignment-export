@@ -84,7 +84,8 @@ class Validator(consignmentId: UUID) {
     f.metadata.language,
     f.metadata.legalStatus,
     f.metadata.rightsCopyright,
-    f.metadata.sha256ClientSideChecksum
+    f.metadata.sha256ClientSideChecksum,
+    f.originalFilePath
   )
 
 }
@@ -110,7 +111,9 @@ object Validator {
                                    language: Option[String],
                                    legalStatus: Option[String],
                                    rightsCopyright: Option[String],
-                                   clientSideChecksum: Option[String])
+                                   clientSideChecksum: Option[String],
+                                   originalFile: Option[String]
+                                  )
 
   case class ValidatedAntivirusMetadata(filePath: String,
                                         software: String,
