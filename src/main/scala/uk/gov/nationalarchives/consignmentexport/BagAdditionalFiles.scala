@@ -29,7 +29,7 @@ class BagAdditionalFiles(rootDirectory: Path) {
       f.language.getOrElse(""),
       f.foiExemptionCode.getOrElse(""),
       f.clientSideLastModifiedDate.map(d => DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss").format(d)).getOrElse(""),
-      f.originalFile.getOrElse("")
+      f.originalFile.map(dataPath).getOrElse("")
     )
     )
     writeToCsv("file-metadata.csv", header, fileMetadataRows)

@@ -48,7 +48,7 @@ class BagAdditionalFilesSpec extends ExportSpec {
     val rest = csvLines.tail
     header should equal("Filepath,FileName,FileType,Filesize,RightsCopyright,LegalStatus,HeldBy,Language,FoiExemptionCode,LastModified,OriginalFilePath")
     rest.length should equal(2)
-    rest.head should equal(s"data/originalPath,name,File,1,rightsCopyright,legalStatus,heldBy,language,foiExemption,2021-02-03T10:33:30,$originalFilePath")
+    rest.head should equal(s"data/originalPath,name,File,1,rightsCopyright,legalStatus,heldBy,language,foiExemption,2021-02-03T10:33:30,data/$originalFilePath")
     rest.last should equal(s"data/folder,folderName,Folder,,,,,,,,")
     source.close()
     new File("exporter/src/test/resources/file-metadata.csv").delete()
