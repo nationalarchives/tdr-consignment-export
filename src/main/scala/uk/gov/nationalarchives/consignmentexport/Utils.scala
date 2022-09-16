@@ -19,10 +19,15 @@ object Utils {
   }
 
   implicit class FileMetadataHelper(files: Files) {
+    private val fileMetadata = files.metadata
     val directoryType = "Folder"
 
     def getClientSideOriginalFilePath: String = {
-      files.metadata.clientSideOriginalFilePath.getOrElse("")
+      fileMetadata.clientSideOriginalFilePath.getOrElse("")
+    }
+
+    def getSha256ClientSideChecksum: String = {
+      fileMetadata.sha256ClientSideChecksum.getOrElse("")
     }
 
     def isFolder(): Boolean = {

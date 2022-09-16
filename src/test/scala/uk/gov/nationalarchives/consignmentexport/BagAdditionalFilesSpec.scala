@@ -107,17 +107,4 @@ class BagAdditionalFilesSpec extends ExportSpec {
     source.close()
     new File(file.getAbsolutePath).delete()
   }
-
-  private def createMetadata(lastModified: LocalDateTime): Metadata = {
-    Metadata(
-      1L.some,
-      lastModified.some,
-      "originalPath".some,
-      "foiExemption".some,
-      "heldBy".some,
-      "language".some,
-      "legalStatus".some,
-      "rightsCopyright".some,
-      "clientSideChecksumValue".some)
-  }
 }

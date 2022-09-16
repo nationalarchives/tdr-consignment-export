@@ -15,7 +15,10 @@ import java.time.LocalDateTime
 abstract class ExportSpec extends AnyFlatSpec with MockitoSugar with Matchers with EitherValues {
   implicit def logger: SelfAwareStructuredLogger[IO] = Slf4jLogger.getLogger[IO]
 
-  def createMetadata(lastModified: LocalDateTime, originalPath: String = "originalPath"): Metadata = {
+  def createMetadata(
+                      lastModified: LocalDateTime,
+                      originalPath: String = "originalPath",
+                      checkSum: String = "clientSideChecksumValue"): Metadata = {
     Metadata(
       1L.some,
       lastModified.some,
@@ -25,6 +28,6 @@ abstract class ExportSpec extends AnyFlatSpec with MockitoSugar with Matchers wi
       "language".some,
       "legalStatus".some,
       "rightsCopyright".some,
-      "clientSideChecksumValue".some)
+      checkSum.some)
   }
 }

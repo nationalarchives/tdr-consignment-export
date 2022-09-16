@@ -24,7 +24,7 @@ class Validator(consignmentId: UUID) {
       case Nil => Right(filesList.filter(!_.isFolder()).flatMap(file => {
         val metadata = file.ffidMetadata.get
         metadata.matches.map(mm => {
-          ValidatedFFIDMetadata(file.metadata.clientSideOriginalFilePath.get, mm.extension.getOrElse(""), mm.puid.getOrElse(""), metadata.software, metadata.softwareVersion, metadata.binarySignatureFileVersion, metadata.containerSignatureFileVersion)
+          ValidatedFFIDMetadata(file.getClientSideOriginalFilePath, mm.extension.getOrElse(""), mm.puid.getOrElse(""), metadata.software, metadata.softwareVersion, metadata.binarySignatureFileVersion, metadata.containerSignatureFileVersion)
         })
       }))
       case _ => Left(new RuntimeException(fileErrors.mkString("\n")))
@@ -38,7 +38,7 @@ class Validator(consignmentId: UUID) {
       case Nil => Right(
         filesList.filter(!_.isFolder()).map(f => {
           val antivirus = f.antivirusMetadata.get
-          ValidatedAntivirusMetadata(f.metadata.clientSideOriginalFilePath.get, antivirus.software, antivirus.softwareVersion)
+          ValidatedAntivirusMetadata(f.getClientSideOriginalFilePath, antivirus.software, antivirus.softwareVersion)
         })
       )
       case _ => Left(new RuntimeException(fileErrors.mkString("\n")))

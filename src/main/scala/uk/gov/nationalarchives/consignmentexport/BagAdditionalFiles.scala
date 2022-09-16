@@ -5,6 +5,7 @@ import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignme
 import java.nio.file.Path
 import cats.effect.IO
 import com.github.tototoshi.csv.CSVWriter
+import uk.gov.nationalarchives.consignmentexport.Utils.FileMetadataHelper
 import uk.gov.nationalarchives.consignmentexport.Validator.{ValidatedAntivirusMetadata, ValidatedFFIDMetadata}
 
 import java.io.File
@@ -24,7 +25,7 @@ class BagAdditionalFiles(rootDirectory: Path) {
     val fileMetadataRows = files.map(f => {
       val metadata = f.metadata
       List(
-        dataPath(f.metadata.clientSideOriginalFilePath.getOrElse("")),
+        dataPath(f.getClientSideOriginalFilePath),
         f.fileName.getOrElse(""),
         f.fileType.getOrElse(""),
         metadata.clientSideFileSize.getOrElse(""),

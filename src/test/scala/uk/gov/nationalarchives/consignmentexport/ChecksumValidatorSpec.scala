@@ -49,23 +49,8 @@ class ChecksumValidatorSpec extends ExportSpec {
   }
 
  private def createFiles(fileId: UUID, checksumValue: String): Files = {
-  val metadata = Metadata(1L.some,
-    LocalDateTime.parse("2021-02-03T10:33:30.414").some,
-    "clientSideOriginalFilePath".some,
-    "foiExemption".some,
-    "heldBy".some,
-    "language".some,
-    "legalStatus".some,
-    "rightsCopyright".some,
-    checksumValue.some)
-
-    Files(
-      fileId,
-      "File".some,
-      "name".some,
-      None,
-      metadata,
-      None, None)
+  val metadata = createMetadata(LocalDateTime.parse("2021-02-03T10:33:30.414"), checkSum = checksumValue)
+  Files(fileId, "File".some, "name".some, None, metadata, None, None)
   }
 
   private def createBag(checksums: List[String]): Bag = {
