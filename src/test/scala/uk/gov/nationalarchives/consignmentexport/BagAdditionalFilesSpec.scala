@@ -1,45 +1,39 @@
 package uk.gov.nationalarchives.consignmentexport
 
+import cats.effect.unsafe.implicits.global
 import cats.implicits.catsSyntaxOptionId
+import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignment.Files
+import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignment.Files.Metadata
+import uk.gov.nationalarchives.consignmentexport.Utils.PathUtils
+import uk.gov.nationalarchives.consignmentexport.Validator.{ValidatedAntivirusMetadata, ValidatedFFIDMetadata}
 
 import java.io.File
 import java.time.LocalDateTime
 import java.util.UUID
-import uk.gov.nationalarchives.consignmentexport.Utils.PathUtils
-
 import scala.io.Source
-import uk.gov.nationalarchives.consignmentexport.Validator.{ValidatedAntivirusMetadata, ValidatedFFIDMetadata, ValidatedFileMetadata}
-
-import cats.effect.unsafe.implicits.global
 
 class BagAdditionalFilesSpec extends ExportSpec {
   "fileMetadataCsv" should "produce a file with the correct rows" in {
     val bagAdditionalFiles = BagAdditionalFiles(getClass.getResource(".").getPath.toPath)
     val lastModified = LocalDateTime.parse("2021-02-03T10:33:30.414")
     val originalFilePath = "/originalFilePath"
-    val validatedFileMetadata = ValidatedFileMetadata(
+    val fileMetadata = createMetadata(lastModified)
+    val validatedFileMetadata = Files(
       UUID.randomUUID(),
-      "name",
-      "File",
-      1L.some,
-      lastModified.some,
-      "originalPath",
-      "foiExemption".some,
-      "heldBy".some,
-      "language".some,
-      "legalStatus".some,
-      "rightsCopyright".some,
-      "clientSideChecksumValue".some,
-      originalFilePath.some
+      "File".some,
+      "name".some,
+      originalFilePath.some,
+      fileMetadata,
+      None,
+      None
     )
-    val validatedDirectoryMetadata = ValidatedFileMetadata(
+    val folderMetadata = Metadata(None, None, "folder".some, None, None, None, None, None, None)
+    val validatedDirectoryMetadata = Files(
       UUID.randomUUID(),
-      "folderName",
-      "Folder",
-      None, None,
-      "folder",
-      None, None, None, None, None, None, None
-    )
+      "Folder".some,
+      "folderName".some,
+      None, folderMetadata,
+      None, None)
     val file = bagAdditionalFiles.createFileMetadataCsv(List(validatedFileMetadata, validatedDirectoryMetadata)).unsafeRunSync()
 
     val source = Source.fromFile(file)
@@ -56,20 +50,15 @@ class BagAdditionalFilesSpec extends ExportSpec {
 
   "fileMetadataCsv" should "write the seconds to the file when the input seconds are zero" in {
     val bagAdditionalFiles = BagAdditionalFiles(getClass.getResource(".").getPath.toPath)
-    val lastModified = LocalDateTime.parse("2021-02-03T10:33:00.0")
-    val metadata = ValidatedFileMetadata(
+    val lastModified: LocalDateTime = LocalDateTime.parse("2021-02-03T10:33:00.0")
+    val fileMetadata = createMetadata(lastModified)
+    val metadata = Files(
       UUID.randomUUID(),
-      "name",
-      "File",
-      1L.some,
-      lastModified.some,
-      "originalPath",
-      "foiExemption".some,
-      "heldBy".some,
-      "language".some,
-      "legalStatus".some,
-      "rightsCopyright".some,
-      "clientSideChecksumValue".some,
+      "File".some,
+      "name".some,
+      None,
+      fileMetadata,
+      None,
       None
     )
     val file = bagAdditionalFiles.createFileMetadataCsv(List(metadata)).unsafeRunSync()
@@ -117,5 +106,18 @@ class BagAdditionalFilesSpec extends ExportSpec {
     rest.head should equal("data/filePath,software,softwareVersion")
     source.close()
     new File(file.getAbsolutePath).delete()
+  }
+
+  private def createMetadata(lastModified: LocalDateTime): Metadata = {
+    Metadata(
+      1L.some,
+      lastModified.some,
+      "originalPath".some,
+      "foiExemption".some,
+      "heldBy".some,
+      "language".some,
+      "legalStatus".some,
+      "rightsCopyright".some,
+      "clientSideChecksumValue".some)
   }
 }

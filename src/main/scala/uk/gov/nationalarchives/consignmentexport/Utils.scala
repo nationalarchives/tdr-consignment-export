@@ -1,5 +1,7 @@
 package uk.gov.nationalarchives.consignmentexport
 
+import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignment.Files
+
 import java.nio.file.{Path, Paths}
 import java.time.ZonedDateTime
 import java.time.format.DateTimeFormatter
@@ -13,6 +15,18 @@ object Utils {
   implicit class ZonedDatetimeUtils(value: ZonedDateTime) {
     def toFormattedPrecisionString: String = {
       value.truncatedTo(ChronoUnit.SECONDS).format(DateTimeFormatter.ISO_OFFSET_DATE_TIME)
+    }
+  }
+
+  implicit class FileMetadataHelper(files: Files) {
+    val directoryType = "Folder"
+
+    def getClientSideOriginalFilePath: String = {
+      files.metadata.clientSideOriginalFilePath.getOrElse("")
+    }
+
+    def isFolder(): Boolean = {
+      files.fileType.contains(directoryType)
     }
   }
 }
