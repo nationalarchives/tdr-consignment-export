@@ -3,14 +3,13 @@ package uk.gov.nationalarchives.consignmentexport
 import java.nio.file.Path
 import java.time.LocalDateTime
 import java.util.UUID
-
 import cats.effect.IO
 import cats.implicits.catsSyntaxOptionId
 import org.mockito.ArgumentCaptor
 import software.amazon.awssdk.services.s3.model.{GetObjectResponse, PutObjectResponse}
 import uk.gov.nationalarchives.aws.utils.S3Utils
-import uk.gov.nationalarchives.consignmentexport.Validator.ValidatedFileMetadata
 import cats.effect.unsafe.implicits.global
+import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignment.Files
 import uk.gov.nationalarchives.consignmentexport.Config._
 
 class S3FilesSpec extends ExportSpec {
@@ -33,20 +32,14 @@ class S3FilesSpec extends ExportSpec {
     val consignmentId = UUID.randomUUID()
     val consignmentReference = "Consignment-Reference"
     val fileId = UUID.randomUUID()
-    val metadata = ValidatedFileMetadata(
+    val fileMetadata = createMetadata(LocalDateTime.now())
+    val metadata = Files(
       fileId,
-      "name1",
-      "File",
-      1L.some,
-      LocalDateTime.now().some,
-      "originalPath",
-      "foiExemption".some,
-      "heldBy".some,
-      "language".some,
-      "legalStatus".some,
-      "rightsCopyright".some,
-      "clientSideChecksumValue".some,
-      None
+      "File".some,
+      "name1".some,
+      None,
+      fileMetadata,
+      None, None
     )
 
     val validatedMetadata = List(metadata)
@@ -68,20 +61,14 @@ class S3FilesSpec extends ExportSpec {
     val consignmentId = UUID.randomUUID()
     val consignmentReference = "Consignment-Reference"
     val fileId = UUID.randomUUID()
-    val metadata = ValidatedFileMetadata(
+    val fileMetadata = createMetadata(LocalDateTime.now(), """a/path'with/quotes"""")
+    val metadata = Files(
       fileId,
-      "name",
-      "File",
-      1L.some,
-      LocalDateTime.now().some,
-      """a/path'with/quotes"""",
-      "foiExemption".some,
-      "heldBy".some,
-      "language".some,
-      "legalStatus".some,
-      "rightsCopyright".some,
-      "clientSideChecksumValue".some,
-      None
+      "File".some,
+      "name".some,
+      None,
+      fileMetadata,
+      None, None
     )
     val validatedMetadata = List(metadata)
 
@@ -103,14 +90,9 @@ class S3FilesSpec extends ExportSpec {
     val consignmentReference = "Consignment-Reference"
     val fileId1 = UUID.randomUUID()
     val fileId2 = UUID.randomUUID()
-    val metadata1 = ValidatedFileMetadata(
-      fileId1, "name1", "File", 1L.some, LocalDateTime.now().some, "originalPath", "foiExemption".some, "heldBy".some,
-      "language".some, "legalStatus".some, "rightsCopyright".some, "clientSideChecksumValue".some, None
-    )
-    val metadata2 = ValidatedFileMetadata(
-      fileId2, "name2", "File", 1L.some, LocalDateTime.now().some, "originalPath", "foiExemption".some, "heldBy".some,
-      "language".some, "legalStatus".some, "rightsCopyright".some, "clientSideChecksumValue".some, None
-    )
+    val fileMetadata = createMetadata(LocalDateTime.now())
+    val metadata1 = Files(fileId1, "File".some, "name1".some, None, fileMetadata, None, None)
+    val metadata2 = Files(fileId2, "File".some, "name2".some, None, fileMetadata, None, None)
 
     val validatedMetadata = List(metadata1, metadata2)
 
