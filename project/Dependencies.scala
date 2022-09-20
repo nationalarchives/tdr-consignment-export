@@ -3,7 +3,7 @@ import sbt._
 object Dependencies {
   private val githubPureConfigVersion = "0.17.1"
   private val keycloakVersion = "19.0.2"
-  private val log4CatsVersion = "2.4.0"
+  private val log4CatsVersion = "2.5.0"
   private val mockitoScalaVersion = "1.17.12"
   private val monovoreDeclineVersion = "2.3.0"
 
@@ -22,7 +22,7 @@ object Dependencies {
   lazy val pureConfig = "com.github.pureconfig" %% "pureconfig" % githubPureConfigVersion
   lazy val pureConfigCatsEffect = "com.github.pureconfig" %% "pureconfig-cats-effect" % githubPureConfigVersion
   lazy val s3Mock = "io.findify" %% "s3mock" % "0.2.6"
-  lazy val slf4j = "org.slf4j" % "slf4j-simple" % "2.0.0"
+  lazy val slf4j = "org.slf4j" % "slf4j-simple" % "2.0.1"
   lazy val mockitoScala = "org.mockito" %% "mockito-scala" % mockitoScalaVersion
   lazy val mockitoScalaTest = "org.mockito" %% "mockito-scala-scalatest" % mockitoScalaVersion
   lazy val keycloakCore = "org.keycloak" % "keycloak-core" % keycloakVersion

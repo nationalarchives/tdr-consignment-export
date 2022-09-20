@@ -5,11 +5,11 @@ import cats.implicits.catsSyntaxOptionId
 import java.nio.file.Paths
 import java.time.LocalDateTime
 import java.util.UUID
-
 import gov.loc.repository.bagit.domain.Version.LATEST_BAGIT_VERSION
 import gov.loc.repository.bagit.domain._
 import gov.loc.repository.bagit.hash.StandardSupportedAlgorithms
-import uk.gov.nationalarchives.consignmentexport.Validator.ValidatedFileMetadata
+import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignment.Files
+import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignment.Files.Metadata
 
 import scala.jdk.CollectionConverters._
 import scala.util.Random
@@ -20,9 +20,9 @@ class ChecksumValidatorSpec extends ExportSpec {
   private val fileId2 = UUID.randomUUID()
   private val fileId3 = UUID.randomUUID()
 
-  private val metadata1 = createValidatedMetadata(fileId1,"clientSideChecksum1")
-  private val metadata2 = createValidatedMetadata(fileId2,"clientSideChecksum2")
-  private val metadata3 = createValidatedMetadata(fileId3, "clientSideChecksum3")
+  private val metadata1 = createFiles(fileId1,"clientSideChecksum1")
+  private val metadata2 = createFiles(fileId2,"clientSideChecksum2")
+  private val metadata3 = createFiles(fileId3, "clientSideChecksum3")
 
   "findChecksumMismatches" should "should return empty list if no checksum mismatches" in {
     val checksums = List(
@@ -48,20 +48,9 @@ class ChecksumValidatorSpec extends ExportSpec {
     checksumMismatches.contains(fileId3) should be(true)
   }
 
- private def createValidatedMetadata(fileId: UUID, checksumValue: String): ValidatedFileMetadata = {
-    ValidatedFileMetadata(
-      fileId,
-      "name",
-      "File",
-      1L.some,
-      LocalDateTime.parse("2021-02-03T10:33:30.414").some,
-      "clientSideOriginalFilePath",
-      "foiExemption".some,
-      "heldBy".some,
-      "language".some,
-      "legalStatus".some,
-      "rightsCopyright".some,
-      checksumValue.some, None)
+ private def createFiles(fileId: UUID, checksumValue: String): Files = {
+  val metadata = createMetadata(LocalDateTime.parse("2021-02-03T10:33:30.414"), checkSum = checksumValue)
+  Files(fileId, "File".some, "name".some, None, metadata, None, None)
   }
 
   private def createBag(checksums: List[String]): Bag = {

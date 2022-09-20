@@ -238,7 +238,7 @@ class MainSpec extends ExternalServiceSpec {
     updateConsignmentEvent.get.getRequest.getBodyAsString should include (s""""consignmentId":"$consignmentId","statusType":"${StatusType.export}","statusValue":"${StatusValue.failed}"""")
   }
 
-  "the export job" should "throw an error and update consignment status as 'Failed' if the file metadata is incomplete for a 'standard' consignment type" in {
+  "the export job" should "throw an error and update consignment status as 'Failed' if the FFID metadata is incomplete for a 'standard' consignment type" in {
     setUpInvalidExternalServices(graphQlGetConsignmentIncompleteMetadata("get_consignment_incomplete_metadata.json"))
 
     val consignmentId = UUID.fromString("0e634655-1563-4705-be99-abb437f971e0")
@@ -251,7 +251,7 @@ class MainSpec extends ExternalServiceSpec {
     }
 
     checkStepFunctionFailureCalled("publish_failure_incomplete_file_properties_request_body")
-    ex.getMessage should equal(s"$fileId is missing the following properties: foiExemptionCode, heldBy, language, rightsCopyright, sha256ClientSideChecksum")
+    ex.getMessage should equal(s"FFID metadata is missing for file id $fileId")
 
     val updateConsignmentEvent: Option[ServeEvent] = wiremockGraphqlServer.getAllServeEvents.asScala
       .find(p => p.getRequest.getBodyAsString.contains("mutation updateConsignmentStatus"))
@@ -260,7 +260,7 @@ class MainSpec extends ExternalServiceSpec {
     updateConsignmentEvent.get.getRequest.getBodyAsString should include (s""""consignmentId":"$consignmentId","statusType":"${StatusType.export}","statusValue":"${StatusValue.failed}"""")
   }
 
-  "the export job" should "throw an error and update consignment status as 'Failed' if the file metadata is incomplete for a 'judgment' consignment type" in {
+  "the export job" should "throw an error and update consignment status as 'Failed' if the FFID metadata is incomplete for a 'judgment' consignment type" in {
     setUpInvalidExternalServices(graphQlGetConsignmentIncompleteMetadata("get_judgment_consignment_incomplete_metadata.json"))
 
     val consignmentId = UUID.fromString("0e634655-1563-4705-be99-abb437f971e0")
@@ -273,7 +273,7 @@ class MainSpec extends ExternalServiceSpec {
     }
 
     checkStepFunctionFailureCalled("publish_failure_incomplete_file_properties_request_body")
-    ex.getMessage should equal(s"$fileId is missing the following properties: foiExemptionCode, heldBy, language, rightsCopyright, sha256ClientSideChecksum")
+    ex.getMessage should equal(s"FFID metadata is missing for file id $fileId")
 
     val updateConsignmentEvent: Option[ServeEvent] = wiremockGraphqlServer.getAllServeEvents.asScala
       .find(p => p.getRequest.getBodyAsString.contains("mutation updateConsignmentStatus"))

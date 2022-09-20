@@ -29,8 +29,6 @@ object Main extends CommandIOApp("tdr-consignment-export", "Exports tdr files in
   implicit val tdrKeycloakDeployment: TdrKeycloakDeployment = TdrKeycloakDeployment(configuration.getString("auth.url"), "tdr", 3600)
   private val stepFunctionPublishEndpoint = configuration.getString("stepFunction.endpoint")
 
-  val directoryType = "Folder"
-
   override def main: Opts[IO[ExitCode]] =
      exportOps.map {
       case FileExport(consignmentId, taskToken) =>
@@ -57,15 +55,14 @@ object Main extends CommandIOApp("tdr-consignment-export", "Exports tdr files in
           consignmentData <- IO.fromEither(validator.validateConsignmentResult(consignmentResult))
           _ <- IO.fromEither(validator.validateConsignmentHasFiles(consignmentData))
           bagMetadata <- BagMetadata(keycloakClient).generateMetadata(consignmentId, consignmentData, exportDatetime)
-          validatedFileMetadata <- IO.fromEither(validator.extractFileMetadata(consignmentData.files))
           validatedFfidMetadata <- IO.fromEither(validator.extractFFIDMetadata(consignmentData.files))
           validatedAntivirusMetadata <- IO.fromEither(validator.extractAntivirusMetadata(consignmentData.files))
-          _ <- s3Files.downloadFiles(validatedFileMetadata, config.s3.cleanBucket, consignmentId, consignmentData.consignmentReference, basePath)
+          _ <- s3Files.downloadFiles(consignmentData.files, config.s3.cleanBucket, consignmentId, consignmentData.consignmentReference, basePath)
           bag <- bagit.createBag(consignmentData.consignmentReference, basePath, bagMetadata)
-          checkSumMismatches = ChecksumValidator().findChecksumMismatches(bag, validatedFileMetadata)
+          checkSumMismatches = ChecksumValidator().findChecksumMismatches(bag, consignmentData.files)
           _ = if(checkSumMismatches.nonEmpty) throw new RuntimeException(s"Checksum mismatch for file(s): ${checkSumMismatches.mkString("\n")}")
           bagAdditionalFiles = BagAdditionalFiles(bag.getRootDir)
-          fileMetadataCsv <- bagAdditionalFiles.createFileMetadataCsv(validatedFileMetadata)
+          fileMetadataCsv <- bagAdditionalFiles.createFileMetadataCsv(consignmentData.files)
           ffidMetadataCsv <- bagAdditionalFiles.createFfidMetadataCsv(validatedFfidMetadata)
           antivirusCsv <- bagAdditionalFiles.createAntivirusMetadataCsv(validatedAntivirusMetadata)
           checksums <- ChecksumCalculator().calculateChecksums(fileMetadataCsv, ffidMetadataCsv, antivirusCsv)

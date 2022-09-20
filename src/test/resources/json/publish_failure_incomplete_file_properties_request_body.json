@@ -1,1 +1,1 @@
-{"taskToken":"taskToken1234","cause":"Export for consignment 0e634655-1563-4705-be99-abb437f971e0 failed: 7b19b272-d4d1-4d77-bf25-511dc6489d12 is missing the following properties: foiExemptionCode, heldBy, language, rightsCopyright, sha256ClientSideChecksum"}
+{"taskToken":"taskToken1234","cause":"Export for consignment 0e634655-1563-4705-be99-abb437f971e0 failed: FFID metadata is missing for file id 7b19b272-d4d1-4d77-bf25-511dc6489d12"}
