@@ -90,8 +90,6 @@ object Main extends CommandIOApp("tdr-consignment-export", "Exports tdr files in
        exitCode.handleErrorWith(e => {
           for {
             config <- config()
-            graphQlApi = GraphQlApi(config.api.url)
-            _ <- graphQlApi.updateConsignmentStatus(config, consignmentId, StatusType.export, StatusValue.failed)
             _ <- stepFunction.publishFailure(taskToken, s"$exportFailedErrorMessage: ${e.getMessage}")
             _ <- IO.raiseError(e)
           } yield ExitCode.Error
