@@ -26,15 +26,18 @@ object Main extends CommandIOApp("tdr-consignment-export", "Exports tdr files in
   private val configuration = ConfigFactory.load()
 
   implicit def logger: SelfAwareStructuredLogger[IO] = Slf4jLogger.getLogger[IO]
+
   implicit val tdrKeycloakDeployment: TdrKeycloakDeployment = TdrKeycloakDeployment(configuration.getString("auth.url"), "tdr", 3600)
   private val stepFunctionPublishEndpoint = configuration.getString("stepFunction.endpoint")
 
   override def main: Opts[IO[ExitCode]] =
-     exportOps.map {
+    exportOps.map {
       case FileExport(consignmentId, taskToken) =>
         val exportFailedErrorMessage = s"Export for consignment $consignmentId failed"
-        val stepFunction: StepFunction  = StepFunction(StepFunctionUtils(sfnAsyncClient(stepFunctionPublishEndpoint)))
+        val stepFunction: StepFunction = StepFunction(StepFunctionUtils(sfnAsyncClient(stepFunctionPublishEndpoint)))
+
         def runHeartbeat(): IO[Unit] = stepFunction.sendHeartbeat(taskToken) >> IO.sleep(30 seconds) >> runHeartbeat()
+
         val exitCode = for {
           heartbeat <- runHeartbeat().start
           config <- config()
@@ -60,7 +63,7 @@ object Main extends CommandIOApp("tdr-consignment-export", "Exports tdr files in
           _ <- s3Files.downloadFiles(consignmentData.files, config.s3.cleanBucket, consignmentId, consignmentData.consignmentReference, basePath)
           bag <- bagit.createBag(consignmentData.consignmentReference, basePath, bagMetadata)
           checkSumMismatches = ChecksumValidator().findChecksumMismatches(bag, consignmentData.files)
-          _ = if(checkSumMismatches.nonEmpty) throw new RuntimeException(s"Checksum mismatch for file(s): ${checkSumMismatches.mkString("\n")}")
+          _ = if (checkSumMismatches.nonEmpty) throw new RuntimeException(s"Checksum mismatch for file(s): ${checkSumMismatches.mkString("\n")}")
           bagAdditionalFiles = BagAdditionalFiles(bag.getRootDir)
           fileMetadataCsv <- bagAdditionalFiles.createFileMetadataCsv(consignmentData.files)
           ffidMetadataCsv <- bagAdditionalFiles.createFfidMetadataCsv(validatedFfidMetadata)
@@ -73,7 +76,11 @@ object Main extends CommandIOApp("tdr-consignment-export", "Exports tdr files in
           _ <- bashCommands.runCommand(s"tar --sort=name --owner=root:0 --group=root:0 --mtime ${java.time.LocalDate.now.toString} -C $basePath -c ./${consignmentData.consignmentReference} | gzip -n > $tarPath")
           _ <- bashCommands.runCommand(s"sha256sum $tarPath > $tarPath.sha256")
           consignmentType = consignmentData.consignmentType.getOrElse("standard")
-          s3Bucket = if(consignmentType.contains("judgment")) { config.s3.outputBucketJudgment } else { config.s3.outputBucket}
+          s3Bucket = if (consignmentType.contains("judgment")) {
+            config.s3.outputBucketJudgment
+          } else {
+            config.s3.outputBucket
+          }
           _ <- s3Files.uploadFiles(s3Bucket, consignmentId, consignmentReference, tarPath)
           _ <- graphQlApi.updateExportData(config, consignmentId, s"s3://$s3Bucket/$consignmentReference.tar.gz", exportDatetime, version)
           _ <- stepFunction.publishSuccess(taskToken,
@@ -87,12 +94,12 @@ object Main extends CommandIOApp("tdr-consignment-export", "Exports tdr files in
           _ <- heartbeat.cancel
         } yield ExitCode.Success
 
-       exitCode.handleErrorWith(e => {
+        exitCode.handleErrorWith {e =>
           for {
             config <- config()
             _ <- stepFunction.publishFailure(taskToken, s"$exportFailedErrorMessage: ${e.getMessage}")
             _ <- IO.raiseError(e)
           } yield ExitCode.Error
-        })
+        }
     }
 }
