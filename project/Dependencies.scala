@@ -7,7 +7,7 @@ object Dependencies {
   private val mockitoScalaVersion = "1.17.12"
   private val monovoreDeclineVersion = "2.3.1"
 
-  lazy val authUtils = "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.90"
+  lazy val authUtils = "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.93"
   lazy val generatedGraphql = "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.274"
   lazy val awsUtils =  "uk.gov.nationalarchives" %% "tdr-aws-utils" % "0.1.41"
   lazy val bagit = "gov.loc" % "bagit" % "5.2.0"
