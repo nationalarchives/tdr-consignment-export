@@ -1,14 +1,14 @@
 package uk.gov.nationalarchives.consignmentexport
 
-import java.io.File
+import java.io.{BufferedOutputStream, File, FileOutputStream}
 import java.net.URI
 import java.nio.file.Path
-
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock._
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import com.typesafe.config.{Config, ConfigFactory}
 import io.findify.s3mock.S3Mock
+import org.apache.commons.io.output.ByteArrayOutputStream
 import org.keycloak.OAuth2Constants
 import org.keycloak.admin.client.{Keycloak, KeycloakBuilder}
 import org.scalatest.concurrent.ScalaFutures
@@ -22,6 +22,7 @@ import software.amazon.awssdk.services.s3.model._
 import software.amazon.awssdk.services.sfn.SfnAsyncClient
 
 import scala.concurrent.ExecutionContext
+import scala.io.Source
 import scala.io.Source.fromResource
 import scala.jdk.CollectionConverters._
 import scala.sys.process._
@@ -51,26 +52,27 @@ class ExternalServiceSpec extends AnyFlatSpec with BeforeAndAfterEach with Befor
     .endpointOverride(URI.create("http://localhost:9003/"))
     .build
 
-  def createBucket(bucket: String): CreateBucketResponse = s3Client.createBucket(CreateBucketRequest.builder.bucket(bucket).build)
+  def outputBucketObjects(): List[String] =
+    wiremockS3Server.getAllServeEvents.asScala
+      .filter(_.getRequest.getMethod.getName == "PUT")
+      .map(_.getRequest.getUrl.tail).toList
 
-  def deleteBucket(bucket: String): DeleteBucketResponse = s3Client.deleteBucket(DeleteBucketRequest.builder.bucket(bucket).build)
+  def getObject(key: String, path: String): Unit = {
+    val bytes = wiremockS3Server.getAllServeEvents.asScala.find(_.getRequest.getUrl == s"/$key").get.getRequest.getBody
+    val baos = new BufferedOutputStream(new FileOutputStream(path))
+    baos.write(bytes)
+    baos.close()
+  }
 
-  def outputBucketObjects(bucket: String): List[S3Object] =
-    s3Client.listObjects(ListObjectsRequest.builder.bucket(bucket).build)
-    .contents().asScala.toList
-
-  def getObject(key: String, path: Path, bucket: String): GetObjectResponse =
-    s3Client.getObject(GetObjectRequest.builder.bucket(bucket).key(key).build, path)
-
-  def putFile(key: String): PutObjectResponse = {
-    val path = new File(getClass.getResource(s"/testfiles/testfile").getPath).toPath
-    val putObjectRequest = PutObjectRequest.builder.bucket("test-clean-bucket").key(key).build
-    s3Client.putObject(putObjectRequest, path)
+  def putFile(key: String): Unit = {
+    val body = Source.fromResource("testfiles/testfile").getLines().mkString
+    wiremockS3Server.stubFor(get(urlEqualTo(s"/$key")).willReturn(ok(body)))
   }
 
   val wiremockGraphqlServer = new WireMockServer(9001)
   val wiremockAuthServer = new WireMockServer(9002)
   val wiremockSfnServer = new WireMockServer(9003)
+  val wiremockS3Server = new WireMockServer(8003)
 
   implicit val ec: ExecutionContext = ExecutionContext.global
 
@@ -129,9 +131,10 @@ class ExternalServiceSpec extends AnyFlatSpec with BeforeAndAfterEach with Befor
   def stepFunctionPublish: StubMapping = wiremockSfnServer.stubFor(post(urlEqualTo(stepFunctionPublishPath))
     .willReturn(ok("Ok response body")))
 
-  val s3Api: S3Mock = S3Mock(port = 8003, dir = "/tmp/s3")
+//  val s3Api: S3Mock = S3Mock(port = 8003, dir = "/tmp/s3")
 
   override def beforeAll(): Unit = {
+    wiremockS3Server.start()
     wiremockGraphqlServer.start()
     wiremockAuthServer.start()
     wiremockSfnServer.start()
@@ -139,27 +142,27 @@ class ExternalServiceSpec extends AnyFlatSpec with BeforeAndAfterEach with Befor
   }
 
   override def beforeEach(): Unit = {
-    s3Api.start
     authOk
+    wiremockS3Server.resetAll()
     wiremockGraphqlServer.resetAll()
     wiremockSfnServer.resetAll()
     graphqlUpdateExportData
-    createBucket("test-clean-bucket")
-    createBucket("test-output-bucket")
-    createBucket("test-output-bucket-judgment")
+    wiremockS3Server.stubFor(put(urlMatching("/.*tar\\.gz.*")).willReturn(ok()))
+    wiremockS3Server.stubFor(get(urlMatching("/.*tar\\.gz.*")).willReturn(ok()))
   }
 
   override def afterAll(): Unit = {
+    wiremockS3Server.stop()
     wiremockGraphqlServer.stop()
     wiremockAuthServer.stop()
     wiremockSfnServer.stop()
   }
 
   override def afterEach(): Unit = {
-    s3Api.stop
-    deleteBucket("test-clean-bucket")
-    deleteBucket("test-output-bucket")
-    deleteBucket("test-output-bucket-judgment")
+//    s3Api.stop
+//    deleteBucket("test-clean-bucket")
+//    deleteBucket("test-output-bucket")
+//    deleteBucket("test-output-bucket-judgment")
     wiremockAuthServer.resetAll()
     wiremockGraphqlServer.resetAll()
     wiremockSfnServer.resetAll()
