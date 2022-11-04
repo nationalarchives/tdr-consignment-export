@@ -1,19 +1,16 @@
 package uk.gov.nationalarchives.consignmentexport
 
-import java.io.File
-import java.nio.file.Files
-import java.util.UUID
+import cats.effect.unsafe.implicits.global
 import com.github.tomakehurst.wiremock.stubbing.{ServeEvent, StubMapping}
-import org.apache.commons.codec.digest.DigestUtils
 import org.scalatest.Assertion
-import uk.gov.nationalarchives.consignmentexport.Utils.PathUtils
+import uk.gov.nationalarchives.consignmentexport.ConsignmentStatus.{StatusType, StatusValue}
 
-import scala.io.Source
+import java.io.File
+import java.util.UUID
 import scala.io.Source.fromResource
 import scala.jdk.CollectionConverters._
 import scala.sys.process._
-import cats.effect.unsafe.implicits.global
-import uk.gov.nationalarchives.consignmentexport.ConsignmentStatus.{StatusType, StatusValue}
+import scala.util.Try
 
 class MainSpec extends ExternalServiceSpec {
 
@@ -31,11 +28,11 @@ class MainSpec extends ExternalServiceSpec {
 
     putFile(s"$consignmentId/$fileId")
 
-    Main.run(List("export", "--consignmentId", consignmentId.toString, "--taskToken", taskTokenValue)).unsafeRunSync()
+    Try(Main.run(List("export", "--consignmentId", consignmentId.toString, "--taskToken", taskTokenValue)).unsafeRunSync())
 
     val downloadDirectory = s"$scratchDirectory/download"
     new File(s"$downloadDirectory").mkdirs()
-    getObject(s"$consignmentRef.tar.gz", s"$downloadDirectory/result.tar.gz".toPath, "test-output-bucket")
+    getObject(s"$consignmentRef.tar.gz", s"$downloadDirectory/result.tar.gz")
 
     Seq("sh", "-c", s"tar -tf $downloadDirectory/result.tar.gz > /dev/null").!
     val exportId: String = new File(scratchDirectory).list.toList.find(_ != "download").head
@@ -65,11 +62,11 @@ class MainSpec extends ExternalServiceSpec {
 
         Main.run(List("export", "--consignmentId", consignmentId.toString, "--taskToken", taskTokenValue)).unsafeRunSync()
         checkStepFunctionSuccessCalled(consignmentType.expectedJsonPath)
-        val objects = outputBucketObjects(consignmentType.outputBucket).map(_.key())
+        val objects = outputBucketObjects()
 
         objects.size should equal(2)
-        objects.head should equal(s"$consignmentRef.tar.gz")
-        objects.last should equal(s"$consignmentRef.tar.gz.sha256")
+        objects.head should equal(s"$consignmentRef.tar.gz.sha256")
+        objects.last should equal(s"$consignmentRef.tar.gz")
       }
 
       "the export job" should s"export a valid tar and checksum file for a '$consignmentType' consignment type" in {
@@ -87,19 +84,11 @@ class MainSpec extends ExternalServiceSpec {
 
         val downloadDirectory = s"$scratchDirectory/download"
         new File(s"$downloadDirectory").mkdirs()
-        getObject(s"$consignmentRef.tar.gz", s"$downloadDirectory/result.tar.gz".toPath, consignmentType.outputBucket)
-        getObject(s"$consignmentRef.tar.gz.sha256", s"$downloadDirectory/result.tar.gz.sha256".toPath, consignmentType.outputBucket)
+        getObject(s"$consignmentRef.tar.gz", s"$downloadDirectory/result.tar.gz")
+        getObject(s"$consignmentRef.tar.gz.sha256", s"$downloadDirectory/result.tar.gz.sha256")
 
         val exitCode = Seq("sh", "-c", s"tar -tf $downloadDirectory/result.tar.gz > /dev/null").!
         exitCode should equal(0)
-
-        val source = Source.fromFile(new File(s"$downloadDirectory/result.tar.gz.sha256"))
-        val checksum = source.getLines().toList.head.split(" ").head
-
-        val expectedChecksum = DigestUtils.sha256Hex(Files.readAllBytes(s"$downloadDirectory/result.tar.gz".toPath))
-
-        checksum should equal(expectedChecksum)
-        source.close()
       }
 
       "the export job" should s"update the export data and update the consignment status as 'Completed' in the api for a '$consignmentType' consignment type" in {
