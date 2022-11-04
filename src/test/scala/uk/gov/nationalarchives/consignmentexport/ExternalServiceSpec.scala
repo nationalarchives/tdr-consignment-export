@@ -1,14 +1,9 @@
 package uk.gov.nationalarchives.consignmentexport
 
-import java.io.{BufferedOutputStream, File, FileOutputStream}
-import java.net.URI
-import java.nio.file.Path
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock._
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import com.typesafe.config.{Config, ConfigFactory}
-import io.findify.s3mock.S3Mock
-import org.apache.commons.io.output.ByteArrayOutputStream
 import org.keycloak.OAuth2Constants
 import org.keycloak.admin.client.{Keycloak, KeycloakBuilder}
 import org.scalatest.concurrent.ScalaFutures
@@ -18,9 +13,10 @@ import org.scalatest.time.{Millis, Seconds, Span}
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.s3.S3Client
-import software.amazon.awssdk.services.s3.model._
 import software.amazon.awssdk.services.sfn.SfnAsyncClient
 
+import java.io.{BufferedOutputStream, File, FileOutputStream}
+import java.net.URI
 import scala.concurrent.ExecutionContext
 import scala.io.Source
 import scala.io.Source.fromResource
