@@ -76,7 +76,9 @@ object BagMetadata {
   val InternalSenderIdentifierKey = "Internal-Sender-Identifier"
   val ConsignmentTypeKey = "Consignment-Type"
 
+  case class UserDetails(contactName: String, contactEmail: String)
+
   def apply(keycloakClient: KeycloakClient)(implicit logger: SelfAwareStructuredLogger[IO]): BagMetadata = new BagMetadata(keycloakClient)(logger)
 }
 
-case class UserDetails(contactName: String, contactEmail: String)
+

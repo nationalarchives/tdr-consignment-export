@@ -17,7 +17,9 @@ import uk.gov.nationalarchives.consignmentexport.Config.Configuration
 
 import scala.concurrent.{ExecutionContextExecutor, Future}
 
-class GraphQlApi(keycloak: KeycloakUtils,
+class GraphQlApi(config: Configuration,
+                 consignmentId: UUID,
+                 keycloak: KeycloakUtils,
                  consignmentClient: GraphQLClient[gce.Data, gce.Variables],
                  updateExportDataClient: GraphQLClient[ued.Data, ued.Variables],
                  updateConsignmentClient: GraphQLClient[ucs.Data, ucs.Variables])(
@@ -29,7 +31,7 @@ class GraphQlApi(keycloak: KeycloakUtils,
     val errorString: String = response.errors.map(_.message).mkString("\n")
   }
 
-  def getConsignmentMetadata(config: Configuration, consignmentId: UUID): IO[Option[gce.GetConsignment]] = for {
+  def getConsignmentMetadata(): IO[Option[gce.GetConsignment]] = for {
     token <- keycloak.serviceAccountToken(config.auth.clientId, config.auth.clientSecret).toIO
     exportResult <- consignmentClient.getResult(token, gce.document, gce.Variables(consignmentId).some).toIO
     consignmentData <-
@@ -37,7 +39,7 @@ class GraphQlApi(keycloak: KeycloakUtils,
     consignment = consignmentData.getConsignment
   } yield consignment
 
-  def updateConsignmentStatus(config: Configuration, consignmentId: UUID, statusType: String, status: String): IO[Option[Int]] = for {
+  def updateConsignmentStatus(statusType: String, status: String): IO[Option[Int]] = for {
     token <- keycloak.serviceAccountToken(config.auth.clientId, config.auth.clientSecret).toIO
     exportResult <- updateConsignmentClient.getResult(token, ucs.document, ucs.Variables(ConsignmentStatusInput(consignmentId, statusType, Some(status))).some).toIO
     consignmentStatus <-
@@ -46,7 +48,7 @@ class GraphQlApi(keycloak: KeycloakUtils,
     _ <- logger.info(s"Updated consignment status '$statusType' as $status for consignment $consignmentId")
   } yield updateConsignmentStatus
 
-  def updateExportData(config: Configuration, consignmentId: UUID, tarPath: String, exportDatetime: ZonedDateTime, exportVersion: String): IO[Option[Int]] = for {
+  def updateExportData(tarPath: String, exportDatetime: ZonedDateTime, exportVersion: String): IO[Option[Int]] = for {
     token <- keycloak.serviceAccountToken(config.auth.clientId, config.auth.clientSecret).toIO
     response <- updateExportDataClient.getResult(token, ued.document, ued.Variables(UpdateExportDataInput(consignmentId, tarPath, Some(exportDatetime), exportVersion)).some).toIO
     data <- IO.fromOption(response.data)(new RuntimeException(s"No data returned from the update export call for consignment $consignmentId ${response.errorString}"))
@@ -58,16 +60,17 @@ object GraphQlApi {
   implicit val ec: ExecutionContextExecutor = scala.concurrent.ExecutionContext.global
   implicit val backend: SttpBackend[Identity, Any] = HttpURLConnectionBackend()
 
-  def apply(apiUrl: String)(
+  def apply(config: Configuration, consignmentId: UUID)(
     implicit logger: SelfAwareStructuredLogger[IO],
     keycloakDeployment: TdrKeycloakDeployment,
     backend: SttpBackend[Identity, Any]
   ): GraphQlApi = {
+    val apiUrl = config.api.url
     val keycloak = new KeycloakUtils()
     val getConsignmentClient = new GraphQLClient[gce.Data, gce.Variables](apiUrl)
     val updateExportDataClient = new GraphQLClient[ued.Data, ued.Variables](apiUrl)
     val updateConsignmentStatus = new GraphQLClient[ucs.Data, ucs.Variables](apiUrl)
-    new GraphQlApi(keycloak, getConsignmentClient, updateExportDataClient, updateConsignmentStatus)(logger, keycloakDeployment, backend)
+    new GraphQlApi(config, consignmentId, keycloak, getConsignmentClient, updateExportDataClient, updateConsignmentStatus)(logger, keycloakDeployment, backend)
   }
 
   implicit class FutureUtils[T](f: Future[T]) {
