@@ -147,6 +147,7 @@ class MainSpec extends ExternalServiceSpec {
       }
 
       "the export job" should s"throw an error and call the step function if the ffid metadata is missing for a '$consignmentType' consignment type" in {
+        graphqlGetCustomMetadata()
         setUpInvalidExternalServices(graphQlGetConsignmentMissingFfidMetadata(s"get_${consignmentType.nameForFile}consignment_missing_ffid_metadata.json"))
 
         val consignmentId = UUID.fromString("2bb446f2-eb15-4b83-9c69-53b559232d84")
@@ -179,6 +180,7 @@ class MainSpec extends ExternalServiceSpec {
       }
 
       "the export job" should s"throw an error and call the step function if no valid Keycloak user found for a '$consignmentType' consignment type" in {
+        graphqlGetCustomMetadata()
         graphQlGetConsignmentMetadata(s"get_${consignmentType.nameForFile}consignment_for_export.json")
         stepFunctionPublish
 
@@ -196,6 +198,7 @@ class MainSpec extends ExternalServiceSpec {
       }
 
       "the export job" should s"throw an error and call the step function if an incomplete Keycloak user details found for a '$consignmentType' consignment type" in {
+        graphqlGetCustomMetadata()
         graphQlGetConsignmentMetadata(s"get_${consignmentType.nameForFile}consignment_for_export.json")
         keycloakGetIncompleteUser
         stepFunctionPublish
@@ -247,6 +250,8 @@ class MainSpec extends ExternalServiceSpec {
   }
 
   "the export job" should s"throw an error and call the step function if no consignment metadata found" in {
+    graphqlGetConsignmentMissingMetadata
+    graphqlGetCustomMetadata()
     keycloakGetUser
     stepFunctionPublish
 
@@ -263,11 +268,14 @@ class MainSpec extends ExternalServiceSpec {
 
   private def setUpValidExternalServices(jsonResponse: String) = {
     graphQlGetConsignmentMetadata(jsonResponse)
+    graphqlGetCustomMetadata()
+    graphqlUpdateConsignmentStatus
     keycloakGetUser
     stepFunctionPublish
   }
 
   private def setUpInvalidExternalServices(invalidStub: => StubMapping) = {
+    graphqlGetCustomMetadata()
     invalidStub
     keycloakGetUser
     stepFunctionPublish

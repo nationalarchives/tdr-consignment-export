@@ -8,9 +8,11 @@ import graphql.codegen.GetConsignmentExport.{getConsignmentForExport => gce}
 import uk.gov.nationalarchives.tdr.keycloak.{KeycloakUtils, TdrKeycloakDeployment}
 import graphql.codegen.UpdateExportData.{updateExportData => ued}
 import graphql.codegen.types.{ConsignmentStatusInput, UpdateExportDataInput}
+import graphql.codegen.GetCustomMetadata.{customMetadata => cm}
 import sttp.client3.{HttpURLConnectionBackend, Identity, SttpBackend}
 import GraphQlApi._
 import cats.effect.IO
+import graphql.codegen.GetCustomMetadata.customMetadata.Variables
 import graphql.codegen.UpdateConsignmentStatus.{updateConsignmentStatus => ucs}
 import org.typelevel.log4cats.SelfAwareStructuredLogger
 import uk.gov.nationalarchives.consignmentexport.Config.Configuration
@@ -22,7 +24,8 @@ class GraphQlApi(config: Configuration,
                  keycloak: KeycloakUtils,
                  consignmentClient: GraphQLClient[gce.Data, gce.Variables],
                  updateExportDataClient: GraphQLClient[ued.Data, ued.Variables],
-                 updateConsignmentClient: GraphQLClient[ucs.Data, ucs.Variables])(
+                 updateConsignmentClient: GraphQLClient[ucs.Data, ucs.Variables],
+                 customMetadataStatusClient: GraphQLClient[cm.Data, Variables])(
                   implicit val logger: SelfAwareStructuredLogger[IO],
                   keycloakDeployment: TdrKeycloakDeployment,
                   backend: SttpBackend[Identity, Any]) {
@@ -31,7 +34,13 @@ class GraphQlApi(config: Configuration,
     val errorString: String = response.errors.map(_.message).mkString("\n")
   }
 
-  def getConsignmentMetadata(): IO[Option[gce.GetConsignment]] = for {
+  def getCustomMetadata: IO[List[cm.CustomMetadata]] = for {
+    token <- keycloak.serviceAccountToken(config.auth.clientId, config.auth.clientSecret).toIO
+    metadata <- customMetadataStatusClient.getResult(token, cm.document, cm.Variables(consignmentId).some).toIO
+    data <- IO.fromOption(metadata.data)(new RuntimeException("No custom metadata definitions found"))
+  } yield data.customMetadata
+
+  def getConsignmentMetadata: IO[Option[gce.GetConsignment]] = for {
     token <- keycloak.serviceAccountToken(config.auth.clientId, config.auth.clientSecret).toIO
     exportResult <- consignmentClient.getResult(token, gce.document, gce.Variables(consignmentId).some).toIO
     consignmentData <-
@@ -70,7 +79,8 @@ object GraphQlApi {
     val getConsignmentClient = new GraphQLClient[gce.Data, gce.Variables](apiUrl)
     val updateExportDataClient = new GraphQLClient[ued.Data, ued.Variables](apiUrl)
     val updateConsignmentStatus = new GraphQLClient[ucs.Data, ucs.Variables](apiUrl)
-    new GraphQlApi(config, consignmentId, keycloak, getConsignmentClient, updateExportDataClient, updateConsignmentStatus)(logger, keycloakDeployment, backend)
+    val customMetadataStatusClient: GraphQLClient[cm.Data, Variables] = new GraphQLClient[cm.Data, cm.Variables](apiUrl)
+    new GraphQlApi(config, consignmentId, keycloak, getConsignmentClient, updateExportDataClient, updateConsignmentStatus, customMetadataStatusClient)(logger, keycloakDeployment, backend)
   }
 
   implicit class FutureUtils[T](f: Future[T]) {
