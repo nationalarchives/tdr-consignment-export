@@ -192,7 +192,7 @@ class GraphQlApiSpec extends ExportSpec {
     customMetadataResponse should equal(customMetadata)
   }
 
-  "the getCustomMetadata method" should "return an error if there is no custom metadata" in {
+  "the getCustomMetadata method" should "return an error if there are no custom metadata definitions" in {
     val consignmentClient = mock[GraphQLClient[gce.Data, gce.Variables]]
     val updateExportClient = mock[GraphQLClient[ued.Data, ued.Variables]]
     val updateConsignmentStatus = mock[GraphQLClient[ucs.Data, ucs.Variables]]
