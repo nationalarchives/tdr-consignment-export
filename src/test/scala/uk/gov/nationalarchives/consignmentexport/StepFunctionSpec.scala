@@ -9,7 +9,7 @@ import io.circe.generic.auto._
 import io.circe.syntax.EncoderOps
 import org.mockito.ArgumentCaptor
 import software.amazon.awssdk.services.sfn.model.{SendTaskFailureResponse, SendTaskSuccessResponse}
-import uk.gov.nationalarchives.aws.utils.StepFunctionUtils
+import uk.gov.nationalarchives.aws.utils.stepfunction.StepFunctionUtils
 import uk.gov.nationalarchives.consignmentexport.StepFunction.ExportOutput
 import cats.effect.unsafe.implicits.global
 

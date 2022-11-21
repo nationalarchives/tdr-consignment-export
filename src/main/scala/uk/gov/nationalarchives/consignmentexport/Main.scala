@@ -10,8 +10,10 @@ import gov.loc.repository.bagit.domain.Metadata
 import graphql.codegen.GetConsignmentExport.{getConsignmentForExport => gce}
 import org.typelevel.log4cats.SelfAwareStructuredLogger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
-import uk.gov.nationalarchives.aws.utils.Clients.{s3Async, sfnAsyncClient}
-import uk.gov.nationalarchives.aws.utils.{S3Utils, StepFunctionUtils}
+import uk.gov.nationalarchives.aws.utils.s3.S3Clients.s3Async
+import uk.gov.nationalarchives.aws.utils.stepfunction.StepFunctionClients.sfnAsyncClient
+import uk.gov.nationalarchives.aws.utils.s3.S3Utils
+import uk.gov.nationalarchives.aws.utils.stepfunction.StepFunctionUtils
 import uk.gov.nationalarchives.consignmentexport.Arguments._
 import uk.gov.nationalarchives.consignmentexport.BagMetadata.{InternalSenderIdentifierKey, SourceOrganisationKey}
 import uk.gov.nationalarchives.consignmentexport.Config.{Configuration, config}
@@ -48,7 +50,7 @@ object Main extends CommandIOApp("tdr-consignment-export", "Exports tdr files in
           basePath = s"$rootLocation/$exportId"
           bashCommands = BashCommands()
           graphQlApi = GraphQlApi(config, consignmentId)
-          s3Files = S3Files(S3Utils(s3Async), config)
+          s3Files = S3Files(S3Utils(s3Async(config.s3.endpoint)), config)
           validator = Validator(consignmentId)
           //Export datetime generated as value needed in bag metadata and DB table
           //Cannot use the value from DB table in bag metadata, as bag metadata created before bagging

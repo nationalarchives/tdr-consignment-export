@@ -5,7 +5,7 @@ import cats.implicits._
 import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignment.Files
 import org.typelevel.log4cats.SelfAwareStructuredLogger
 import software.amazon.awssdk.services.s3.model.GetObjectResponse
-import uk.gov.nationalarchives.aws.utils.S3Utils
+import uk.gov.nationalarchives.aws.utils.s3.S3Utils
 import uk.gov.nationalarchives.consignmentexport.Config.Configuration
 import uk.gov.nationalarchives.consignmentexport.Utils._
 

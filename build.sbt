@@ -16,7 +16,8 @@ lazy val root = (project in file("."))
     name := "tdr-consignment-export",
     libraryDependencies ++= Seq(
       authUtils,
-      awsUtils,
+      s3Utils,
+      stepFunctionUtils,
       bagit,
       catsEffect,
       decline,
