@@ -18,12 +18,28 @@
           "fileId": "7b19b272-d4d1-4d77-bf25-511dc6489d12",
           "fileName": "name",
           "fileType": "File",
-          "metadata": {
-            "clientSideOriginalFilePath": "originalPath",
-            "legalStatus": "Public Record",
-            "clientSideFileSize": 1024,
-            "clientSideLastModifiedDate": "2021-01-26T17:10:58.047"
-          }
+          "fileMetadata": [
+            {
+              "name": "ClientSideOriginalFilepath",
+              "value": "originalPath"
+            },
+            {
+              "name": "LegalStatus",
+              "value": "Public Record"
+            },
+            {
+              "name": "ClientSideFileSize",
+              "value": "1024"
+            },
+            {
+              "name": "ClientSideLastModifiedDate",
+              "value": "2021-01-26T17:10:58.047"
+            },
+            {
+              "name": "RightsCopyright",
+              "value": "Crown Copyright"
+            }
+          ]
         }
       ]
     }

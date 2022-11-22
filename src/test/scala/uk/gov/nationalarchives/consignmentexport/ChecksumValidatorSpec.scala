@@ -9,7 +9,6 @@ import gov.loc.repository.bagit.domain.Version.LATEST_BAGIT_VERSION
 import gov.loc.repository.bagit.domain._
 import gov.loc.repository.bagit.hash.StandardSupportedAlgorithms
 import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignment.Files
-import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignment.Files.Metadata
 
 import scala.jdk.CollectionConverters._
 import scala.util.Random

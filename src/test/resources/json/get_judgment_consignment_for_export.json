@@ -18,17 +18,44 @@
           "fileId": "7b19b272-d4d1-4d77-bf25-511dc6489d12",
           "fileName": "name",
           "fileType": "File",
-          "metadata": {
-            "clientSideOriginalFilePath": "originalPath",
-            "legalStatus": "Public Record",
-            "clientSideFileSize": 1024,
-            "clientSideLastModifiedDate": "2021-01-26T17:10:58.047",
-            "rightsCopyright": "Crown Copyright",
-            "heldBy": "TNA",
-            "foiExemptionCode": "open",
-            "language": "English",
-            "sha256ClientSideChecksum": "cd0aa9856147b6c5b4ff2b7dfee5da20aa38253099ef1b4a64aced233c9afe29"
-          },
+          "fileMetadata": [
+            {
+              "name": "ClientSideOriginalFilepath",
+              "value": "originalPath"
+            },
+            {
+              "name": "LegalStatus",
+              "value": "Public Record"
+            },
+            {
+              "name": "ClientSideFileSize",
+              "value": "1024"
+            },
+            {
+              "name": "ClientSideLastModifiedDate",
+              "value": "2021-01-26T17:10:58.047"
+            },
+            {
+              "name": "RightsCopyright",
+              "value": "Crown Copyright"
+            },
+            {
+              "name": "HeldBy",
+              "value": "TNA"
+            },
+            {
+              "name": "FoiExemptionCode",
+              "value": "open"
+            },
+            {
+              "name": "Language",
+              "value": "English"
+            },
+            {
+              "name": "SHA256ClientSideChecksum",
+              "value": "cd0aa9856147b6c5b4ff2b7dfee5da20aa38253099ef1b4a64aced233c9afe29"
+            }
+          ],
           "ffidMetadata": {
             "method": "pronom",
             "softwareVersion": "6.5",

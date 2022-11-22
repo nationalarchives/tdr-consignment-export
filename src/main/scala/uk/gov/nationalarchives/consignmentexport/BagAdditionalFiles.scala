@@ -1,14 +1,15 @@
 package uk.gov.nationalarchives.consignmentexport
 
-import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignment.Files
-
-import java.nio.file.Path
 import cats.effect.IO
 import com.github.tototoshi.csv.CSVWriter
-import uk.gov.nationalarchives.consignmentexport.Utils.FileMetadataHelper
+import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignment.Files
+import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata
+import graphql.codegen.types.DataType
 import uk.gov.nationalarchives.consignmentexport.Validator.{ValidatedAntivirusMetadata, ValidatedFFIDMetadata}
 
 import java.io.File
+import java.nio.file.Path
+import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 class BagAdditionalFiles(rootDirectory: Path) {
@@ -19,24 +20,21 @@ class BagAdditionalFiles(rootDirectory: Path) {
     writeToCsv("file-av.csv", header, avMetadataRows)
   }
 
-  def createFileMetadataCsv(files: List[Files]): IO[File] = {
-    val header = List("Filepath", "FileName", "FileType", "Filesize", "RightsCopyright", "LegalStatus", "HeldBy", "Language", "FoiExemptionCode", "LastModified", "OriginalFilePath")
-
-    val fileMetadataRows = files.map(f => {
-      val metadata = f.metadata
-      List(
-        dataPath(f.getClientSideOriginalFilePath),
-        f.fileName.getOrElse(""),
-        f.fileType.getOrElse(""),
-        metadata.clientSideFileSize.getOrElse(""),
-        metadata.rightsCopyright.getOrElse(""),
-        metadata.legalStatus.getOrElse(""),
-        metadata.heldBy.getOrElse(""),
-        metadata.language.getOrElse(""),
-        metadata.foiExemptionCode.getOrElse(""),
-        metadata.clientSideLastModifiedDate.map(d => DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss").format(d)).getOrElse(""),
-        f.originalFilePath.map(dataPath).getOrElse("")
-      )
+  def createFileMetadataCsv(files: List[Files], customMetadata: List[CustomMetadata]): IO[File] = {
+    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")
+    val filteredMetadata: List[CustomMetadata] = customMetadata.filter(_.allowExport).sortBy(_.exportOrdinal.getOrElse(Int.MaxValue))
+    val header: List[String] = filteredMetadata.map(f => f.fullName.getOrElse(f.name))
+    val fileMetadataRows: List[List[String]] = files.map(file => {
+      val groupedMetadata = file.fileMetadata.groupBy(_.name).view.mapValues(_.head).toMap
+      filteredMetadata.map(fm => groupedMetadata.get(fm.name).map(m => {
+        if(m.name == "ClientSideOriginalFilepath") {
+          dataPath(m.value)
+        } else if(filteredMetadata.find(_.name == m.name).exists(_.dataType == DataType.DateTime)) {
+          LocalDateTime.parse(m.value).format(formatter)
+        } else {
+          m.value
+        }
+      }).getOrElse(""))
     })
     writeToCsv("file-metadata.csv", header, fileMetadataRows)
   }

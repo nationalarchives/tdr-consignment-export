@@ -22,7 +22,7 @@ class S3Files(s3Utils: S3Utils, config: Configuration)(implicit val logger: Self
   def createDownloadDirectories(files: List[Files], consignmentReference: String, rootLocation: String): IO[List[Boolean]] = {
     IO {
       new File(s"$rootLocation/$consignmentReference").mkdirs()
-      files.filter(_.isFolder()).map(f =>
+      files.filter(_.isFolder).map(f =>
         new File(s"$rootLocation/$consignmentReference/${f.getClientSideOriginalFilePath}").mkdirs()
       )
     }
@@ -42,7 +42,7 @@ class S3Files(s3Utils: S3Utils, config: Configuration)(implicit val logger: Self
   def downloadFiles(files: List[Files], bucket: String, consignmentId: UUID, consignmentReference: String, rootLocation: String): IO[Unit] = {
     for {
       _ <- createDownloadDirectories(files, consignmentReference, rootLocation)
-      _ <- files.filter(!_.isFolder())
+      _ <- files.filter(!_.isFolder)
         .grouped(downloadBatchSize).toSeq.map(batchDownloadingFiles(_, bucket, consignmentId, consignmentReference, rootLocation)).sequence
       _ <- logger.info(s"Files downloaded from S3 for consignment $consignmentId")
     } yield()

@@ -1,48 +1,39 @@
 package uk.gov.nationalarchives.consignmentexport
 
 import cats.effect.unsafe.implicits.global
-import cats.implicits.catsSyntaxOptionId
-import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignment.Files
-import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignment.Files.Metadata
+import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignment.Files.FileMetadata
+import uk.gov.nationalarchives.consignmentexport.ExportSpec.customMetadata
 import uk.gov.nationalarchives.consignmentexport.Utils.PathUtils
 import uk.gov.nationalarchives.consignmentexport.Validator.{ValidatedAntivirusMetadata, ValidatedFFIDMetadata}
 
 import java.io.File
 import java.time.LocalDateTime
-import java.util.UUID
 import scala.io.Source
 
 class BagAdditionalFilesSpec extends ExportSpec {
+
   "fileMetadataCsv" should "produce a file with the correct rows" in {
     val bagAdditionalFiles = BagAdditionalFiles(getClass.getResource(".").getPath.toPath)
     val lastModified = LocalDateTime.parse("2021-02-03T10:33:30.414")
-    val originalFilePath = "/originalFilePath"
-    val fileMetadata = createMetadata(lastModified)
-    val validatedFileMetadata = Files(
-      UUID.randomUUID(),
-      "File".some,
-      "name".some,
-      originalFilePath.some,
-      fileMetadata,
-      None,
-      None
+    val originalFilePath = "originalFilePath"
+    val fileMetadata = createMetadata(lastModified, originalFilePath)
+
+    val validatedFileMetadata = createFile(originalFilePath, fileMetadata, "File", "name")
+    val folderMetadata: List[FileMetadata] = List(
+      FileMetadata("Filename", "folderName"),
+      FileMetadata("ClientSideOriginalFilepath", "folder"),
+      FileMetadata("FileType", "Folder")
     )
-    val folderMetadata = Metadata(None, None, "folder".some, None, None, None, None, None, None)
-    val validatedDirectoryMetadata = Files(
-      UUID.randomUUID(),
-      "Folder".some,
-      "folderName".some,
-      None, folderMetadata,
-      None, None)
-    val file = bagAdditionalFiles.createFileMetadataCsv(List(validatedFileMetadata, validatedDirectoryMetadata)).unsafeRunSync()
+    val validatedDirectoryMetadata = createFile(originalFilePath, folderMetadata, "Folder", "folderName")
+    val file = bagAdditionalFiles.createFileMetadataCsv(List(validatedFileMetadata, validatedDirectoryMetadata), customMetadata).unsafeRunSync()
 
     val source = Source.fromFile(file)
     val csvLines = source.getLines().toList
     val header = csvLines.head
     val rest = csvLines.tail
-    header should equal("Filepath,FileName,FileType,Filesize,RightsCopyright,LegalStatus,HeldBy,Language,FoiExemptionCode,LastModified,OriginalFilePath")
+    header should equal("File Path,File Name,File Type,File Size,Rights Copyright,Legal Status,Held By,Language,FOI Exemption Code,Last Modified Date,Checksum")
     rest.length should equal(2)
-    rest.head should equal(s"data/originalPath,name,File,1,rightsCopyright,legalStatus,heldBy,language,foiExemption,2021-02-03T10:33:30,data/$originalFilePath")
+    rest.head should equal("data/originalFilePath,File Name,File,1,rightsCopyright,legalStatus,heldBy,language,foiExemption,2021-02-03T10:33:30,clientSideChecksumValue")
     rest.last should equal(s"data/folder,folderName,Folder,,,,,,,,")
     source.close()
     new File("exporter/src/test/resources/file-metadata.csv").delete()
@@ -52,26 +43,33 @@ class BagAdditionalFilesSpec extends ExportSpec {
     val bagAdditionalFiles = BagAdditionalFiles(getClass.getResource(".").getPath.toPath)
     val lastModified: LocalDateTime = LocalDateTime.parse("2021-02-03T10:33:00.0")
     val fileMetadata = createMetadata(lastModified)
-    val metadata = Files(
-      UUID.randomUUID(),
-      "File".some,
-      "name".some,
-      None,
-      fileMetadata,
-      None,
-      None
-    )
-    val file = bagAdditionalFiles.createFileMetadataCsv(List(metadata)).unsafeRunSync()
+    val metadata = createFile("originalPath", fileMetadata, "File", "name")
+    val file = bagAdditionalFiles.createFileMetadataCsv(List(metadata), customMetadata).unsafeRunSync()
 
     val source = Source.fromFile(file)
     val csvLines = source.getLines().toList
     val header = csvLines.head
     val rest = csvLines.tail
-    header should equal("Filepath,FileName,FileType,Filesize,RightsCopyright,LegalStatus,HeldBy,Language,FoiExemptionCode,LastModified,OriginalFilePath")
+    header should equal("File Path,File Name,File Type,File Size,Rights Copyright,Legal Status,Held By,Language,FOI Exemption Code,Last Modified Date,Checksum")
     rest.length should equal(1)
-    rest.head should equal(s"data/originalPath,name,File,1,rightsCopyright,legalStatus,heldBy,language,foiExemption,2021-02-03T10:33:00,")
+    rest.head should equal(s"data/originalPath,File Name,File,1,rightsCopyright,legalStatus,heldBy,language,foiExemption,2021-02-03T10:33:00,clientSideChecksumValue")
     source.close()
     new File("exporter/src/test/resources/file-metadata.csv").delete()
+  }
+
+  "fileMetadataCsv" should "ignore columns not set for export" in {
+    val bagAdditionalFiles = BagAdditionalFiles(getClass.getResource(".").getPath.toPath)
+    val allowedForExport = customMetadata.head
+    val onlyExportFirst = allowedForExport :: customMetadata.tail.map(cm => cm.copy(allowExport = false))
+    val fileMetadata = createMetadata(LocalDateTime.now())
+    val metadata = createFile("originalPath", fileMetadata, "File", "name")
+
+    val file = bagAdditionalFiles.createFileMetadataCsv(List(metadata), onlyExportFirst).unsafeRunSync()
+
+    val source = Source.fromFile(file)
+    val csvLines = source.getLines().toList
+    csvLines.head should equal(allowedForExport.fullName.get)
+    csvLines.last should equal(fileMetadata.find(_.name == allowedForExport.name).map(_.value).get)
   }
 
   "createFfidMetadataCsv" should "produce a file with the correct rows" in {
