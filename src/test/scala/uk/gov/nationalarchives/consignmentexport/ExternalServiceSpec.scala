@@ -53,11 +53,12 @@ class ExternalServiceSpec extends AnyFlatSpec with BeforeAndAfterEach with Befor
       .filter(_.getRequest.getMethod.getName == "PUT")
       .map(_.getRequest.getUrl.tail).toList
 
-  def getObject(key: String, path: String): Unit = {
+  def getObject(key: String, path: String): Array[Byte] = {
     val bytes = wiremockS3Server.getAllServeEvents.asScala.find(_.getRequest.getUrl == s"/$key").get.getRequest.getBody
     val baos = new BufferedOutputStream(new FileOutputStream(path))
     baos.write(bytes)
     baos.close()
+    bytes
   }
 
   def putFile(key: String): Unit = {
@@ -81,6 +82,16 @@ class ExternalServiceSpec extends AnyFlatSpec with BeforeAndAfterEach with Befor
   val stepFunctionPublishPath = "/"
 
   def graphQlUrl: String = wiremockGraphqlServer.url(graphQlPath)
+
+  def graphqlGetCustomMetadata(): StubMapping = wiremockGraphqlServer.stubFor(post(urlEqualTo(graphQlPath))
+      .withRequestBody(containing("customMetadata"))
+      .willReturn(okJson(fromResource(s"json/custom_metadata.json").mkString))
+    )
+
+  def graphqlGetConsignmentMissingMetadata: StubMapping = wiremockGraphqlServer.stubFor(post(urlEqualTo(graphQlPath))
+    .withRequestBody(equalToJson(generateGetConsignmentForExportQuery("50df01e6-2e5e-4269-97e7-531a755b417d")))
+    .willReturn(okJson("""{"data": {}}"""))
+  )
 
   def graphQlGetConsignmentMetadata(response: String): StubMapping = wiremockGraphqlServer.stubFor(post(urlEqualTo(graphQlPath))
     .withRequestBody(equalToJson(generateGetConsignmentForExportQuery("50df01e6-2e5e-4269-97e7-531a755b417d")))
@@ -111,7 +122,13 @@ class ExternalServiceSpec extends AnyFlatSpec with BeforeAndAfterEach with Befor
     .willReturn(okJson(fromResource(s"json/$response").mkString)))
 
   def graphqlUpdateExportData: StubMapping = wiremockGraphqlServer.stubFor(post(urlEqualTo(graphQlPath))
+    .withRequestBody(containing("updateExportData"))
     .willReturn(okJson(fromResource(s"json/update_export_data.json").mkString)))
+
+  def graphqlUpdateConsignmentStatus: StubMapping = wiremockGraphqlServer.stubFor(post(urlEqualTo(graphQlPath))
+    .withRequestBody(containing("updateConsignmentStatus"))
+    .willReturn(okJson("""{"data": {"updateConsignmentStatus": 1}}"""))
+  )
 
   def authOk: StubMapping = wiremockAuthServer.stubFor(post(urlEqualTo(authPath))
     .willReturn(okJson(fromResource(s"json/access_token.json").mkString)))
@@ -155,10 +172,6 @@ class ExternalServiceSpec extends AnyFlatSpec with BeforeAndAfterEach with Befor
   }
 
   override def afterEach(): Unit = {
-//    s3Api.stop
-//    deleteBucket("test-clean-bucket")
-//    deleteBucket("test-output-bucket")
-//    deleteBucket("test-output-bucket-judgment")
     wiremockAuthServer.resetAll()
     wiremockGraphqlServer.resetAll()
     wiremockSfnServer.resetAll()
@@ -186,17 +199,10 @@ class ExternalServiceSpec extends AnyFlatSpec with BeforeAndAfterEach with Befor
                                fileType;
                                fileName;
                                originalFilePath;
-                               metadata{
-                                 clientSideFileSize;
-                                 clientSideLastModifiedDate;
-                                 clientSideOriginalFilePath;
-                                 foiExemptionCode;
-                                 heldBy;
-                                 language;
-                                 legalStatus;
-                                 rightsCopyright;
-                                 sha256ClientSideChecksum
-                             };
+                               fileMetadata{
+                                 name;
+                                 value
+                               };
                              ffidMetadata{
                                software;
                                softwareVersion;
@@ -222,4 +228,5 @@ class ExternalServiceSpec extends AnyFlatSpec with BeforeAndAfterEach with Befor
           }"""
     formattedJsonBody.replaceAll("\n\\s*", "").replaceAll(";", " ")
   }
+
 }

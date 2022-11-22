@@ -13,7 +13,7 @@ class ChecksumValidator() {
     val bagitGeneratedChecksums = bag.getPayLoadManifests.asScala.head.getFileToChecksumMap.values
 
     validatedFileMetadata
-      .filter(!_.isFolder())
+      .filter(!_.isFolder)
       .filterNot(fm => bagitGeneratedChecksums.contains(fm.getSha256ClientSideChecksum))
       .map(_.fileId)
   }

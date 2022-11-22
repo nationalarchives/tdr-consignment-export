@@ -2,18 +2,18 @@ package uk.gov.nationalarchives.consignmentexport
 
 import java.time.{LocalDateTime, ZonedDateTime}
 import java.util.UUID
-
 import cats.implicits._
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import graphql.codegen.GetConsignmentExport
-import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignment.Files.Metadata
 import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignment.{Files, Series, TransferringBody}
 import graphql.codegen.GetConsignmentExport.{getConsignmentForExport => gce}
+import graphql.codegen.GetCustomMetadata.{customMetadata => cm}
 import graphql.codegen.UpdateExportData.{updateExportData => ued}
 import graphql.codegen.UpdateConsignmentStatus.{updateConsignmentStatus => ucs}
 import sangria.ast.Document
 import sttp.client3.{HttpURLConnectionBackend, Identity, SttpBackend}
 import uk.gov.nationalarchives.consignmentexport.Config._
+import uk.gov.nationalarchives.consignmentexport.ExportSpec.customMetadata
 import uk.gov.nationalarchives.tdr.keycloak.{KeycloakUtils, TdrKeycloakDeployment}
 import uk.gov.nationalarchives.tdr.{GraphQLClient, GraphQlResponse}
 
@@ -41,9 +41,10 @@ class GraphQlApiSpec extends ExportSpec {
     val consignmentClient = mock[GraphQLClient[gce.Data, gce.Variables]]
     val updateExportClient = mock[GraphQLClient[ued.Data, ued.Variables]]
     val updateConsignmentStatus = mock[GraphQLClient[ucs.Data, ucs.Variables]]
+    val customMetadataClient: GraphQLClient[cm.Data, cm.Variables] = mock[GraphQLClient[cm.Data, cm.Variables]]
     val keycloak = mock[KeycloakUtils]
     val consignmentId = UUID.randomUUID()
-    val api = new GraphQlApi(config, consignmentId, keycloak, consignmentClient, updateExportClient, updateConsignmentStatus)
+    val api = new GraphQlApi(config, consignmentId, keycloak, consignmentClient, updateExportClient, updateConsignmentStatus, customMetadataClient)
 
     doAnswer(() => Future(new BearerAccessToken("token"))).when(keycloak).serviceAccountToken[Identity](
       any[String], any[String])(any[SttpBackend[Identity, Any]], any[ClassTag[Identity[_]]], any[TdrKeycloakDeployment])
@@ -59,9 +60,10 @@ class GraphQlApiSpec extends ExportSpec {
     val consignmentClient = mock[GraphQLClient[gce.Data, gce.Variables]]
     val updateExportClient = mock[GraphQLClient[ued.Data, ued.Variables]]
     val updateConsignmentStatus = mock[GraphQLClient[ucs.Data, ucs.Variables]]
+    val customMetadataClient: GraphQLClient[cm.Data, cm.Variables] = mock[GraphQLClient[cm.Data, cm.Variables]]
     val keycloak = mock[KeycloakUtils]
     val consignmentId = UUID.randomUUID()
-    val api = new GraphQlApi(config, consignmentId, keycloak, consignmentClient, updateExportClient, updateConsignmentStatus)
+    val api = new GraphQlApi(config, consignmentId, keycloak, consignmentClient, updateExportClient, updateConsignmentStatus, customMetadataClient)
     doAnswer(() => Future(new BearerAccessToken("token"))).when(keycloak).serviceAccountToken[Identity](any[String], any[String])(
       any[SttpBackend[Identity, Any]], any[ClassTag[Identity[_]]], any[TdrKeycloakDeployment])
     val data = new GraphQlResponse[ued.Data](Option.empty[ued.Data], List())
@@ -83,12 +85,13 @@ class GraphQlApiSpec extends ExportSpec {
     val consignmentClient = mock[GraphQLClient[gce.Data, gce.Variables]]
     val updateExportClient = mock[GraphQLClient[ued.Data, ued.Variables]]
     val updateConsignmentStatus = mock[GraphQLClient[ucs.Data, ucs.Variables]]
+    val customMetadataClient: GraphQLClient[cm.Data, cm.Variables] = mock[GraphQLClient[cm.Data, cm.Variables]]
     val keycloak = mock[KeycloakUtils]
     val consignmentId = UUID.randomUUID()
-    val api = new GraphQlApi(config, consignmentId, keycloak, consignmentClient, updateExportClient, updateConsignmentStatus)
+    val api = new GraphQlApi(config, consignmentId, keycloak, consignmentClient, updateExportClient, updateConsignmentStatus, customMetadataClient)
     val fileId = UUID.randomUUID()
-    val lastModified = LocalDateTime.now().some
-    val fileMetadata = Metadata(1L.some, lastModified, "clientSideOriginalFilePath".some, "foiExemptionCode".some, "heldBy".some, "language".some, "legalStatus".some, "rightsCopyright".some, "clientSideChecksum".some)
+    val lastModified = LocalDateTime.now()
+    val fileMetadata = createMetadata(lastModified, "clientSideOriginalFilePath", "clientSideChecksum")
     val originalFilePath = "/originalFilePath".some
     val consignment = GetConsignmentExport.getConsignmentForExport.GetConsignment(
       userId, Some(fixedDate), Some(fixedDate), Some(fixedDate), consignmentRef, Some(consignmentType), Some(series), Some(transferringBody), List(Files(fileId, "File".some, "name".some, originalFilePath, fileMetadata, Option.empty, Option.empty))
@@ -99,7 +102,7 @@ class GraphQlApiSpec extends ExportSpec {
     val data = new GraphQlResponse[gce.Data](gce.Data(Some(consignment)).some, List())
     doAnswer(() => Future(data)).when(consignmentClient).getResult[Identity](any[BearerAccessToken], any[Document], any[Option[gce.Variables]])(any[SttpBackend[Identity, Any]], any[ClassTag[Identity[_]]])
 
-    val response = api.getConsignmentMetadata().unsafeRunSync()
+    val response = api.getConsignmentMetadata.unsafeRunSync()
     response.get.userid should be(userId)
     response.get.createdDatetime should be(Some(fixedDate))
     response.get.transferInitiatedDatetime should be(Some(fixedDate))
@@ -114,9 +117,10 @@ class GraphQlApiSpec extends ExportSpec {
     val consignmentClient = mock[GraphQLClient[gce.Data, gce.Variables]]
     val updateExportClient = mock[GraphQLClient[ued.Data, ued.Variables]]
     val updateConsignmentStatus = mock[GraphQLClient[ucs.Data, ucs.Variables]]
+    val customMetadataClient: GraphQLClient[cm.Data, cm.Variables] = mock[GraphQLClient[cm.Data, cm.Variables]]
     val keycloak = mock[KeycloakUtils]
     val consignmentId = UUID.randomUUID()
-    val api = new GraphQlApi(config, consignmentId, keycloak, consignmentClient, updateExportClient, updateConsignmentStatus)
+    val api = new GraphQlApi(config, consignmentId, keycloak, consignmentClient, updateExportClient, updateConsignmentStatus, customMetadataClient)
 
     doAnswer(() => Future(new BearerAccessToken("token"))).when(keycloak).serviceAccountToken[Identity](any[String], any[String])(
       any[SttpBackend[Identity, Any]], any[ClassTag[Identity[_]]], any[TdrKeycloakDeployment])
@@ -124,7 +128,7 @@ class GraphQlApiSpec extends ExportSpec {
     doAnswer(() => Future(data)).when(consignmentClient).getResult[Identity](any[BearerAccessToken], any[Document], any[Option[gce.Variables]])(any[SttpBackend[Identity, Any]], any[ClassTag[Identity[_]]])
 
     val exception = intercept[RuntimeException] {
-      api.getConsignmentMetadata().unsafeRunSync()
+      api.getConsignmentMetadata.unsafeRunSync()
     }
     exception.getMessage should equal(s"No consignment found for consignment id $consignmentId ")
   }
@@ -133,9 +137,10 @@ class GraphQlApiSpec extends ExportSpec {
     val consignmentClient = mock[GraphQLClient[gce.Data, gce.Variables]]
     val updateExportClient = mock[GraphQLClient[ued.Data, ued.Variables]]
     val updateConsignmentStatus = mock[GraphQLClient[ucs.Data, ucs.Variables]]
+    val customMetadataClient: GraphQLClient[cm.Data, cm.Variables] = mock[GraphQLClient[cm.Data, cm.Variables]]
     val keycloak = mock[KeycloakUtils]
     val consignmentId = UUID.randomUUID()
-    val api = new GraphQlApi(config, consignmentId, keycloak, consignmentClient, updateExportClient, updateConsignmentStatus)
+    val api = new GraphQlApi(config, consignmentId, keycloak, consignmentClient, updateExportClient, updateConsignmentStatus, customMetadataClient)
 
     doAnswer(() => Future(new BearerAccessToken("token"))).when(keycloak).serviceAccountToken[Identity](any[String], any[String])(
       any[SttpBackend[Identity, Any]], any[ClassTag[Identity[_]]], any[TdrKeycloakDeployment])
@@ -151,9 +156,10 @@ class GraphQlApiSpec extends ExportSpec {
     val consignmentClient = mock[GraphQLClient[gce.Data, gce.Variables]]
     val updateExportClient = mock[GraphQLClient[ued.Data, ued.Variables]]
     val updateConsignmentStatus = mock[GraphQLClient[ucs.Data, ucs.Variables]]
+    val customMetadataClient: GraphQLClient[cm.Data, cm.Variables] = mock[GraphQLClient[cm.Data, cm.Variables]]
     val keycloak = mock[KeycloakUtils]
     val consignmentId = UUID.randomUUID()
-    val api = new GraphQlApi(config, consignmentId, keycloak, consignmentClient, updateExportClient, updateConsignmentStatus)
+    val api = new GraphQlApi(config, consignmentId, keycloak, consignmentClient, updateExportClient, updateConsignmentStatus, customMetadataClient)
 
     doAnswer(() => Future(new BearerAccessToken("token"))).when(keycloak).serviceAccountToken[Identity](any[String], any[String])(
       any[SttpBackend[Identity, Any]], any[ClassTag[Identity[_]]], any[TdrKeycloakDeployment])
@@ -164,5 +170,48 @@ class GraphQlApiSpec extends ExportSpec {
       api.updateConsignmentStatus(StatusType.`export`, StatusValue.completed).unsafeRunSync()
     }
     exception.getMessage should equal(s"No data returned from the update consignment status call for consignment $consignmentId ")
+  }
+
+  "the getCustomMetadata method" should "return custom metadata" in {
+    val consignmentClient = mock[GraphQLClient[gce.Data, gce.Variables]]
+    val updateExportClient = mock[GraphQLClient[ued.Data, ued.Variables]]
+    val updateConsignmentStatus = mock[GraphQLClient[ucs.Data, ucs.Variables]]
+    val customMetadataClient: GraphQLClient[cm.Data, cm.Variables] = mock[GraphQLClient[cm.Data, cm.Variables]]
+    val keycloak = mock[KeycloakUtils]
+
+    doAnswer(() => Future(new BearerAccessToken("token"))).when(keycloak).serviceAccountToken[Identity](any[String], any[String])(
+      any[SttpBackend[Identity, Any]], any[ClassTag[Identity[_]]], any[TdrKeycloakDeployment])
+    doAnswer(() => Future(GraphQlResponse[cm.Data](Option(cm.Data(customMetadata)), Nil))).when(customMetadataClient)
+      .getResult[Identity](any[BearerAccessToken], any[Document], any[Option[cm.Variables]])(any[SttpBackend[Identity, Any]], any[ClassTag[Identity[_]]])
+
+
+    val consignmentId = UUID.randomUUID()
+    val api = new GraphQlApi(config, consignmentId, keycloak, consignmentClient, updateExportClient, updateConsignmentStatus, customMetadataClient)
+
+    val customMetadataResponse = api.getCustomMetadata.unsafeRunSync()
+    customMetadataResponse should equal(customMetadata)
+  }
+
+  "the getCustomMetadata method" should "return an error if there are no custom metadata definitions" in {
+    val consignmentClient = mock[GraphQLClient[gce.Data, gce.Variables]]
+    val updateExportClient = mock[GraphQLClient[ued.Data, ued.Variables]]
+    val updateConsignmentStatus = mock[GraphQLClient[ucs.Data, ucs.Variables]]
+    val customMetadataClient: GraphQLClient[cm.Data, cm.Variables] = mock[GraphQLClient[cm.Data, cm.Variables]]
+    val keycloak = mock[KeycloakUtils]
+
+    doAnswer(() => Future(new BearerAccessToken("token"))).when(keycloak).serviceAccountToken[Identity](any[String], any[String])(
+      any[SttpBackend[Identity, Any]], any[ClassTag[Identity[_]]], any[TdrKeycloakDeployment])
+    doAnswer(() => Future(GraphQlResponse[cm.Data](None, Nil))).when(customMetadataClient)
+      .getResult[Identity](any[BearerAccessToken], any[Document], any[Option[cm.Variables]])(any[SttpBackend[Identity, Any]], any[ClassTag[Identity[_]]])
+
+
+    val consignmentId = UUID.randomUUID()
+    val api = new GraphQlApi(config, consignmentId, keycloak, consignmentClient, updateExportClient, updateConsignmentStatus, customMetadataClient)
+
+    val err = intercept[RuntimeException] {
+      api.getCustomMetadata.unsafeRunSync()
+    }
+
+    err.getMessage should equal("No custom metadata definitions found")
   }
 }

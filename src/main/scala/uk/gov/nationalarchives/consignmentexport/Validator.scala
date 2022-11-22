@@ -21,7 +21,7 @@ class Validator(consignmentId: UUID) {
     val fileErrors = filesList.filter(file => file.ffidMetadata.isEmpty && !file.isFolder)
       .map(f => s"FFID metadata is missing for file id ${f.fileId}")
     fileErrors match {
-      case Nil => Right(filesList.filter(!_.isFolder()).flatMap(file => {
+      case Nil => Right(filesList.filter(!_.isFolder).flatMap(file => {
         val metadata = file.ffidMetadata.get
         metadata.matches.map(mm => {
           ValidatedFFIDMetadata(file.getClientSideOriginalFilePath, mm.extension.getOrElse(""), mm.puid.getOrElse(""), metadata.software, metadata.softwareVersion, metadata.binarySignatureFileVersion, metadata.containerSignatureFileVersion)
@@ -32,11 +32,11 @@ class Validator(consignmentId: UUID) {
   }
 
   def extractAntivirusMetadata(filesList: List[Files]): Either[RuntimeException, List[ValidatedAntivirusMetadata]] = {
-    val fileErrors = filesList.filter(file => file.antivirusMetadata.isEmpty && !file.isFolder())
+    val fileErrors = filesList.filter(file => file.antivirusMetadata.isEmpty && !file.isFolder)
       .map(f => s"Antivirus metadata is missing for file id ${f.fileId}")
     fileErrors match {
       case Nil => Right(
-        filesList.filter(!_.isFolder()).map(f => {
+        filesList.filter(!_.isFolder).map(f => {
           val antivirus = f.antivirusMetadata.get
           ValidatedAntivirusMetadata(f.getClientSideOriginalFilePath, antivirus.software, antivirus.softwareVersion)
         })
