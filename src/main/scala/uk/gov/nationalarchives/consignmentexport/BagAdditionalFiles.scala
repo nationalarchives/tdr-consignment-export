@@ -5,7 +5,6 @@ import com.github.tototoshi.csv.CSVWriter
 import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignment.Files
 import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata
 import graphql.codegen.types.DataType
-import org.joda.time.format.DateTimeFormatterBuilder
 import uk.gov.nationalarchives.consignmentexport.Validator.{ValidatedAntivirusMetadata, ValidatedFFIDMetadata}
 
 import java.io.File
