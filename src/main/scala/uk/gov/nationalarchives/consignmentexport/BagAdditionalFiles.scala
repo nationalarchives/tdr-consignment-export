@@ -5,6 +5,7 @@ import com.github.tototoshi.csv.CSVWriter
 import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignment.Files
 import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata
 import graphql.codegen.types.DataType
+import org.joda.time.format.DateTimeFormatterBuilder
 import uk.gov.nationalarchives.consignmentexport.Validator.{ValidatedAntivirusMetadata, ValidatedFFIDMetadata}
 
 import java.io.File
@@ -21,6 +22,7 @@ class BagAdditionalFiles(rootDirectory: Path) {
   }
 
   def createFileMetadataCsv(files: List[Files], customMetadata: List[CustomMetadata]): IO[File] = {
+    val parseFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd[ ]['T']HH:mm:ss[.SSS][.SS][.S]")
     val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")
     val filteredMetadata: List[CustomMetadata] = customMetadata.filter(_.allowExport).sortBy(_.exportOrdinal.getOrElse(Int.MaxValue))
     val header: List[String] = filteredMetadata.map(f => f.fullName.getOrElse(f.name))
@@ -30,7 +32,7 @@ class BagAdditionalFiles(rootDirectory: Path) {
         if(m.name == "ClientSideOriginalFilepath") {
           dataPath(m.value)
         } else if(filteredMetadata.find(_.name == m.name).exists(_.dataType == DataType.DateTime)) {
-          LocalDateTime.parse(m.value).format(formatter)
+          LocalDateTime.parse(m.value, parseFormatter).format(formatter)
         } else {
           m.value
         }
