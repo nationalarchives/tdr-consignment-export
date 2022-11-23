@@ -7,7 +7,7 @@ import cats.effect.IO
 import cats.implicits.catsSyntaxOptionId
 import org.mockito.ArgumentCaptor
 import software.amazon.awssdk.services.s3.model.{GetObjectResponse, PutObjectResponse}
-import uk.gov.nationalarchives.aws.utils.S3Utils
+import uk.gov.nationalarchives.aws.utils.s3.S3Utils
 import cats.effect.unsafe.implicits.global
 import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignment.Files
 import uk.gov.nationalarchives.consignmentexport.Config._
