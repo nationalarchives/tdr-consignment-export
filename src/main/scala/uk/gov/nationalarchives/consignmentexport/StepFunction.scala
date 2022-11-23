@@ -1,14 +1,14 @@
 package uk.gov.nationalarchives.consignmentexport
 
-import java.util.UUID
-
 import cats.effect.IO
-import org.typelevel.log4cats.SelfAwareStructuredLogger
 import io.circe.generic.auto._
 import io.circe.syntax._
-import software.amazon.awssdk.services.sfn.model.{SendTaskFailureResponse, SendTaskHeartbeatResponse, SendTaskSuccessResponse}
-import uk.gov.nationalarchives.aws.utils.StepFunctionUtils
+import org.typelevel.log4cats.SelfAwareStructuredLogger
+import software.amazon.awssdk.services.sfn.model.{SendTaskFailureResponse, SendTaskSuccessResponse}
+import uk.gov.nationalarchives.aws.utils.stepfunction.StepFunctionUtils
 import uk.gov.nationalarchives.consignmentexport.StepFunction.ExportOutput
+
+import java.util.UUID
 
 class StepFunction(stepFunctionUtils: StepFunctionUtils)(implicit val logger: SelfAwareStructuredLogger[IO]) {
 
