@@ -5,7 +5,7 @@ object Dependencies {
   private val keycloakVersion = "20.0.1"
   private val log4CatsVersion = "2.5.0"
   private val mockitoScalaVersion = "1.17.12"
-  private val monovoreDeclineVersion = "2.3.1"
+  private val monovoreDeclineVersion = "2.4.0"
   private val awsUtilsVersion = "0.1.56"
 
   lazy val authUtils = "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.99"
@@ -13,7 +13,7 @@ object Dependencies {
   lazy val s3Utils =  "uk.gov.nationalarchives" %% "s3-utils" % awsUtilsVersion
   lazy val stepFunctionUtils =  "uk.gov.nationalarchives" %% "stepfunction-utils" % awsUtilsVersion
   lazy val bagit = "gov.loc" % "bagit" % "5.2.0"
-  lazy val catsEffect = "org.typelevel" %% "cats-effect" % "3.4.0"
+  lazy val catsEffect = "org.typelevel" %% "cats-effect" % "3.4.1"
   lazy val decline = "com.monovore" %% "decline" % monovoreDeclineVersion
   lazy val declineEffect = "com.monovore" %% "decline-effect" % monovoreDeclineVersion
   lazy val graphqlClient = "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.73"
