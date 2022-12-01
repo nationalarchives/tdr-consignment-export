@@ -43,6 +43,7 @@ abstract class ExportSpec extends AnyFlatSpec with MockitoSugar with Matchers wi
       FileMetadata("ClientSideLastModifiedDate", lastModified.format(DateTimeFormatter.ISO_DATE_TIME)),
       FileMetadata("ClientSideOriginalFilepath", originalPath),
       FileMetadata("FoiExemptionCode", "foiExemption"),
+      FileMetadata("FoiExemptionCode", "foiExemption2"),
       FileMetadata("HeldBy", "heldBy"),
       FileMetadata("Language", "language"),
       FileMetadata("LegalStatus", "legalStatus"),
