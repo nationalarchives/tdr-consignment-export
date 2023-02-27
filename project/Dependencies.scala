@@ -2,11 +2,11 @@ import sbt._
 
 object Dependencies {
   private val githubPureConfigVersion = "0.17.2"
-  private val keycloakVersion = "20.0.5"
+  private val keycloakVersion = "21.0.0"
   private val log4CatsVersion = "2.5.0"
   private val mockitoScalaVersion = "1.17.12"
   private val monovoreDeclineVersion = "2.4.1"
-  private val awsUtilsVersion = "0.1.74"
+  private val awsUtilsVersion = "0.1.75"
 
   lazy val authUtils = "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.114"
   lazy val generatedGraphql = "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.309"
