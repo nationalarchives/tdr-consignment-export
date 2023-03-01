@@ -1,5 +1,6 @@
 import Dependencies._
 import ReleaseTransformations._
+import java.io.FileWriter
 
 ThisBuild / scalaVersion := "2.13.10"
 ThisBuild / organization := "uk.gov.nationalarchives"
@@ -8,7 +9,9 @@ ThisBuild / organizationName := "The National Archives"
 lazy val setLatestTagOutput = taskKey[Unit]("Sets a GitHub actions output for the latest tag")
 
 setLatestTagOutput := {
-  println(s"::set-output name=latest-tag::${(ThisBuild / version).value}")
+  val fileWriter = new FileWriter(sys.env("GITHUB_OUTPUT"), true)
+  fileWriter.write(s"latest-tag=${(ThisBuild / version).value}\n")
+  fileWriter.close()
 }
 
 lazy val root = (project in file("."))
