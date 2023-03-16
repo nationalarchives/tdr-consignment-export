@@ -28,6 +28,7 @@ class ValidatorSpec extends ExportSpec {
     ZonedDateTime.now().some,
     "consignmentRef",
     Some("standard"),
+    Some(true),
     Series("series-code").some,
     TransferringBody("tb-name").some,
     metadata

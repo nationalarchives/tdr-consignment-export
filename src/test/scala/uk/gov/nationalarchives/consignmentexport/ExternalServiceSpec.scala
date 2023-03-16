@@ -188,6 +188,7 @@ class ExternalServiceSpec extends AnyFlatSpec with BeforeAndAfterEach with Befor
                              exportDatetime;
                              consignmentReference;
                              consignmentType;
+                             includeTopLevelFolder;
                              series{
                                code
                              };

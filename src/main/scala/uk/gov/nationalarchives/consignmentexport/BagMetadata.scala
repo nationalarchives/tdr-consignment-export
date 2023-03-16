@@ -34,6 +34,7 @@ class BagMetadata(keycloakClient: KeycloakClient)(implicit val logger: SelfAware
     val bodyName: Option[String] = consignment.transferringBody.map(_.name)
     val startDatetime: Option[String] = consignment.createdDatetime.map(_.toFormattedPrecisionString)
     val completedDatetime: Option[String] = consignment.transferInitiatedDatetime.map(_.toFormattedPrecisionString)
+    val includeTopLevelFolder: Option[String] = consignment.includeTopLevelFolder.map(_.toString)
     val userDetails: UserDetails = keycloakClient.getUserRepresentation(consignment.userid.toString).toUserDetails
 
     Map(
@@ -41,6 +42,7 @@ class BagMetadata(keycloakClient: KeycloakClient)(implicit val logger: SelfAware
       ConsignmentSeriesKey -> seriesCode,
       SourceOrganisationKey -> bodyName,
       ConsignmentTypeKey -> consignmentType,
+      ConsignmentIncludeTopLevelFolder -> includeTopLevelFolder,
       ConsignmentStartDatetimeKey -> startDatetime,
       ConsignmentCompletedDatetimeKey -> completedDatetime,
       ConsignmentExportDatetimeKey -> Some(exportDatetime.toFormattedPrecisionString),
@@ -75,6 +77,7 @@ object BagMetadata {
   val BagCreator = "Bag-Creator"
   val InternalSenderIdentifierKey = "Internal-Sender-Identifier"
   val ConsignmentTypeKey = "Consignment-Type"
+  val ConsignmentIncludeTopLevelFolder = "Consignment-Include-Top-Level-Folder"
 
   case class UserDetails(contactName: String, contactEmail: String)
 
