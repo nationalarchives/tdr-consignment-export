@@ -48,7 +48,8 @@ abstract class ExportSpec extends AnyFlatSpec with MockitoSugar with Matchers wi
       FileMetadata("Language", "language"),
       FileMetadata("LegalStatus", "legalStatus"),
       FileMetadata("RightsCopyright", "rightsCopyright"),
-      FileMetadata("SHA256ClientSideChecksum", checkSum)
+      FileMetadata("SHA256ClientSideChecksum", checkSum),
+      FileMetadata("OriginalFilepath", "nonRedactedFilepath")
     )
   }
 }
@@ -72,6 +73,7 @@ object ExportSpec {
     createCustomMetadata("Language", "Language", 8),
     createCustomMetadata("LegalStatus", "Legal Status", 6),
     createCustomMetadata("RightsCopyright", "Rights Copyright", 5),
-    createCustomMetadata("SHA256ClientSideChecksum", "Checksum", 11)
+    createCustomMetadata("SHA256ClientSideChecksum", "Checksum", 11),
+    createCustomMetadata("OriginalFilepath", "OriginalFilepath", 12)
   )
 }
