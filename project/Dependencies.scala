@@ -2,7 +2,7 @@ import sbt._
 
 object Dependencies {
   private val githubPureConfigVersion = "0.17.3"
-  private val keycloakVersion = "21.0.2"
+  private val keycloakVersion = "21.1.0"
   private val log4CatsVersion = "2.5.0"
   private val mockitoScalaVersion = "1.17.14"
   private val monovoreDeclineVersion = "2.4.1"
@@ -13,7 +13,7 @@ object Dependencies {
   lazy val s3Utils =  "uk.gov.nationalarchives" %% "s3-utils" % awsUtilsVersion
   lazy val stepFunctionUtils =  "uk.gov.nationalarchives" %% "stepfunction-utils" % awsUtilsVersion
   lazy val bagit = "gov.loc" % "bagit" % "5.2.0"
-  lazy val catsEffect = "org.typelevel" %% "cats-effect" % "3.4.8"
+  lazy val catsEffect = "org.typelevel" %% "cats-effect" % "3.4.9"
   lazy val decline = "com.monovore" %% "decline" % monovoreDeclineVersion
   lazy val declineEffect = "com.monovore" %% "decline-effect" % monovoreDeclineVersion
   lazy val graphqlClient = "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.99"
