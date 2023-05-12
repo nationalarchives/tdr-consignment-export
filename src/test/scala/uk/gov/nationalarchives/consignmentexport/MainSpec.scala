@@ -19,6 +19,21 @@ class MainSpec extends ExternalServiceSpec {
   val judgmentInfo: ConsignmentTypeInfo = ConsignmentTypeInfo("judgment", "judgment_", "test-output-bucket-judgment", "publish_judgment_success_request_body")
   private val consignmentTypes: List[ConsignmentTypeInfo] = List(standardInfo, judgmentInfo)
 
+  "the export job" should s"delete the directories after export is completed" in {
+    setUpValidExternalServices("get_consignment_for_export_empty_folders.json")
+
+    val consignmentId = UUID.fromString("50df01e6-2e5e-4269-97e7-531a755b417d")
+    val fileId = "7b19b272-d4d1-4d77-bf25-511dc6489d12"
+
+    putFile(s"$consignmentId/$fileId")
+
+    Try(Main.run(List("export", "--consignmentId", consignmentId.toString, "--taskToken", taskTokenValue)).unsafeRunSync())
+
+    val directory: List[String] = new File(scratchDirectory).list.toList
+
+    directory should have size 0
+  }
+
   consignmentTypes.foreach {
     consignmentType =>
       "the export job" should s"export the correct tar and checksum file to the correct s3 bucket for a '${consignmentType.name}' consignment type" in {
