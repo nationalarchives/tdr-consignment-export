@@ -90,7 +90,6 @@ object Main extends CommandIOApp("tdr-consignment-export", "Exports tdr files in
         } yield ExitCode.Success
 
         exitCode.handleErrorWith {e =>
-          println("************SOMETHING HAPPENED")
           for {
             _ <- stepFunction.publishFailure(taskToken, s"$exportFailedErrorMessage: ${e.getMessage}")
             config <- config()
