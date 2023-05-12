@@ -38,6 +38,7 @@ object Main extends CommandIOApp("tdr-consignment-export", "Exports tdr files in
   override def main: Opts[IO[ExitCode]] =
     exportOps.map {
       case FileExport(consignmentId, taskToken) =>
+        val exportId = UUID.randomUUID
         val exportFailedErrorMessage = s"Export for consignment $consignmentId failed"
         val stepFunction: StepFunction = StepFunction(StepFunctionUtils(sfnAsyncClient(stepFunctionPublishEndpoint)))
 
@@ -47,7 +48,6 @@ object Main extends CommandIOApp("tdr-consignment-export", "Exports tdr files in
           heartbeat <- runHeartbeat().start
           config <- config()
           rootLocation = config.efs.rootLocation
-          exportId = UUID.randomUUID
           basePath = s"$rootLocation/$exportId"
           bashCommands = BashCommands()
           graphQlApi = GraphQlApi(config, consignmentId)
@@ -85,12 +85,18 @@ object Main extends CommandIOApp("tdr-consignment-export", "Exports tdr files in
               s3Bucket
             ))
           _ <- graphQlApi.updateConsignmentStatus(StatusType.export, StatusValue.completed)
+          _ <- s3Files.deleteDownloadDirectories(basePath)
           _ <- heartbeat.cancel
         } yield ExitCode.Success
 
         exitCode.handleErrorWith {e =>
+          println("************SOMETHING HAPPENED")
           for {
             _ <- stepFunction.publishFailure(taskToken, s"$exportFailedErrorMessage: ${e.getMessage}")
+            config <- config()
+            rootLocation = config.efs.rootLocation
+            basePath = s"$rootLocation/$exportId"
+            _ <- deleteDirectories(config, basePath)
             _ <- IO.raiseError(e)
           } yield ExitCode.Error
         }
@@ -116,5 +122,10 @@ object Main extends CommandIOApp("tdr-consignment-export", "Exports tdr files in
         _ <- bagit.writeTagManifestRows(bag, checksums)
       } yield bagMetadata
     }
+
+  def deleteDirectories(config: Configuration, basePath: String): IO[Boolean] = {
+    val s3Files = S3Files(S3Utils(s3Async(config.s3.endpoint)), config)
+    s3Files.deleteDownloadDirectories(basePath)
+  }
 
 }

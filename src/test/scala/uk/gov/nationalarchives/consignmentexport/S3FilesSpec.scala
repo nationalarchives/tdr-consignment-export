@@ -1,6 +1,6 @@
 package uk.gov.nationalarchives.consignmentexport
 
-import java.nio.file.Path
+import java.nio.file.{Files, Path, Paths}
 import java.time.LocalDateTime
 import java.util.UUID
 import cats.effect.IO
@@ -9,7 +9,7 @@ import org.mockito.ArgumentCaptor
 import software.amazon.awssdk.services.s3.model.{GetObjectResponse, PutObjectResponse}
 import uk.gov.nationalarchives.aws.utils.s3.S3Utils
 import cats.effect.unsafe.implicits.global
-import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignment.Files
+import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignment.{Files => File}
 import uk.gov.nationalarchives.consignmentexport.Config._
 
 class S3FilesSpec extends ExportSpec {
@@ -33,7 +33,7 @@ class S3FilesSpec extends ExportSpec {
     val consignmentReference = "Consignment-Reference"
     val fileId = UUID.randomUUID()
     val fileMetadata = createMetadata(LocalDateTime.now())
-    val metadata = Files(
+    val metadata = File(
       fileId,
       "File".some,
       "name1".some,
@@ -62,7 +62,7 @@ class S3FilesSpec extends ExportSpec {
     val consignmentReference = "Consignment-Reference"
     val fileId = UUID.randomUUID()
     val fileMetadata = createMetadata(LocalDateTime.now(), """a/path'with/quotes"""")
-    val metadata = Files(
+    val metadata = File(
       fileId,
       "File".some,
       "name".some,
@@ -91,8 +91,8 @@ class S3FilesSpec extends ExportSpec {
     val fileId1 = UUID.randomUUID()
     val fileId2 = UUID.randomUUID()
     val fileMetadata = createMetadata(LocalDateTime.now())
-    val metadata1 = Files(fileId1, "File".some, "name1".some, None, fileMetadata, None, None)
-    val metadata2 = Files(fileId2, "File".some, "name2".some, None, fileMetadata, None, None)
+    val metadata1 = File(fileId1, "File".some, "name1".some, None, fileMetadata, None, None)
+    val metadata2 = File(fileId2, "File".some, "name2".some, None, fileMetadata, None, None)
 
     val validatedMetadata = List(metadata1, metadata2)
 
@@ -121,5 +121,18 @@ class S3FilesSpec extends ExportSpec {
     val pathValues = pathCaptor.getAllValues
     pathValues.get(0).toString  should equal("fakepath")
     pathValues.get(1).toString  should equal("fakepath.sha256")
+  }
+
+  "deleteDownloadDirectories" should "delete the efs directory" in {
+    val s3Utils = mock[S3Utils]
+    val testDir: Path = Paths.get("test_dir")
+    val testFile: Path = Paths.get("test_dir", "test.txt")
+    Files.createDirectories(testDir)
+    Files.createFile(testFile)
+
+    S3Files(s3Utils, config).deleteDownloadDirectories(testDir.toString).unsafeRunSync()
+
+    Files.exists(testDir) shouldBe false
+    Files.exists(testFile) shouldBe false
   }
 }
