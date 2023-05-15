@@ -9,6 +9,7 @@ import uk.gov.nationalarchives.aws.utils.s3.S3Utils
 import uk.gov.nationalarchives.consignmentexport.Config.Configuration
 import uk.gov.nationalarchives.consignmentexport.Utils._
 
+import scala.reflect.io.Directory
 import java.io.File
 import java.util.UUID
 import scala.concurrent.duration._
@@ -45,7 +46,7 @@ class S3Files(s3Utils: S3Utils, config: Configuration)(implicit val logger: Self
       _ <- files.filter(!_.isFolder)
         .grouped(downloadBatchSize).toSeq.map(batchDownloadingFiles(_, bucket, consignmentId, consignmentReference, rootLocation)).sequence
       _ <- logger.info(s"Files downloaded from S3 for consignment $consignmentId")
-    } yield()
+    } yield ()
   }
 
   def uploadFiles(bucket: String, consignmentId: UUID, consignmentReference: String, tarPath: String): IO[Unit] = for {
@@ -53,6 +54,11 @@ class S3Files(s3Utils: S3Utils, config: Configuration)(implicit val logger: Self
     _ <- s3Utils.upload(bucket, s"$consignmentReference.tar.gz.sha256", s"$tarPath.sha256".toPath)
     _ <- logger.info(s"Files uploaded to S3 for consignment $consignmentId, consignment reference: $consignmentReference")
   } yield ()
+
+  def deleteDownloadDirectories(rootLocation: String): IO[Boolean] = {
+    val dir = new Directory(new File(rootLocation))
+    IO(dir.deleteRecursively())
+  }
 }
 
 object S3Files {

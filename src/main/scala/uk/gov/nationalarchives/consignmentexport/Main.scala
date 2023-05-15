@@ -38,17 +38,22 @@ object Main extends CommandIOApp("tdr-consignment-export", "Exports tdr files in
   override def main: Opts[IO[ExitCode]] =
     exportOps.map {
       case FileExport(consignmentId, taskToken) =>
+        val exportId = UUID.randomUUID
         val exportFailedErrorMessage = s"Export for consignment $consignmentId failed"
         val stepFunction: StepFunction = StepFunction(StepFunctionUtils(sfnAsyncClient(stepFunctionPublishEndpoint)))
 
         def runHeartbeat(): IO[Unit] = stepFunction.sendHeartbeat(taskToken) >> IO.sleep(30 seconds) >> runHeartbeat()
 
-        val exitCode = for {
-          heartbeat <- runHeartbeat().start
+        def configure(): IO[(Configuration, String)] = for {
           config <- config()
           rootLocation = config.efs.rootLocation
-          exportId = UUID.randomUUID
           basePath = s"$rootLocation/$exportId"
+        } yield (config, basePath)
+
+        val exitCode = for {
+          heartbeat <- runHeartbeat().start
+          configuration <- configure()
+          (config, basePath) = configuration
           bashCommands = BashCommands()
           graphQlApi = GraphQlApi(config, consignmentId)
           s3Files = S3Files(S3Utils(s3Async(config.s3.endpoint)), config)
@@ -85,12 +90,17 @@ object Main extends CommandIOApp("tdr-consignment-export", "Exports tdr files in
               s3Bucket
             ))
           _ <- graphQlApi.updateConsignmentStatus(StatusType.export, StatusValue.completed)
+          _ <- s3Files.deleteDownloadDirectories(basePath)
           _ <- heartbeat.cancel
         } yield ExitCode.Success
 
         exitCode.handleErrorWith {e =>
           for {
             _ <- stepFunction.publishFailure(taskToken, s"$exportFailedErrorMessage: ${e.getMessage}")
+            configuration <- configure()
+            (config, basePath) = configuration
+            s3Files = S3Files(S3Utils(s3Async(config.s3.endpoint)), config)
+            _ <- s3Files.deleteDownloadDirectories(basePath)
             _ <- IO.raiseError(e)
           } yield ExitCode.Error
         }
@@ -116,5 +126,4 @@ object Main extends CommandIOApp("tdr-consignment-export", "Exports tdr files in
         _ <- bagit.writeTagManifestRows(bag, checksums)
       } yield bagMetadata
     }
-
 }
