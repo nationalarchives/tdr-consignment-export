@@ -2,7 +2,7 @@
 This is the project which contains the code for the consignment export. 
 
 The infrastructure for the export, is defined in the [terraform]("https://github.com/nationalarchives/tdr-terraform-environments") repository.
-* The front end makes a request to the api gateway with the user's token
+* The front end makes a request to the api gateway with the user's token.
 * A lambda authorises the request using the consignment api to check the token
 * Api gateway triggers a step function
 * The step function triggers an ECS task which runs the code in this repository.
