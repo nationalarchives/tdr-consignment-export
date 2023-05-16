@@ -62,7 +62,7 @@ class S3Files(s3Utils: S3Utils, config: Configuration)(implicit val logger: Self
         file.listFiles.foreach(deleteRecursively)
       }
       if (file.exists && !file.delete) {
-        logger.info(s"Unable to delete ${file.getAbsolutePath}")
+        logger.error(s"Unable to delete ${file.getAbsolutePath}")
       }
     }
 
