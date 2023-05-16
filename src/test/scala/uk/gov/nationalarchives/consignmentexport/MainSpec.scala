@@ -19,34 +19,19 @@ class MainSpec extends ExternalServiceSpec {
   val judgmentInfo: ConsignmentTypeInfo = ConsignmentTypeInfo("judgment", "judgment_", "test-output-bucket-judgment", "publish_judgment_success_request_body")
   private val consignmentTypes: List[ConsignmentTypeInfo] = List(standardInfo, judgmentInfo)
 
-  "the export job" should s"create directories for empty 'folder' type" in {
+  "the export job" should s"delete the directories after export is completed" in {
     setUpValidExternalServices("get_consignment_for_export_empty_folders.json")
 
     val consignmentId = UUID.fromString("50df01e6-2e5e-4269-97e7-531a755b417d")
-    val consignmentRef = "consignmentReference-1234"
     val fileId = "7b19b272-d4d1-4d77-bf25-511dc6489d12"
 
     putFile(s"$consignmentId/$fileId")
 
     Try(Main.run(List("export", "--consignmentId", consignmentId.toString, "--taskToken", taskTokenValue)).unsafeRunSync())
 
-    val downloadDirectory = s"$scratchDirectory/download"
-    new File(s"$downloadDirectory").mkdirs()
-    getObject(s"$consignmentRef.tar.gz", s"$downloadDirectory/result.tar.gz")
+    val directory: List[String] = new File(scratchDirectory).list.toList
 
-    Seq("sh", "-c", s"tar -tf $downloadDirectory/result.tar.gz > /dev/null").!
-    val exportId: String = new File(scratchDirectory).list.toList.find(_ != "download").head
-    val basePath = s"$scratchDirectory/$exportId/$consignmentRef/data/"
-    val firstEmptyDirectory = new File(s"$basePath/empty")
-    val secondEmptyDirectory = new File(s"$basePath/empty2/empty3")
-
-    firstEmptyDirectory.exists should be(true)
-    firstEmptyDirectory.isDirectory should be(true)
-    firstEmptyDirectory.list().length should be(0)
-
-    secondEmptyDirectory.exists() should be(true)
-    secondEmptyDirectory.isDirectory should be(true)
-    secondEmptyDirectory.list().length should be(0)
+    directory should have size 0
   }
 
   consignmentTypes.foreach {
