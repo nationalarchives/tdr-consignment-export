@@ -9,7 +9,6 @@ import uk.gov.nationalarchives.aws.utils.s3.S3Utils
 import uk.gov.nationalarchives.consignmentexport.Config.Configuration
 import uk.gov.nationalarchives.consignmentexport.Utils._
 
-import scala.reflect.io.Directory
 import java.io.File
 import java.util.UUID
 import scala.concurrent.duration._
@@ -55,9 +54,19 @@ class S3Files(s3Utils: S3Utils, config: Configuration)(implicit val logger: Self
     _ <- logger.info(s"Files uploaded to S3 for consignment $consignmentId, consignment reference: $consignmentReference")
   } yield ()
 
-  def deleteDownloadDirectories(rootLocation: String): IO[Boolean] = {
-    val dir = new Directory(new File(rootLocation))
-    IO(dir.deleteRecursively())
+  def deleteDownloadDirectories(rootLocation: String): IO[Unit] = {
+    val file = new File(s"$rootLocation")
+    logger.info(s"Attempting to delete directory $rootLocation from EFS")
+    def deleteRecursively(file: File): Unit = {
+      if (file.isDirectory) {
+        file.listFiles.foreach(deleteRecursively)
+      }
+      if (file.exists && !file.delete) {
+        logger.error(s"Unable to delete ${file.getAbsolutePath}")
+      }
+    }
+
+    IO(deleteRecursively(file))
   }
 }
 
