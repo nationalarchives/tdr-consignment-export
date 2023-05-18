@@ -56,17 +56,20 @@ class S3Files(s3Utils: S3Utils, config: Configuration)(implicit val logger: Self
 
   def deleteDownloadDirectories(rootLocation: String): IO[Unit] = {
     val file = new File(s"$rootLocation")
-    logger.info(s"Attempting to delete directory $rootLocation from EFS")
+
     def deleteRecursively(file: File): Unit = {
       if (file.isDirectory) {
         file.listFiles.foreach(deleteRecursively)
       }
       if (file.exists && !file.delete) {
-        logger.error(s"Unable to delete ${file.getAbsolutePath}")
+        IO.raiseError(throw new Exception(s"Unable to delete ${file.getAbsolutePath}"))
       }
     }
 
-    IO(deleteRecursively(file))
+    for {
+      _ <- logger.info(s"Deleting directory $rootLocation from EFS")
+      _ <- IO(deleteRecursively(file)).onError(e => logger.error(e.getMessage))
+    } yield ()
   }
 }
 
