@@ -1,7 +1,7 @@
 FROM alpine:latest
 RUN apk add --no-cache bash tar curl wget && \
     apk update && \
-    apk upgrade p11-kit busybox libretls zlib && \
+    apk upgrade p11-kit busybox libretls zlib openssl && \
     adduser consignment-export -D && \
     wget https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64 -O /usr/local/bin/jq && \
     chmod +x /usr/local/bin/jq && \
