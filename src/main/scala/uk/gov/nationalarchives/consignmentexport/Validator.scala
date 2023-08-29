@@ -24,7 +24,7 @@ class Validator(consignmentId: UUID) {
       case Nil => Right(filesList.filter(!_.isFolder).flatMap(file => {
         val metadata = file.ffidMetadata.get
         metadata.matches.map(mm => {
-          ValidatedFFIDMetadata(file.getClientSideOriginalFilePath, mm.extension.getOrElse(""), mm.puid.getOrElse(""), metadata.software, metadata.softwareVersion, metadata.binarySignatureFileVersion, metadata.containerSignatureFileVersion)
+          ValidatedFFIDMetadata(file.getClientSideOriginalFilePath, mm.extension.getOrElse(""), mm.puid.getOrElse(""), mm.formatName.getOrElse(""), mm.fileExtensionMismatch.getOrElse(false), metadata.software, metadata.softwareVersion, metadata.binarySignatureFileVersion, metadata.containerSignatureFileVersion)
         })
       }))
       case _ => Left(new RuntimeException(fileErrors.mkString("\n")))
@@ -51,6 +51,8 @@ object Validator {
   case class ValidatedFFIDMetadata(filePath: String,
                                    extension: String,
                                    puid: String,
+                                   formatName: String,
+                                   extensionMismatch: Boolean,
                                    software: String,
                                    softwareVersion: String,
                                    binarySignatureFileVersion: String,
