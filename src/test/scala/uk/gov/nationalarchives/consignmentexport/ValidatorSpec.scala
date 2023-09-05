@@ -69,7 +69,7 @@ class ValidatorSpec extends ExportSpec {
     val ffidMetadata = FfidMetadata("software", "softwareVersion", "binaryVersion", "containerVersion", "method", List(Matches("ext".some, "id", "puid".some, false.some, "formatName".some)))
     val files = List(Files(fileId, "File".some, "name".some, None, metadata, ffidMetadata.some, Option.empty))
     val result = validator.extractFFIDMetadata(files)
-    val expectedResult = ValidatedFFIDMetadata("filePath", "ext", "puid", "formatName", extensionMismatch = false, "software", "softwareVersion", "binaryVersion", "containerVersion")
+    val expectedResult = ValidatedFFIDMetadata("filePath", "ext", "puid", "formatName", "false", "software", "softwareVersion", "binaryVersion", "containerVersion")
     result.right.value.head should equal(expectedResult)
   }
 

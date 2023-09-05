@@ -17,6 +17,14 @@ class Validator(consignmentId: UUID) {
     Either.fromOption(consignmentResult, new RuntimeException(s"No consignment metadata found for consignment $consignmentId"))
   }
 
+  def convertExtensionMismatchToString(extensionMismatch: Option[Boolean]): String = {
+    extensionMismatch match {
+      case Some(true) => "true"
+      case Some(false) => "false"
+      case None => ""
+    }
+  }
+
   def extractFFIDMetadata(filesList: List[Files]): Either[RuntimeException, List[ValidatedFFIDMetadata]] = {
     val fileErrors = filesList.filter(file => file.ffidMetadata.isEmpty && !file.isFolder)
       .map(f => s"FFID metadata is missing for file id ${f.fileId}")
@@ -24,7 +32,7 @@ class Validator(consignmentId: UUID) {
       case Nil => Right(filesList.filter(!_.isFolder).flatMap(file => {
         val metadata = file.ffidMetadata.get
         metadata.matches.map(mm => {
-          ValidatedFFIDMetadata(file.getClientSideOriginalFilePath, mm.extension.getOrElse(""), mm.puid.getOrElse(""), mm.formatName.getOrElse(""), mm.fileExtensionMismatch.getOrElse(false), metadata.software, metadata.softwareVersion, metadata.binarySignatureFileVersion, metadata.containerSignatureFileVersion)
+          ValidatedFFIDMetadata(file.getClientSideOriginalFilePath, mm.extension.getOrElse(""), mm.puid.getOrElse(""), mm.formatName.getOrElse(""), convertExtensionMismatchToString(mm.fileExtensionMismatch), metadata.software, metadata.softwareVersion, metadata.binarySignatureFileVersion, metadata.containerSignatureFileVersion)
         })
       }))
       case _ => Left(new RuntimeException(fileErrors.mkString("\n")))
@@ -52,7 +60,7 @@ object Validator {
                                    extension: String,
                                    puid: String,
                                    formatName: String,
-                                   extensionMismatch: Boolean,
+                                   extensionMismatch: String,
                                    software: String,
                                    softwareVersion: String,
                                    binarySignatureFileVersion: String,

@@ -74,7 +74,7 @@ class BagAdditionalFilesSpec extends ExportSpec {
 
   "createFfidMetadataCsv" should "produce a file with the correct rows" in {
     val bagAdditionalFiles = BagAdditionalFiles(getClass.getResource(".").getPath.toPath)
-    val metadata = ValidatedFFIDMetadata("path", "extension", "puid", "formatName", false, "software", "softwareVersion", "binarySignatureFileVersion", "containerSignatureFileVersion")
+    val metadata = ValidatedFFIDMetadata("path", "extension", "puid", "formatName", "false", "software", "softwareVersion", "binarySignatureFileVersion", "containerSignatureFileVersion")
 
     val file = bagAdditionalFiles.createFfidMetadataCsv(List(metadata)).unsafeRunSync()
 
