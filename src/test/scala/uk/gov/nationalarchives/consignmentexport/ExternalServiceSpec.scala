@@ -144,8 +144,6 @@ class ExternalServiceSpec extends AnyFlatSpec with BeforeAndAfterEach with Befor
   def stepFunctionPublish: StubMapping = wiremockSfnServer.stubFor(post(urlEqualTo(stepFunctionPublishPath))
     .willReturn(ok("Ok response body")))
 
-  // val s3Api: S3Mock = S3Mock(port = 8003, dir = "/tmp/s3")
-
   override def beforeAll(): Unit = {
     wiremockS3Server.start()
     wiremockGraphqlServer.start()
