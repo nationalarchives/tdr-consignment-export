@@ -67,7 +67,9 @@
               {
                 "extension": null,
                 "identificationBasis": "",
-                "puid": null
+                "puid": null,
+                "fileExtensionMismatch": false,
+                "formatName": ""
               }
             ],
             "containerSignatureFileVersion": "DROID_SignatureFile_V96.xml",

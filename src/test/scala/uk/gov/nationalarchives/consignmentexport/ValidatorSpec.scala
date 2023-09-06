@@ -66,10 +66,10 @@ class ValidatorSpec extends ExportSpec {
     val validator = Validator(UUID.randomUUID())
     val fileId = UUID.randomUUID()
     val metadata = FileMetadata("ClientSideOriginalFilepath", "filePath") :: Nil
-    val ffidMetadata = FfidMetadata("software", "softwareVersion", "binaryVersion", "containerVersion", "method", List(Matches("ext".some, "id", "puid".some)))
-    val files = List(Files(fileId,"File".some,"name".some, None, metadata, ffidMetadata.some, Option.empty))
+    val ffidMetadata = FfidMetadata("software", "softwareVersion", "binaryVersion", "containerVersion", "method", List(Matches("ext".some, "id", "puid".some, false.some, "formatName".some)))
+    val files = List(Files(fileId, "File".some, "name".some, None, metadata, ffidMetadata.some, Option.empty))
     val result = validator.extractFFIDMetadata(files)
-    val expectedResult = ValidatedFFIDMetadata("filePath", "ext", "puid", "software", "softwareVersion", "binaryVersion", "containerVersion")
+    val expectedResult = ValidatedFFIDMetadata("filePath", "ext", "puid", "formatName", "false", "software", "softwareVersion", "binaryVersion", "containerVersion")
     result.right.value.head should equal(expectedResult)
   }
 
@@ -95,7 +95,7 @@ class ValidatorSpec extends ExportSpec {
     val fileId = UUID.randomUUID()
     val metadata = FileMetadata("ClientSideOriginalFilepath", "filePath") :: Nil
     val antivirusMetadata = AntivirusMetadata("software", "softwareVersion")
-    val files = List(Files(fileId,"File".some, "name".some, None, metadata, Option.empty, antivirusMetadata.some))
+    val files = List(Files(fileId, "File".some, "name".some, None, metadata, Option.empty, antivirusMetadata.some))
     val result = validator.extractAntivirusMetadata(files)
     val expectedResult = ValidatedAntivirusMetadata("filePath", "software", "softwareVersion")
     result.right.value.head should equal(expectedResult)
@@ -105,7 +105,7 @@ class ValidatorSpec extends ExportSpec {
     val validator = Validator(UUID.randomUUID())
     val fileId = UUID.randomUUID()
     val metadata = FileMetadata("ClientSideOriginalFilepath", "filePath") :: Nil
-    val files = List(Files(fileId,"File".some, "name".some, None, metadata, Option.empty, Option.empty))
+    val files = List(Files(fileId, "File".some, "name".some, None, metadata, Option.empty, Option.empty))
     val result = validator.extractAntivirusMetadata(files)
     result.left.value.getMessage should equal(s"Antivirus metadata is missing for file id $fileId")
   }

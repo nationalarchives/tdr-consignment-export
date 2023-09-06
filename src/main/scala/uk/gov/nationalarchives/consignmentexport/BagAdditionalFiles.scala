@@ -28,9 +28,9 @@ class BagAdditionalFiles(rootDirectory: Path) {
     val fileMetadataRows: List[List[String]] = files.map(file => {
       val groupedMetadata = file.fileMetadata.groupBy(_.name).view.mapValues(_.map(_.value).mkString("|")).toMap
       filteredMetadata.map(customMetadata => groupedMetadata.get(customMetadata.name).map(fileMetadataValue => {
-        if(customMetadata.name == "ClientSideOriginalFilepath" || customMetadata.name == "OriginalFilepath") {
+        if (customMetadata.name == "ClientSideOriginalFilepath" || customMetadata.name == "OriginalFilepath") {
           dataPath(fileMetadataValue)
-        } else if(filteredMetadata.find(_.name == customMetadata.name).exists(_.dataType == DataType.DateTime)) {
+        } else if (filteredMetadata.find(_.name == customMetadata.name).exists(_.dataType == DataType.DateTime)) {
           LocalDateTime.parse(fileMetadataValue, parseFormatter).format(formatter)
         } else {
           fileMetadataValue
@@ -41,9 +41,9 @@ class BagAdditionalFiles(rootDirectory: Path) {
   }
 
   def createFfidMetadataCsv(ffidMetadataList: List[ValidatedFFIDMetadata]): IO[File] = {
-    val header = List("Filepath","Extension","PUID","FFID-Software","FFID-SoftwareVersion","FFID-BinarySignatureFileVersion","FFID-ContainerSignatureFileVersion")
+    val header = List("Filepath", "Extension", "PUID", "FormatName", "ExtensionMismatch", "FFID-Software", "FFID-SoftwareVersion", "FFID-BinarySignatureFileVersion", "FFID-ContainerSignatureFileVersion")
     val metadataRows = ffidMetadataList.map(f => {
-      List(dataPath(f.filePath), f.extension, f.puid, f.software, f.softwareVersion, f.binarySignatureFileVersion, f.containerSignatureFileVersion)
+      List(dataPath(f.filePath), f.extension, f.puid, f.formatName, f.extensionMismatch, f.software, f.softwareVersion, f.binarySignatureFileVersion, f.containerSignatureFileVersion)
     })
     writeToCsv("file-ffid.csv", header, metadataRows)
   }

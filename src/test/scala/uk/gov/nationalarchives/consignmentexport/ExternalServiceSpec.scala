@@ -84,9 +84,9 @@ class ExternalServiceSpec extends AnyFlatSpec with BeforeAndAfterEach with Befor
   def graphQlUrl: String = wiremockGraphqlServer.url(graphQlPath)
 
   def graphqlGetCustomMetadata(): StubMapping = wiremockGraphqlServer.stubFor(post(urlEqualTo(graphQlPath))
-      .withRequestBody(containing("customMetadata"))
-      .willReturn(okJson(fromResource(s"json/custom_metadata.json").mkString))
-    )
+    .withRequestBody(containing("customMetadata"))
+    .willReturn(okJson(fromResource(s"json/custom_metadata.json").mkString))
+  )
 
   def graphqlGetConsignmentMissingMetadata: StubMapping = wiremockGraphqlServer.stubFor(post(urlEqualTo(graphQlPath))
     .withRequestBody(equalToJson(generateGetConsignmentForExportQuery("50df01e6-2e5e-4269-97e7-531a755b417d")))
@@ -143,8 +143,6 @@ class ExternalServiceSpec extends AnyFlatSpec with BeforeAndAfterEach with Befor
 
   def stepFunctionPublish: StubMapping = wiremockSfnServer.stubFor(post(urlEqualTo(stepFunctionPublishPath))
     .willReturn(ok("Ok response body")))
-
-//  val s3Api: S3Mock = S3Mock(port = 8003, dir = "/tmp/s3")
 
   override def beforeAll(): Unit = {
     wiremockS3Server.start()
@@ -213,7 +211,9 @@ class ExternalServiceSpec extends AnyFlatSpec with BeforeAndAfterEach with Befor
                                matches{
                                  extension;
                                  identificationBasis;
-                                 puid
+                                 puid;
+                                 fileExtensionMismatch;
+                                 formatName
                                }
                              };
                              antivirusMetadata{
