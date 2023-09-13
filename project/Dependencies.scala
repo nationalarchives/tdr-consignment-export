@@ -8,7 +8,7 @@ object Dependencies {
   private val monovoreDeclineVersion = "2.4.1"
   private val awsUtilsVersion = "0.1.101"
 
-  lazy val authUtils = "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.162"
+  lazy val authUtils = "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.163"
   lazy val generatedGraphql = "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.344"
   lazy val s3Utils = "uk.gov.nationalarchives" %% "s3-utils" % awsUtilsVersion
   lazy val stepFunctionUtils = "uk.gov.nationalarchives" %% "stepfunction-utils" % awsUtilsVersion
