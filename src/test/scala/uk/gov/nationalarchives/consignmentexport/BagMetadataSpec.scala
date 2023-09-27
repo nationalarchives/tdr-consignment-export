@@ -4,7 +4,6 @@ import java.time.ZonedDateTime
 import java.util.UUID
 
 import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignment
-import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignment.{Series, TransferringBody}
 import org.keycloak.representations.idm.UserRepresentation
 import uk.gov.nationalarchives.consignmentexport.BuildInfo.version
 import uk.gov.nationalarchives.consignmentexport.Utils._
@@ -14,8 +13,8 @@ class BagMetadataSpec extends ExportSpec {
 
   private val fixedDateTime = ZonedDateTime.now()
   private val userId = UUID.randomUUID()
-  private val series = Series("series-code")
-  private val transferringBody = TransferringBody("tb-name")
+  private val series = "series-code"
+  private val transferringBody = "tb-name"
   private val consignmentRef = "consignmentReference-1234"
   private val standardConsignmentType = "standard"
   private val JudgmentConsignmentType = "judgment"

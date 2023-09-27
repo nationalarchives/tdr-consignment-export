@@ -187,12 +187,8 @@ class ExternalServiceSpec extends AnyFlatSpec with BeforeAndAfterEach with Befor
                              consignmentReference;
                              consignmentType;
                              includeTopLevelFolder;
-                             series{
-                               code
-                             };
-                             transferringBody{
-                               name
-                             };
+                             seriesName;
+                             transferringBodyName;
                              files{
                                fileId;
                                fileType;

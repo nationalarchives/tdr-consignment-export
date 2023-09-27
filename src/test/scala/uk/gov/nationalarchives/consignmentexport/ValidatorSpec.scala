@@ -6,7 +6,7 @@ import cats.implicits._
 import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignment
 import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignment.Files.FfidMetadata.Matches
 import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignment.Files.{AntivirusMetadata, FfidMetadata, FileMetadata}
-import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignment.{Files, Series, TransferringBody}
+import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignment.Files
 import uk.gov.nationalarchives.consignmentexport.Validator.{ValidatedAntivirusMetadata, ValidatedFFIDMetadata}
 
 class ValidatorSpec extends ExportSpec {
@@ -29,8 +29,8 @@ class ValidatorSpec extends ExportSpec {
     "consignmentRef",
     Some("standard"),
     Some(true),
-    Series("series-code").some,
-    TransferringBody("tb-name").some,
+    Some("series-code"),
+    Some("tb-name"),
     metadata
   )
 
