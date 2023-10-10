@@ -5,7 +5,7 @@ import java.util.UUID
 import cats.implicits._
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import graphql.codegen.GetConsignmentExport
-import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignment.{Files, Series, TransferringBody}
+import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignment.Files
 import graphql.codegen.GetConsignmentExport.{getConsignmentForExport => gce}
 import graphql.codegen.GetCustomMetadata.{customMetadata => cm}
 import graphql.codegen.UpdateExportData.{updateExportData => ued}
@@ -79,8 +79,8 @@ class GraphQlApiSpec extends ExportSpec {
     val fixedDate = ZonedDateTime.now()
     val userId = UUID.randomUUID()
     val consignmentRef = "consignmentReference-1234"
-    val series = Series("series-code")
-    val transferringBody = TransferringBody("tb-name")
+    val series = "series-code"
+    val transferringBody = "tb-name"
     val consignmentType = "standard"
     val consignmentClient = mock[GraphQLClient[gce.Data, gce.Variables]]
     val updateExportClient = mock[GraphQLClient[ued.Data, ued.Variables]]
@@ -107,8 +107,8 @@ class GraphQlApiSpec extends ExportSpec {
     response.get.createdDatetime should be(Some(fixedDate))
     response.get.transferInitiatedDatetime should be(Some(fixedDate))
     response.get.exportDatetime should be(Some(fixedDate))
-    response.get.series should be(Some(series))
-    response.get.transferringBody should be(Some(transferringBody))
+    response.get.seriesName should be(Some(series))
+    response.get.transferringBodyName should be(Some(transferringBody))
     response.get.consignmentReference should be(consignmentRef)
     response.get.files.head.originalFilePath should be(originalFilePath)
   }
