@@ -1,9 +1,7 @@
 {
   "data": {
     "getConsignment": {
-      "series": {
-        "code": "MOCK1 123"
-      },
+      "seriesName": "MOCK1 123",
       "exportDatetime": "2021-01-27T13:35:15Z",
       "createdDatetime": "2021-01-15T07:47:19Z",
       "transferInitiatedDatetime": "2021-01-15T07:47:19Z",
@@ -11,9 +9,7 @@
       "consignmentReference": "consignmentReference-1234",
       "consignmentType": "standard",
       "includeTopLevelFolder": false,
-      "transferringBody": {
-        "name": "MOCK1 Department"
-      },
+      "transferringBodyName": "MOCK1 Department",
       "files": [
         {
           "fileId": "7b19b272-d4d1-4d77-bf25-511dc6489d12",
