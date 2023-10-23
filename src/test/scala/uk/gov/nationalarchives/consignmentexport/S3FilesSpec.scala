@@ -38,6 +38,8 @@ class S3FilesSpec extends ExportSpec {
       "File".some,
       "name1".some,
       None,
+      None,
+      None,
       fileMetadata,
       None, None
     )
@@ -67,6 +69,8 @@ class S3FilesSpec extends ExportSpec {
       "File".some,
       "name".some,
       None,
+      None,
+      None,
       fileMetadata,
       None, None
     )
@@ -91,8 +95,8 @@ class S3FilesSpec extends ExportSpec {
     val fileId1 = UUID.randomUUID()
     val fileId2 = UUID.randomUUID()
     val fileMetadata = createMetadata(LocalDateTime.now())
-    val metadata1 = File(fileId1, "File".some, "name1".some, None, fileMetadata, None, None)
-    val metadata2 = File(fileId2, "File".some, "name2".some, None, fileMetadata, None, None)
+    val metadata1 = File(fileId1, "File".some, "name1".some, None, None, None, fileMetadata, None, None)
+    val metadata2 = File(fileId2, "File".some, "name2".some, None, None, None, fileMetadata, None, None)
 
     val validatedMetadata = List(metadata1, metadata2)
 
