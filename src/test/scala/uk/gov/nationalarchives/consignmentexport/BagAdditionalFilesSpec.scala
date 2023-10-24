@@ -50,8 +50,6 @@ class BagAdditionalFilesSpec extends ExportSpec {
     val csvLines = source.getLines().toList
     val header = csvLines.head
     val rest = csvLines.tail
-    println(header)
-    println(rest.head)
     header should equal("file_reference,File Path,File Name,File Type,File Size,Rights Copyright,Legal Status,Held By,Language,Last Modified Date,FOI Exemption Code,Checksum,OriginalFilepath,parent_reference")
     rest.length should equal(1)
     rest.head should equal(s",data/originalPath,File Name,File,1,rightsCopyright,legalStatus,heldBy,language,2021-02-03T10:33:00,foiExemption|foiExemption2,clientSideChecksumValue,data/nonRedactedFilepath,")
