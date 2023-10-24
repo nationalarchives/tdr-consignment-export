@@ -22,10 +22,12 @@ import java.util.UUID
 abstract class ExportSpec extends AnyFlatSpec with MockitoSugar with Matchers with EitherValues {
   implicit def logger: SelfAwareStructuredLogger[IO] = Slf4jLogger.getLogger[IO]
 
-  def createFile(originalFilePath: String, fileMetadata: List[FileMetadata], fileType: String, fileName: String): Files = Files(
+  def createFile(originalFilePath: String, fileMetadata: List[FileMetadata], fileType: String, fileName: String, fileRef: String, parentRef: Option[String] = None): Files = Files(
     UUID.randomUUID(),
     fileType.some,
     fileName.some,
+    fileRef.some,
+    parentRef,
     originalFilePath.some,
     fileMetadata,
     None,
@@ -63,17 +65,19 @@ object ExportSpec {
   )
 
   val customMetadata: List[CustomMetadata] = List(
-    createCustomMetadata("ClientSideFileSize", "File Size", 4),
+    createCustomMetadata("ClientSideFileSize", "File Size", 5),
     createCustomMetadata("ClientSideLastModifiedDate", "Last Modified Date", 10, DateTime),
-    createCustomMetadata("ClientSideOriginalFilepath", "File Path", 1),
-    createCustomMetadata("Filename", "File Name", 2),
-    createCustomMetadata("FileType", "File Type", 3),
-    createCustomMetadata("FoiExemptionCode", "FOI Exemption Code", 9),
-    createCustomMetadata("HeldBy", "Held By", 7),
-    createCustomMetadata("Language", "Language", 8),
-    createCustomMetadata("LegalStatus", "Legal Status", 6),
-    createCustomMetadata("RightsCopyright", "Rights Copyright", 5),
-    createCustomMetadata("SHA256ClientSideChecksum", "Checksum", 11),
-    createCustomMetadata("OriginalFilepath", "OriginalFilepath", 12)
+    createCustomMetadata("ClientSideOriginalFilepath", "File Path", 2),
+    createCustomMetadata("Filename", "File Name", 3),
+    createCustomMetadata("FileType", "File Type", 4),
+    createCustomMetadata("FoiExemptionCode", "FOI Exemption Code", 10),
+    createCustomMetadata("HeldBy", "Held By", 8),
+    createCustomMetadata("Language", "Language", 9),
+    createCustomMetadata("LegalStatus", "Legal Status", 7),
+    createCustomMetadata("RightsCopyright", "Rights Copyright", 6),
+    createCustomMetadata("SHA256ClientSideChecksum", "Checksum", 12),
+    createCustomMetadata("OriginalFilepath", "OriginalFilepath", 13),
+    createCustomMetadata("FileReference", "file_reference", 1),
+    createCustomMetadata("ParentReference", "parent_reference", 14),
   )
 }
