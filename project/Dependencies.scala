@@ -4,12 +4,12 @@ object Dependencies {
   private val githubPureConfigVersion = "0.17.4"
   private val keycloakVersion = "22.0.5"
   private val log4CatsVersion = "2.6.0"
-  private val mockitoScalaVersion = "1.17.27"
+  private val mockitoScalaVersion = "1.17.29"
   private val monovoreDeclineVersion = "2.4.1"
   private val awsUtilsVersion = "0.1.108"
 
   lazy val authUtils = "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.173"
-  lazy val generatedGraphql = "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.351"
+  lazy val generatedGraphql = "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.352"
   lazy val s3Utils = "uk.gov.nationalarchives" %% "s3-utils" % awsUtilsVersion
   lazy val stepFunctionUtils = "uk.gov.nationalarchives" %% "stepfunction-utils" % awsUtilsVersion
   lazy val bagit = "gov.loc" % "bagit" % "5.2.0"
