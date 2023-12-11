@@ -5,7 +5,7 @@ RUN apk add --no-cache bash tar curl wget && \
     adduser consignment-export -D && \
     wget https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64 -O /usr/local/bin/jq && \
     chmod +x /usr/local/bin/jq && \
-    apk add openjdk15 --repository=http://dl-cdn.alpinelinux.org/alpine/edge/community
+    apk add openjdk17 --repository=http://dl-cdn.alpinelinux.org/alpine/edge/community
 WORKDIR /home/consignment-export
 USER consignment-export
 RUN wget $(curl https://api.github.com/repos/nationalarchives/tdr-consignment-export/releases/latest | jq -r '.assets[0].browser_download_url')
