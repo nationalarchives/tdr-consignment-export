@@ -6,10 +6,10 @@ object Dependencies {
   private val log4CatsVersion = "2.6.0"
   private val mockitoScalaVersion = "1.17.30"
   private val monovoreDeclineVersion = "2.4.1"
-  private val awsUtilsVersion = "0.1.151"
+  private val awsUtilsVersion = "0.1.152"
 
   lazy val authUtils = "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.195"
-  lazy val generatedGraphql = "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.369"
+  lazy val generatedGraphql = "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.370"
   lazy val s3Utils = "uk.gov.nationalarchives" %% "s3-utils" % awsUtilsVersion
   lazy val stepFunctionUtils = "uk.gov.nationalarchives" %% "stepfunction-utils" % awsUtilsVersion
   lazy val bagit = "gov.loc" % "bagit" % "5.2.0"
