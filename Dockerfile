@@ -1,4 +1,4 @@
-FROM alpine:latest
+FROM alpine:3.19.1
 RUN apk add --no-cache bash tar curl wget && \
     apk update && \
     apk upgrade p11-kit busybox libretls zlib openssl libcrypto3 libssl3 giflib && \
