@@ -16,6 +16,7 @@ on:
       to-deploy:
         description: 'Version to deploy'
         required: true
+run-name: Deploying Consignment Export ${{inputs.to-deploy}} to ${{inputs.environment}}        
 jobs:
   deploy:
     runs-on: ubuntu-latest
