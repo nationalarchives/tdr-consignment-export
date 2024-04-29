@@ -15,48 +15,70 @@ setLatestTagOutput := {
 }
 
 lazy val root = (project in file("."))
+  .aggregate(bagitExport, export)
+
+
+val commonSettings = Seq(
+  libraryDependencies ++= Seq(
+    s3Utils,
+    catsEffect,
+    decline,
+    declineEffect,
+    log4cats,
+    log4catsSlf4j,
+    mockitoScala % Test,
+    mockitoScalaTest % Test,
+    pureConfig,
+    pureConfigCatsEffect,
+    scalaTest % Test,
+    slf4j,
+    stepFunctionUtils
+  ),
+  (Test / fork) := true,
+  (Test / envVars) := Map("AWS_ACCESS_KEY_ID" -> "test", "AWS_SECRET_ACCESS_KEY" -> "test"),
+  (Test / javaOptions) += s"-Dconfig.file=${sourceDirectory.value}/test/resources/application.conf",
+  buildInfoKeys := Seq[BuildInfoKey](version),
+  buildInfoPackage := "uk.gov.nationalarchives.consignmentexport",
+  releaseProcess := Seq[ReleaseStep](
+    inquireVersions,
+    setReleaseVersion,
+    releaseStepTask(setLatestTagOutput),
+    commitReleaseVersion,
+    tagRelease,
+    pushChanges,
+    releaseStepTask(Universal / packageZipTarball),
+    setNextVersion,
+    commitNextVersion,
+    pushChanges
+  ),
+)
+
+lazy val export = (project in file("export"))
+  .settings(commonSettings)
+  .settings(
+    libraryDependencies ++= Seq(
+      awsRds,
+      doobie,
+      doobiePostgres
+    ),
+    (Universal / packageName) := "tdr-export",
+  ).enablePlugins(JavaAppPackaging, UniversalPlugin, BuildInfoPlugin)
+
+lazy val bagitExport = (project in file("bagit-export"))
+  .settings(commonSettings)
   .settings(
     name := "tdr-consignment-export",
     libraryDependencies ++= Seq(
       authUtils,
-      s3Utils,
-      stepFunctionUtils,
       bagit,
-      catsEffect,
-      decline,
-      declineEffect,
       generatedGraphql,
       graphqlClient,
       keycloakCore,
       keycloakAdminClient,
-      log4cats,
-      log4catsSlf4j,
-      mockitoScala % Test,
-      mockitoScalaTest % Test,
-      pureConfig,
-      pureConfigCatsEffect,
       scalaCsv,
-      scalaTest % Test,
       slf4j
     ),
     (Universal / packageName) := "tdr-consignment-export",
-    (Test / fork) := true,
-    (Test / envVars) := Map("AWS_ACCESS_KEY_ID" -> "test", "AWS_SECRET_ACCESS_KEY" -> "test"),
-    (Test / javaOptions) += s"-Dconfig.file=${sourceDirectory.value}/test/resources/application.conf",
-    releaseProcess := Seq[ReleaseStep](
-      inquireVersions,
-      setReleaseVersion,
-      releaseStepTask(setLatestTagOutput),
-      commitReleaseVersion,
-      tagRelease,
-      pushChanges,
-      releaseStepTask(Universal / packageZipTarball),
-      setNextVersion,
-      commitNextVersion,
-      pushChanges
-    ),
-    buildInfoKeys := Seq[BuildInfoKey](version),
-    buildInfoPackage := "uk.gov.nationalarchives.consignmentexport",
     dependencyOverrides += "org.scala-lang.modules" %% "scala-java8-compat" % "1.0.2",
     (Test / javaOptions) += s"-Dconfig.file=${sourceDirectory.value}/test/resources/application.conf"
   ).enablePlugins(JavaAppPackaging, UniversalPlugin, BuildInfoPlugin)

@@ -8,6 +8,6 @@ RUN apk add --no-cache bash tar curl wget && \
     apk add openjdk17 --repository=http://dl-cdn.alpinelinux.org/alpine/edge/community
 WORKDIR /home/consignment-export
 USER consignment-export
-RUN wget $(curl https://api.github.com/repos/nationalarchives/tdr-consignment-export/releases/latest | jq -r '.assets[0].browser_download_url')
-RUN tar -xzf ./tdr-consignment-export.tgz && mkdir export
-CMD bash ./tdr-consignment-export/bin/tdr-consignment-export export --consignmentId $CONSIGNMENT_ID --taskToken $TASK_TOKEN_ENV_VARIABLE
+RUN curl -q https://api.github.com/repos/nationalarchives/tdr-consignment-export/releases/latest | jq -r '.assets[].browser_download_url' | xargs -I'{}' wget {}
+RUN tar -xzf ./*.tgz && mkdir export
+CMD bash ./$COMMAND/bin/$COMMAND export --consignmentId $CONSIGNMENT_ID --taskToken $TASK_TOKEN_ENV_VARIABLE
