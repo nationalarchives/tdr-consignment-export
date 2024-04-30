@@ -15,6 +15,20 @@ setLatestTagOutput := {
 }
 
 lazy val root = (project in file("."))
+  .settings(
+    releaseProcess := Seq[ReleaseStep](
+      inquireVersions,
+      setReleaseVersion,
+      releaseStepTask(setLatestTagOutput),
+      commitReleaseVersion,
+      tagRelease,
+      pushChanges,
+      releaseStepTask(Universal / packageZipTarball),
+      setNextVersion,
+      commitNextVersion,
+      pushChanges
+    )
+  )
   .aggregate(bagitExport, export)
 
 
@@ -39,18 +53,6 @@ val commonSettings = Seq(
   (Test / javaOptions) += s"-Dconfig.file=${sourceDirectory.value}/test/resources/application.conf",
   buildInfoKeys := Seq[BuildInfoKey](version),
   buildInfoPackage := "uk.gov.nationalarchives.consignmentexport",
-  releaseProcess := Seq[ReleaseStep](
-    inquireVersions,
-    setReleaseVersion,
-    releaseStepTask(setLatestTagOutput),
-    commitReleaseVersion,
-    tagRelease,
-    pushChanges,
-    releaseStepTask(Universal / packageZipTarball),
-    setNextVersion,
-    commitNextVersion,
-    pushChanges
-  ),
 )
 
 lazy val export = (project in file("export"))
