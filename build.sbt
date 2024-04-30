@@ -23,7 +23,8 @@ lazy val root = (project in file("."))
       commitReleaseVersion,
       tagRelease,
       pushChanges,
-      releaseStepTask(Universal / packageZipTarball),
+      releaseStepTask(bagitExport / Universal / packageZipTarball),
+      releaseStepTask(export / Universal / packageZipTarball),
       setNextVersion,
       commitNextVersion,
       pushChanges
