@@ -8,6 +8,7 @@ RUN apk add --no-cache bash tar curl wget && \
     apk add openjdk17 --repository=http://dl-cdn.alpinelinux.org/alpine/edge/community
 WORKDIR /home/consignment-export
 USER consignment-export
-RUN curl -q https://api.github.com/repos/nationalarchives/tdr-consignment-export/releases/latest | jq -r '.assets[].browser_download_url' | xargs -I'{}' wget {}
-RUN tar -xzf ./*.tgz && mkdir export
+RUN wget https://truststore.pki.rds.amazonaws.com/eu-west-2/eu-west-2-bundle.pem
+RUN curl -q https://api.github.com/repos/nationalarchives/tdr-consignment-export/releases/tags/0.1.1 | jq -r '.assets[].browser_download_url' | xargs -I'{}' wget {}
+RUN find ./ -name '*.tgz' -exec tar -xzf {} \; && mkdir export
 CMD bash ./$COMMAND/bin/$COMMAND export --consignmentId $CONSIGNMENT_ID --taskToken $TASK_TOKEN_ENV_VARIABLE

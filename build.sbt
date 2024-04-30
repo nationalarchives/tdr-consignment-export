@@ -59,8 +59,13 @@ lazy val export = (project in file("export"))
     libraryDependencies ++= Seq(
       awsRds,
       doobie,
-      doobiePostgres
+      doobiePostgres,
+      testContainers % Test,
+      testContainersPostgres % Test,
+      postgres % Test,
+      wiremock % Test
     ),
+    name := "tdr-export",
     (Universal / packageName) := "tdr-export",
   ).enablePlugins(JavaAppPackaging, UniversalPlugin, BuildInfoPlugin)
 

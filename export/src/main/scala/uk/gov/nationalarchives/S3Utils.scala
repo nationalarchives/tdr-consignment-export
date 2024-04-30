@@ -20,28 +20,43 @@ class S3Utils(config: Config, s3Client: S3Client) {
       case Judgment => config.s3.outputBucketJudgment
       case Standard => config.s3.outputBucket
     }
-    objects.contents().asScala.map { s3Object =>
-      val key = s3Object.key
-      val copyRequest = CopyObjectRequest.builder()
-        .sourceKey(key)
-        .sourceBucket(config.s3.cleanBucket)
-        .destinationKey(key)
-        .destinationBucket(destinationBucket)
-        .build()
-      s3Client.copyObject(copyRequest)
-      UUID.fromString(key)
-    }.toList
+    objects
+      .contents()
+      .asScala
+      .map { s3Object =>
+        val key = s3Object.key
+        val destinationKey = key.split("/").last
+        val copyRequest = CopyObjectRequest
+          .builder()
+          .sourceKey(key)
+          .sourceBucket(config.s3.cleanBucket)
+          .destinationKey(destinationKey)
+          .destinationBucket(destinationBucket)
+          .build()
+        s3Client.copyObject(copyRequest)
+        UUID.fromString(destinationKey)
+      }
+      .toList
   }
 
-  def createMetadata(fileIds: List[UUID], metadata: List[Metadata]): IO[Unit] = IO.blocking {
-    val groupedMetadata = metadata.groupBy(_.fileId)
+  def createMetadata(consignmentType: ConsignmentType, fileIds: List[UUID], fileMetadata: List[Metadata], consignmentMetadata: List[Metadata]): IO[Unit] = IO.blocking {
+    val groupedMetadata = fileMetadata.groupBy(_.id)
+    val outputBucket = consignmentType match {
+      case Judgment => config.s3.outputBucketJudgment
+      case Standard => config.s3.outputBucket
+    }
+
+    def jsonFromMetadata(metadata: List[Metadata]): Map[String, Json] =
+      metadata.map(m => m.PropertyName -> Json.fromString(m.Value)).toMap
+
     fileIds.foreach { fileId =>
-      val metadataJson = groupedMetadata.get(fileId).map { metadata =>
-        metadata.map(m => (m.PropertyName -> Json.fromString(m.Value))).toMap
-      }.getOrElse(Map.empty)
+      val metadataJson = groupedMetadata
+        .get(fileId)
+        .map(jsonFromMetadata)
+        .getOrElse(Map.empty) ++ jsonFromMetadata(consignmentMetadata)
 
       val body = RequestBody.fromString(JsonObject.fromMap(metadataJson).toJson.printWith(Printer.noSpaces))
-      val request = PutObjectRequest.builder.bucket(config.s3.outputBucket).key(fileId.toString).build
+      val request = PutObjectRequest.builder.bucket(outputBucket).key(s"$fileId.metadata").build
       s3Client.putObject(request, body)
     }
   }

@@ -8,6 +8,7 @@ object Dependencies {
   private val monovoreDeclineVersion = "2.4.1"
   private val awsUtilsVersion = "0.1.161"
   private val doobieVersion = "1.0.0-RC5"
+  private val testContainersVersion = "0.41.2"
 
   lazy val authUtils = "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.196"
   lazy val awsRds = "software.amazon.awssdk" % "rds" % "2.25.35"
@@ -20,6 +21,7 @@ object Dependencies {
   lazy val declineEffect = "com.monovore" %% "decline-effect" % monovoreDeclineVersion
   lazy val doobie = "org.tpolecat" %% "doobie-core" % doobieVersion
   lazy val doobiePostgres = "org.tpolecat" %% "doobie-postgres"  % doobieVersion
+  lazy val postgres = "org.postgresql" % "postgresql" % "42.7.3"
   lazy val graphqlClient = "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.154"
   lazy val scalaTest = "org.scalatest" %% "scalatest" % "3.2.18"
   lazy val scalaCsv = "com.github.tototoshi" %% "scala-csv" % "1.3.10"
@@ -32,4 +34,7 @@ object Dependencies {
   lazy val mockitoScalaTest = "org.mockito" %% "mockito-scala-scalatest" % mockitoScalaVersion
   lazy val keycloakCore = "org.keycloak" % "keycloak-core" % keycloakVersion
   lazy val keycloakAdminClient = "org.keycloak" % "keycloak-admin-client" % keycloakVersion
+  lazy val testContainers = "com.dimafeng" %% "testcontainers-scala-scalatest" % testContainersVersion
+  lazy val testContainersPostgres = "com.dimafeng" %% "testcontainers-scala-postgresql" % testContainersVersion
+  lazy val wiremock = "org.wiremock" % "wiremock" % "3.5.4"
 }

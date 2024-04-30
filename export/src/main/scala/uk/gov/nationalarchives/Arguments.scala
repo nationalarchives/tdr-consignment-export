@@ -13,8 +13,8 @@ object Arguments {
 
   val exportOpts: Opts[FileExport] =
     Opts.subcommand("export", "Exports files") {
-      (consignmentId, taskToken) mapN {
-        (ci, tt) => FileExport(ci, tt)
+      (consignmentId, taskToken) mapN { (ci, tt) =>
+        FileExport(ci, tt)
       }
     }
 }
