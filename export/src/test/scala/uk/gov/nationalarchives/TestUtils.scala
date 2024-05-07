@@ -31,7 +31,6 @@ class TestUtils extends AnyFlatSpec with TestContainerForAll with BeforeAndAfter
   val s3Server = new WireMockServer(9010)
   val snsServer = new WireMockServer(9011)
 
-
   val userId = "52be6447-eb7d-4894-ae71-444d3ecf5436"
   val dateTime = "2024-04-29 12:21:37.553+00"
 
@@ -46,8 +45,9 @@ class TestUtils extends AnyFlatSpec with TestContainerForAll with BeforeAndAfter
       post(urlEqualTo("/"))
         .willReturn(ok())
     )
-    snsServer.stubFor(post(urlEqualTo("/"))
-      .willReturn(ok())
+    snsServer.stubFor(
+      post(urlEqualTo("/"))
+        .willReturn(ok())
     )
   }
 
@@ -134,6 +134,29 @@ class TestUtils extends AnyFlatSpec with TestContainerForAll with BeforeAndAfter
       .head
       .trim
 
+  def addFFIDMetadata(fileId: UUID, port: Int): IO[Unit] = {
+    val jdbcUrl = s"jdbc:postgresql://localhost:$port/consignmentapi"
+    val ffidMetadataId = UUID.randomUUID.toString
+    val transactor = Transactor.fromDriverManager[IO](
+      driver = "org.postgresql.Driver",
+      url = jdbcUrl,
+      user = "tdr",
+      password = "password",
+      logHandler = None
+    )
+    for {
+      _ <-
+        sql""" INSERT INTO "FFIDMetadata" ("FFIDMetadataId", "FileId", "Software", "SoftwareVersion", "Datetime", "BinarySignatureFileVersion", "ContainerSignatureFileVersion", "Method")
+             VALUES (CAST($ffidMetadataId AS UUID), CAST(${fileId.toString} AS UUID),'Software', 'SoftwareVersion', CAST($dateTime AS TIMESTAMP), 'BinarySignatureFileVersion', 'ContainerSignatureFileVersion', 'Method') """.update.run
+          .transact(transactor)
+      _ <-
+        sql""" INSERT INTO "FFIDMetadataMatches" ("FFIDMetadataId", "Extension", "IdentificationBasis", "PUID", "ExtensionMismatch", "FormatName") VALUES
+          (CAST($ffidMetadataId AS UUID), 'Extension', 'IdentificationBasis', 'PUID', TRUE, 'FormatName')""".update.run
+          .transact(transactor)
+
+    } yield ()
+  }
+
   def addFileMetadata(consignmentId: UUID, fileId: UUID, port: Int): Unit = {
     val jdbcUrl = s"jdbc:postgresql://localhost:$port/consignmentapi"
     val transactor = Transactor.fromDriverManager[IO](
@@ -153,6 +176,7 @@ class TestUtils extends AnyFlatSpec with TestContainerForAll with BeforeAndAfter
         sql""" INSERT INTO "FileMetadata" ("MetadataId", "FileId", "Value", "PropertyName", "UserId")
              VALUES (CAST(${UUID.randomUUID.toString} AS UUID), CAST(${fileId.toString} AS UUID),'TestValue', 'FileMetadataTest', CAST($userId AS UUID)) """.update.run
           .transact(transactor)
+      _ <- addFFIDMetadata(fileId, port)
     } yield ()
   }.unsafeRunSync()
 
@@ -177,6 +201,7 @@ class TestUtils extends AnyFlatSpec with TestContainerForAll with BeforeAndAfter
   def seedDatabase(port: Int, consignmentId: String): String = {
     val jdbcUrl = s"jdbc:postgresql://localhost:$port/consignmentapi"
     val bodyId: String = UUID.randomUUID().toString
+    val seriesId: String = UUID.randomUUID().toString
     val consignmentRef = UUID.randomUUID().toString.replaceAll("-", "")
     val transactor = Transactor.fromDriverManager[IO](
       driver = "org.postgresql.Driver",
@@ -188,6 +213,9 @@ class TestUtils extends AnyFlatSpec with TestContainerForAll with BeforeAndAfter
     (for {
       sequence <- sql"""select nextval('consignment_sequence_id')""".query[Int].unique.transact(transactor)
       _ <- sql""" INSERT INTO "Body" ("BodyId", "Name", "TdrCode") VALUES (CAST($bodyId AS UUID), 'Test', 'Test') """.update.run.transact(transactor)
+      _ <- sql"""INSERT INTO "Series" ("SeriesId", "BodyId", "Name", "Code") VALUES (CAST($seriesId AS UUID), CAST($bodyId AS UUID), 'Test', 'TST') """.update.run.transact(
+        transactor
+      )
       _ <- sql""" INSERT INTO "Consignment" ("ConsignmentId", "UserId", "Datetime", "ConsignmentSequence", "ConsignmentReference", "ConsignmentType", "BodyId")
          VALUES (CAST($consignmentId AS UUID), CAST($userId AS UUID), CAST($dateTime AS TIMESTAMP), $sequence, $consignmentRef, 'standard', CAST($bodyId AS UUID)) """.update.run
         .transact(transactor)

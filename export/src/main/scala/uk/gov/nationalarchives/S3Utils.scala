@@ -2,13 +2,14 @@ package uk.gov.nationalarchives
 
 import cats.effect.IO
 import io.circe.{Json, JsonObject, Printer}
+import io.circe.generic.auto._
 import software.amazon.awssdk.core.sync.RequestBody
 import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.s3.model.{CopyObjectRequest, ListObjectsV2Request, PutObjectRequest}
 import uk.gov.nationalarchives.Main.Config
 import uk.gov.nationalarchives.MetadataUtils._
 import uk.gov.nationalarchives.S3Utils.FileOutput
-
+import io.circe.syntax._
 import scala.jdk.CollectionConverters._
 import java.util.UUID
 
@@ -40,7 +41,13 @@ class S3Utils(config: Config, s3Client: S3Client) {
       .toList
   }
 
-  def createMetadata(consignmentType: ConsignmentType, fileIds: List[UUID], fileMetadata: List[Metadata], consignmentMetadata: List[Metadata]): IO[Unit] = IO.blocking {
+  def createMetadata(
+      consignmentType: ConsignmentType,
+      fileIds: List[UUID],
+      fileMetadata: List[Metadata],
+      consignmentMetadata: List[Metadata],
+      ffidMetadata: Map[UUID, List[MetadataUtils.FFID]]
+  ): IO[Unit] = IO.blocking {
     val groupedMetadata = fileMetadata.groupBy(_.id)
     val outputBucket = consignmentType match {
       case Judgment => config.s3.outputBucketJudgment
@@ -51,12 +58,18 @@ class S3Utils(config: Config, s3Client: S3Client) {
       metadata.map(m => m.PropertyName -> Json.fromString(m.Value)).toMap
 
     fileIds.foreach { fileId =>
+      val ffidArray = ffidMetadata.get(fileId).map(_.asJson).getOrElse(Json.arr())
       val metadataJson = groupedMetadata
         .get(fileId)
         .map(jsonFromMetadata)
         .getOrElse(Map.empty) ++ jsonFromMetadata(consignmentMetadata)
-
-      val body = RequestBody.fromString(JsonObject.fromMap(metadataJson).toJson.printWith(Printer.noSpaces))
+      val ffidObject = JsonObject.fromMap(Map("FFID" -> ffidArray))
+      val allObjects = JsonObject
+        .fromMap(metadataJson)
+        .deepMerge(ffidObject)
+        .toJson
+        .printWith(Printer.noSpaces)
+      val body = RequestBody.fromString(allObjects)
       val request = PutObjectRequest.builder.bucket(outputBucket).key(s"$fileId.metadata").build
       s3Client.putObject(request, body)
     }

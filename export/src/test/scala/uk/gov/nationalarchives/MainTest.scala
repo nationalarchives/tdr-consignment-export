@@ -35,18 +35,19 @@ class MainTest extends TestUtils {
     fileOutput.fileId should equal(fileId)
   }
 
-  "run" should "only write the body name and consignment reference if there is no file or consignment metadata" in withContainers { case container: PostgreSQLContainer =>
-    val mappedPort = container.mappedPort(5432)
-    val (consignmentId, fileId, consignmentReference) = stubExternalServices(mappedPort)
-    Main.run(List("export", "--consignmentId", consignmentId.toString, "--taskToken", "taskToken")).unsafeRunSync()
+  "run" should "only write the body name, series name and consignment reference if there is no file or consignment metadata" in withContainers {
+    case container: PostgreSQLContainer =>
+      val mappedPort = container.mappedPort(5432)
+      val (consignmentId, fileId, consignmentReference) = stubExternalServices(mappedPort)
+      Main.run(List("export", "--consignmentId", consignmentId.toString, "--taskToken", "taskToken")).unsafeRunSync()
 
-    val expectedJson = s"""{"TransferringBody":"Test","ConsignmentReference":"$consignmentReference"}"""
-    val serveEvents = s3Server.getAllServeEvents.asScala
-    val metadataFileWriteBody = serveEvents
-      .find(req => req.getRequest.getUrl == s"/$fileId.metadata" && req.getRequest.getMethod == RequestMethod.PUT)
-      .map(_.getRequest.getBodyAsString)
-      .getOrElse("")
-    metadataFileWriteBody.split("\n").tail.head.trim should equal(expectedJson)
+      val expectedJson = s"""{"TransferringBody":"Test","ConsignmentReference":"$consignmentReference","Series":"Test"}"""
+      val serveEvents = s3Server.getAllServeEvents.asScala
+      val metadataFileWriteBody = serveEvents
+        .find(req => req.getRequest.getUrl == s"/$fileId.metadata" && req.getRequest.getMethod == RequestMethod.PUT)
+        .map(_.getRequest.getBodyAsString)
+        .getOrElse("")
+      metadataFileWriteBody.split("\n").tail.head.trim should equal(expectedJson)
   }
 
   "run" should "write the file metadata where it exists" in withContainers { case container: PostgreSQLContainer =>
@@ -55,7 +56,10 @@ class MainTest extends TestUtils {
     addFileMetadata(consignmentId, fileId, mappedPort)
     Main.run(List("export", "--consignmentId", consignmentId.toString, "--taskToken", "taskToken")).unsafeRunSync()
 
-    val expectedJson = s"""{"FileMetadataTest":"TestValue","TransferringBody":"Test","ConsignmentReference":"$consignmentReference"}"""
+    val expectedJson =
+      s"""{"ffidIdentificationBasis":"IdentificationBasis","Series":"Test","ffidPuid":"PUID",
+         |"ffidExtensionMismatch":"true","ConsignmentReference":"$consignmentReference",
+         |"ffidFormatName":"FormatName","ffidExtension":"Extension","TransferringBody":"Test","FileMetadataTest":"TestValue"}""".stripMargin.replaceAll("\n", "")
     val metadataFileWriteBody = getRequestBody(req => req.getRequest.getUrl == s"/$fileId.metadata" && req.getRequest.getMethod == RequestMethod.PUT)
     metadataFileWriteBody should equal(expectedJson)
   }
@@ -66,7 +70,7 @@ class MainTest extends TestUtils {
     addConsignmentMetadata(consignmentId, mappedPort)
     Main.run(List("export", "--consignmentId", consignmentId.toString, "--taskToken", "taskToken")).unsafeRunSync()
 
-    val expectedJson = s"""{"ConsignmentMetadataTest":"TestValue","TransferringBody":"Test","ConsignmentReference":"$consignmentReference"}"""
+    val expectedJson = s"""{"ConsignmentMetadataTest":"TestValue","TransferringBody":"Test","ConsignmentReference":"$consignmentReference","Series":"Test"}"""
     val metadataFileWriteBody = getRequestBody(req => req.getRequest.getUrl == s"/$fileId.metadata" && req.getRequest.getMethod == RequestMethod.PUT)
     metadataFileWriteBody should equal(expectedJson)
   }

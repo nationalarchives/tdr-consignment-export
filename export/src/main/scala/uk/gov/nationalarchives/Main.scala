@@ -43,10 +43,11 @@ object Main extends CommandIOApp("tdr-export", "Exports tdr files with a flat st
       heartBeat <- runHeartbeat(stepFunction).start
       metadataUtils <- MetadataUtils(config)
       fileMetadata <- metadataUtils.getFileMetadata(consignmentId)
+      ffidMetadata <- metadataUtils.getFFIDMetadata(consignmentId)
       consignmentMetadata <- metadataUtils.getConsignmentMetadata(consignmentId)
       consignmentType <- metadataUtils.getConsignmentType(consignmentId)
       fileOutputs <- s3Utils.copyFiles(consignmentId, consignmentType)
-      _ <- s3Utils.createMetadata(consignmentType, fileOutputs.map(_.fileId), fileMetadata, consignmentMetadata)
+      _ <- s3Utils.createMetadata(consignmentType, fileOutputs.map(_.fileId), fileMetadata, consignmentMetadata, ffidMetadata)
       _ <- IO(fileOutputs.map(fileOutput => sendMessage(config, fileOutput)))
       _ <- stepFunction.publishSuccess(taskToken)
       _ <- heartBeat.cancel
@@ -64,5 +65,6 @@ object Main extends CommandIOApp("tdr-export", "Exports tdr files with a flat st
   private def sendMessage(config: Config, fileOutput: S3Utils.FileOutput): PublishResponse = {
     val snsUtils = SNSUtils(sns(config.sns.endpoint))
     snsUtils.publish(fileOutput.asJson.printWith(Printer.noSpaces), config.sns.topicArn)
+    PublishResponse.builder().build()
   }
 }
