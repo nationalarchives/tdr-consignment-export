@@ -3,20 +3,20 @@ import sbt._
 object Dependencies {
   private val githubPureConfigVersion = "0.17.6"
   private val keycloakVersion = "24.0.3"
-  private val log4CatsVersion = "2.6.0"
+  private val log4CatsVersion = "2.7.0"
   private val mockitoScalaVersion = "1.17.31"
   private val monovoreDeclineVersion = "2.4.1"
-  private val awsUtilsVersion = "0.1.161"
+  private val awsUtilsVersion = "0.1.169"
 
-  lazy val authUtils = "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.196"
-  lazy val generatedGraphql = "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.374"
+  lazy val authUtils = "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.197"
+  lazy val generatedGraphql = "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.375"
   lazy val s3Utils = "uk.gov.nationalarchives" %% "s3-utils" % awsUtilsVersion
   lazy val stepFunctionUtils = "uk.gov.nationalarchives" %% "stepfunction-utils" % awsUtilsVersion
   lazy val bagit = "gov.loc" % "bagit" % "5.2.0"
   lazy val catsEffect = "org.typelevel" %% "cats-effect" % "3.5.4"
   lazy val decline = "com.monovore" %% "decline" % monovoreDeclineVersion
   lazy val declineEffect = "com.monovore" %% "decline-effect" % monovoreDeclineVersion
-  lazy val graphqlClient = "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.154"
+  lazy val graphqlClient = "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.157"
   lazy val scalaTest = "org.scalatest" %% "scalatest" % "3.2.18"
   lazy val scalaCsv = "com.github.tototoshi" %% "scala-csv" % "1.3.10"
   lazy val log4cats = "org.typelevel" %% "log4cats-core" % log4CatsVersion
