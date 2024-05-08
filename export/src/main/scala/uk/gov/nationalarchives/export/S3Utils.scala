@@ -1,4 +1,4 @@
-package uk.gov.nationalarchives
+package uk.gov.nationalarchives.`export`
 
 import cats.effect.IO
 import io.circe.{Json, JsonObject, Printer}
@@ -6,10 +6,13 @@ import io.circe.generic.auto._
 import software.amazon.awssdk.core.sync.RequestBody
 import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.s3.model.{CopyObjectRequest, ListObjectsV2Request, PutObjectRequest}
-import uk.gov.nationalarchives.Main.Config
-import uk.gov.nationalarchives.MetadataUtils._
-import uk.gov.nationalarchives.S3Utils.FileOutput
+import Main.Config
+import MetadataUtils._
+import S3Utils.FileOutput
 import io.circe.syntax._
+import Main.Config
+import MetadataUtils.{ConsignmentType, Judgment, Metadata, Standard}
+
 import scala.jdk.CollectionConverters._
 import java.util.UUID
 
@@ -41,7 +44,7 @@ class S3Utils(config: Config, s3Client: S3Client) {
       .toList
   }
 
-  def createMetadata(
+  def putMetadata(
       consignmentType: ConsignmentType,
       fileIds: List[UUID],
       fileMetadata: List[Metadata],
@@ -55,15 +58,15 @@ class S3Utils(config: Config, s3Client: S3Client) {
     }
 
     def jsonFromMetadata(metadata: List[Metadata]): Map[String, Json] =
-      metadata.map(m => m.PropertyName -> Json.fromString(m.Value)).toMap
+      metadata.map(m => m.propertyName -> Json.fromString(m.value)).toMap
 
     fileIds.foreach { fileId =>
-      val ffidArray = ffidMetadata.get(fileId).map(_.asJson).getOrElse(Json.arr())
+      val ffidArray = ffidMetadata.getOrElse(fileId, Nil)
       val metadataJson = groupedMetadata
         .get(fileId)
         .map(jsonFromMetadata)
         .getOrElse(Map.empty) ++ jsonFromMetadata(consignmentMetadata)
-      val ffidObject = JsonObject.fromMap(Map("FFID" -> ffidArray))
+      val ffidObject = JsonObject.fromMap(Map("FFID" -> ffidArray.asJson))
       val allObjects = JsonObject
         .fromMap(metadataJson)
         .deepMerge(ffidObject)
@@ -75,6 +78,7 @@ class S3Utils(config: Config, s3Client: S3Client) {
     }
   }
 }
+
 object S3Utils {
   def apply(config: Config, s3Client: S3Client) = new S3Utils(config, s3Client)
 

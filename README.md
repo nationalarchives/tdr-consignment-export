@@ -9,6 +9,7 @@ The infrastructure for the export, is defined in the [terraform]("https://github
 
 There are two modules in this repository.
 
+### Bagit Export Module
 The bagit-export module does the following:
 
 * Calls the API to get a list of files
@@ -19,6 +20,7 @@ The bagit-export module does the following:
 * Upload to the export bucket.
 * Update the API with the export location
 
+### Export Module
 The export module does the following:
 * Copies the files for a given consignment from the clean bucket to the export bucket
 * For each file, it reads the metadata from the FileMetadata and ConsignmentMetadata tables. 
@@ -71,7 +73,7 @@ The export module tests need a docker container to run the tests against.
 docker build -f Dockerfile-tests -t tests .
 ```
 
-Run `sbt tests` to run the tests in both projects.
+Run `sbt test` to run the tests in both projects.
 
 The exporter tests write temporary files to the directory defined in `efs.rootLocation` in the test application.conf. By default, it uses the `/tmp` directory. To use a different directory, set the `SCRATCH_DIRECTORY` environment variable when running the tests.
 

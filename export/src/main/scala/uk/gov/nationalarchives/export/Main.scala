@@ -1,4 +1,4 @@
-package uk.gov.nationalarchives
+package uk.gov.nationalarchives.`export`
 
 import cats.effect.{ExitCode, IO}
 import com.monovore.decline.Opts
@@ -13,7 +13,7 @@ import pureconfig.generic.ProductHint
 import pureconfig.generic.auto._
 import pureconfig.module.catseffect.syntax._
 import software.amazon.awssdk.services.sns.model.PublishResponse
-import uk.gov.nationalarchives.Arguments._
+import Arguments._
 import uk.gov.nationalarchives.aws.utils.sns.SNSUtils
 import uk.gov.nationalarchives.aws.utils.sns.SNSClients._
 import uk.gov.nationalarchives.aws.utils.s3.S3Clients.s3
@@ -42,12 +42,13 @@ object Main extends CommandIOApp("tdr-export", "Exports tdr files with a flat st
       s3Utils = S3Utils(config, s3(config.s3.endpoint))
       heartBeat <- runHeartbeat(stepFunction).start
       metadataUtils <- MetadataUtils(config)
-      fileMetadata <- metadataUtils.getFileMetadata(consignmentId)
-      ffidMetadata <- metadataUtils.getFFIDMetadata(consignmentId)
-      consignmentMetadata <- metadataUtils.getConsignmentMetadata(consignmentId)
       consignmentType <- metadataUtils.getConsignmentType(consignmentId)
       fileOutputs <- s3Utils.copyFiles(consignmentId, consignmentType)
-      _ <- s3Utils.createMetadata(consignmentType, fileOutputs.map(_.fileId), fileMetadata, consignmentMetadata, ffidMetadata)
+      fileMetadata <- metadataUtils.getFileMetadata(consignmentId)
+      _ <- IO.raiseWhen(fileMetadata.isEmpty)(new RuntimeException(s"Metadata for consignment $consignmentId is missing"))
+      ffidMetadata <- metadataUtils.getFFIDMetadata(consignmentId)
+      consignmentMetadata <- metadataUtils.getConsignmentMetadata(consignmentId)
+      _ <- s3Utils.putMetadata(consignmentType, fileOutputs.map(_.fileId), fileMetadata, consignmentMetadata, ffidMetadata)
       _ <- IO(fileOutputs.map(fileOutput => sendMessage(config, fileOutput)))
       _ <- stepFunction.publishSuccess(taskToken)
       _ <- heartBeat.cancel

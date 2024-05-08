@@ -1,4 +1,4 @@
-package uk.gov.nationalarchives
+package uk.gov.nationalarchives.`export`
 
 import cats.implicits.catsSyntaxTuple2Semigroupal
 import com.monovore.decline.Opts

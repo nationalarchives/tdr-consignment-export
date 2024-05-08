@@ -1,4 +1,4 @@
-package uk.gov.nationalarchives
+package uk.gov.nationalarchives.`export`
 
 import cats.effect.IO
 import doobie.implicits._
@@ -8,8 +8,8 @@ import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.rds.RdsUtilities
 import software.amazon.awssdk.services.rds.model.GenerateAuthenticationTokenRequest
-import uk.gov.nationalarchives.Main.Config
-import uk.gov.nationalarchives.MetadataUtils._
+import Main.Config
+import MetadataUtils._
 
 import java.util.UUID
 
@@ -54,11 +54,12 @@ class MetadataUtils(config: Config) {
   }
 
   def getConsignmentType(consignmentId: UUID): IO[ConsignmentType] =
-    sql""" select "ConsignmentType" from "Consignment"
+    sql""" SELECT "ConsignmentType" FROM "Consignment"
          WHERE "ConsignmentId" = CAST(${consignmentId.toString} AS UUID)"""
       .query[ConsignmentType]
       .unique
       .transact(transactor)
+      .handleErrorWith(_ => IO.raiseError(new Exception(s"Cannot find a consignment for id $consignmentId")))
 
   def getConsignmentMetadata(consignmentId: UUID): IO[List[Metadata]] = {
     (for {
@@ -69,10 +70,10 @@ class MetadataUtils(config: Config) {
           .to[List]
           .transact(transactor)
       bodyRefAndSeries <-
-        sql""" select b."Name",  "ConsignmentReference", s."Name"
+        sql""" SELECT b."Name",  "ConsignmentReference", s."Name"
            FROM "Consignment" c
-           JOIN "Body" b on b."BodyId" = c."BodyId"
-           JOIN "Series" s on b."BodyId" = s."BodyId"
+           JOIN "Body" b ON b."BodyId" = c."BodyId"
+           JOIN "Series" s ON b."BodyId" = s."BodyId"
            WHERE  "ConsignmentId" = CAST(${consignmentId.toString} AS UUID) """
           .query[(String, String, String)]
           .unique
@@ -83,13 +84,13 @@ class MetadataUtils(config: Config) {
         Metadata(consignmentId, "ConsignmentReference", bodyRefAndSeries._2),
         Metadata(consignmentId, "Series", bodyRefAndSeries._3)
       )
-    }).handleErrorWith(_ => IO.raiseError(new Exception(s"Cannot find a consignment for id $consignmentId")))
+    })
   }
 
   private def getAvMetadata(consignmentId: UUID): IO[List[Metadata]] = for {
-    avRows <- sql"""select av."FileId", "Software", "SoftwareVersion", "Result", av."Datetime"
-         FROM "AVMetadata" av JOIN "File" f on f."FileId" = av."FileId"
-         where "ConsignmentId" = CAST(${consignmentId.toString} AS UUID) """
+    avRows <- sql"""SELECT av."FileId", "Software", "SoftwareVersion", "Result", av."Datetime"
+         FROM "AVMetadata" av JOIN "File" f ON f."FileId" = av."FileId"
+         WHERE "ConsignmentId" = CAST(${consignmentId.toString} AS UUID) """
       .query[(String, String, String, String, String)]
       .to[List]
       .transact(transactor)
@@ -107,8 +108,8 @@ class MetadataUtils(config: Config) {
   def getFFIDMetadata(consignmentId: UUID): IO[Map[UUID, List[FFID]]] = for {
     ffidMetadataRows <- sql"""SELECT fm."FileId", "Extension", "IdentificationBasis", "PUID", "ExtensionMismatch", "FormatName"
                          FROM "FFIDMetadataMatches" fmm
-                                  join "FFIDMetadata" fm on fm."FFIDMetadataId" = fmm."FFIDMetadataId"
-                                  join "File" f on f."FileId" = fm."FileId"
+                                  JOIN "FFIDMetadata" fm ON fm."FFIDMetadataId" = fmm."FFIDMetadataId"
+                                  JOIN "File" f ON f."FileId" = fm."FileId"
                                   WHERE f."ConsignmentId" = CAST(${consignmentId.toString} AS UUID)"""
       .query[(String, String, String, String, Boolean, String)]
       .to[List]
@@ -126,9 +127,9 @@ class MetadataUtils(config: Config) {
 
   def getFileMetadata(consignmentId: UUID): IO[List[Metadata]] =
     for {
-      fileMetadata <- sql"""select fm."FileId", "PropertyName", "Value"
+      fileMetadata <- sql"""SELECT fm."FileId", "PropertyName", "Value"
          FROM "File" f
-         JOIN "FileMetadata" fm on fm."FileId" = f."FileId"
+         JOIN "FileMetadata" fm ON fm."FileId" = f."FileId"
          WHERE "ConsignmentId" = CAST(${consignmentId.toString} AS UUID)"""
         .query[Metadata]
         .to[List]
@@ -137,18 +138,19 @@ class MetadataUtils(config: Config) {
     } yield processRedactions(fileMetadata) ++ avMetadata
 
   private def processRedactions(fileMetadata: List[Metadata]): List[Metadata] =
-    fileMetadata ++ fileMetadata.find(_.PropertyName == "OriginalFilepath").flatMap { originalFilePathRow =>
+    fileMetadata ++ fileMetadata.find(_.propertyName == "OriginalFilepath").flatMap { originalFilePathRow =>
       val originalId = fileMetadata
-        .find(fm => fm.PropertyName == "ClientSideOriginalFilepath" && fm.Value == originalFilePathRow.Value)
+        .find(fm => fm.propertyName == "ClientSideOriginalFilepath" && fm.value == originalFilePathRow.value)
         .map(_.id)
       fileMetadata
-        .find(fm => originalId.contains(fm.id) && fm.PropertyName == "FileReference")
-        .map(fm => Metadata(originalFilePathRow.id, "OriginalFileReference", fm.Value))
+        .find(fm => originalId.contains(fm.id) && fm.propertyName == "FileReference")
+        .map(fm => Metadata(originalFilePathRow.id, "OriginalFileReference", fm.value))
     }
 }
+
 object MetadataUtils {
   implicit val get: Get[UUID] = Get[String].map(UUID.fromString)
-  case class Metadata(id: UUID, PropertyName: String, Value: String)
+  case class Metadata(id: UUID, propertyName: String, value: String)
   sealed trait ConsignmentType
   case object Judgment extends ConsignmentType
   case object Standard extends ConsignmentType

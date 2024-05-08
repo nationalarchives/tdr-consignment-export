@@ -1,4 +1,4 @@
-package uk.gov.nationalarchives
+package uk.gov.nationalarchives.`export`
 
 import cats.effect.unsafe.implicits.global
 import org.mockito.ArgumentCaptor
@@ -10,8 +10,8 @@ import org.scalatest.prop.{TableDrivenPropertyChecks, TableFor2}
 import software.amazon.awssdk.core.sync.RequestBody
 import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.s3.model._
-import uk.gov.nationalarchives.Main._
-import uk.gov.nationalarchives.MetadataUtils._
+import Main._
+import MetadataUtils._
 
 import java.util.UUID
 import scala.jdk.CollectionConverters.ListHasAsScala
@@ -102,7 +102,7 @@ class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with T
   )
 
   forAll(consignmentTypes) { (consignmentType, bucket) =>
-    "copyFiles" should s"write to the correct bucket for a $consignmentType export" in {
+    "copyFiles" should s"write the records to the correct bucket for a $consignmentType export" in {
       val client = mock[S3Client]
 
       val utils = new S3Utils(config, client)
@@ -121,7 +121,7 @@ class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with T
       copyObjectCaptor.getValue.destinationBucket() should equal(bucket)
     }
 
-    "createMetadata" should s"write to the correct bucket for a $consignmentType export" in {
+    "createMetadata" should s"write the metadata to the correct bucket for a $consignmentType export" in {
       val client = mock[S3Client]
 
       val utils = S3Utils(config, client)
@@ -130,7 +130,7 @@ class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with T
 
       when(client.putObject(putObjectRequestCaptor.capture(), any[RequestBody])).thenReturn(PutObjectResponse.builder.build)
 
-      utils.createMetadata(consignmentType, List(fileId), Nil, List(Metadata(UUID.randomUUID(), "Test", "TestValue"))).unsafeRunSync()
+      utils.putMetadata(consignmentType, List(fileId), Nil, List(Metadata(UUID.randomUUID(), "Test", "TestValue")), Map.empty).unsafeRunSync()
 
       putObjectRequestCaptor.getValue.bucket() should equal(bucket)
     }
@@ -146,16 +146,17 @@ class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with T
     when(client.putObject(any[PutObjectRequest], bodyCaptor.capture())).thenReturn(PutObjectResponse.builder.build)
 
     utils
-      .createMetadata(
+      .putMetadata(
         Standard,
         List(fileId),
         List(Metadata(fileId, "TestFile", "TestFileValue")),
-        List(Metadata(UUID.randomUUID(), "TestConsignment", "TestConsignmentValue"))
+        List(Metadata(UUID.randomUUID(), "TestConsignment", "TestConsignmentValue")),
+        Map.empty
       )
       .unsafeRunSync()
 
     val body = bodyCaptor.getValue.contentStreamProvider().newStream().readAllBytes().map(_.toChar).mkString
-    body should equal("""{"TestFile":"TestFileValue","TestConsignment":"TestConsignmentValue"}""")
+    body should equal("""{"FFID":[],"TestFile":"TestFileValue","TestConsignment":"TestConsignmentValue"}""")
   }
 
   "createMetadata" should s"not write metadata if the file is not in the list of file ids" in {
@@ -168,16 +169,17 @@ class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with T
     when(client.putObject(any[PutObjectRequest], bodyCaptor.capture())).thenReturn(PutObjectResponse.builder.build)
 
     utils
-      .createMetadata(
+      .putMetadata(
         Standard,
         List(fileId),
         List(Metadata(fileId, "TestFile1", "TestFileValue1"), Metadata(UUID.randomUUID(), "TestFile2", "TestFileValue2")),
-        Nil
+        Nil,
+        Map.empty
       )
       .unsafeRunSync()
 
     val body = bodyCaptor.getValue.contentStreamProvider().newStream().readAllBytes().map(_.toChar).mkString
-    body should equal("""{"TestFile1":"TestFileValue1"}""")
+    body should equal("""{"FFID":[],"TestFile1":"TestFileValue1"}""")
   }
 
   "createMetadata" should s"return an error if there is an error writing to s3" in {
@@ -188,11 +190,12 @@ class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with T
     when(client.putObject(any[PutObjectRequest], any[RequestBody])).thenThrow(new Exception("Error writing to S3"))
 
     val response = utils
-      .createMetadata(
+      .putMetadata(
         Standard,
         List(fileId),
         List(Metadata(fileId, "TestFile1", "TestFileValue1")),
-        Nil
+        Nil,
+        Map.empty
       )
       .attempt
       .unsafeRunSync()
