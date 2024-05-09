@@ -1,5 +1,6 @@
 name: Tag and pre-deploy consignment export
 on:
+  workflow_dispatch:
   pull_request:
     types:
       - closed
