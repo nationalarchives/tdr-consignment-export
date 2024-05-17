@@ -154,7 +154,7 @@ class TestUtils extends AnyFlatSpec with TestContainerForAll with BeforeAndAfter
       .head
       .trim
 
-  def addFFIDMetadata(fileId: UUID, port: Int): Unit = {
+  def addFFIDMetadata(fileId: UUID, port: Int, hasNullMatchValues: Boolean = false): Unit = {
     val jdbcUrl = s"jdbc:postgresql://localhost:$port/consignmentapi"
     val ffidMetadataId = UUID.randomUUID.toString
     val transactor = Transactor.fromDriverManager[IO](
@@ -164,15 +164,21 @@ class TestUtils extends AnyFlatSpec with TestContainerForAll with BeforeAndAfter
       password = "password",
       logHandler = None
     )
+    val matchesSql = if(hasNullMatchValues) {
+      sql""" INSERT INTO "FFIDMetadataMatches" ("FFIDMetadataId", "IdentificationBasis", "ExtensionMismatch") VALUES
+          (CAST($ffidMetadataId AS UUID), 'IdentificationBasis', TRUE)"""
+    } else {
+      sql""" INSERT INTO "FFIDMetadataMatches" ("FFIDMetadataId", "Extension", "IdentificationBasis", "PUID", "ExtensionMismatch", "FormatName") VALUES
+          (CAST($ffidMetadataId AS UUID), 'Extension', 'IdentificationBasis', 'PUID', TRUE, 'FormatName')"""
+    }
+
     for {
       _ <-
         sql""" INSERT INTO "FFIDMetadata" ("FFIDMetadataId", "FileId", "Software", "SoftwareVersion", "Datetime", "BinarySignatureFileVersion", "ContainerSignatureFileVersion", "Method")
              VALUES (CAST($ffidMetadataId AS UUID), CAST(${fileId.toString} AS UUID),'Software', 'SoftwareVersion', CAST($dateTime AS TIMESTAMP), 'BinarySignatureFileVersion', 'ContainerSignatureFileVersion', 'Method') """.update.run
           .transact(transactor)
       _ <-
-        sql""" INSERT INTO "FFIDMetadataMatches" ("FFIDMetadataId", "Extension", "IdentificationBasis", "PUID", "ExtensionMismatch", "FormatName") VALUES
-          (CAST($ffidMetadataId AS UUID), 'Extension', 'IdentificationBasis', 'PUID', TRUE, 'FormatName')""".update.run
-          .transact(transactor)
+        matchesSql.update.run.transact(transactor)
 
     } yield ()
   }.unsafeRunSync()

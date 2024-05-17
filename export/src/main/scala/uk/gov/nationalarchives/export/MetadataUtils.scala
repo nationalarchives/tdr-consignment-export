@@ -111,7 +111,7 @@ class MetadataUtils(config: Config) {
                                   JOIN "FFIDMetadata" fm ON fm."FFIDMetadataId" = fmm."FFIDMetadataId"
                                   JOIN "File" f ON f."FileId" = fm."FileId"
                                   WHERE f."ConsignmentId" = CAST(${consignmentId.toString} AS UUID)"""
-      .query[(String, String, String, String, Boolean, String)]
+      .query[(String, Option[String], String, Option[String], Boolean, Option[String])]
       .to[List]
       .transact(transactor)
   } yield {
@@ -154,7 +154,7 @@ object MetadataUtils {
   sealed trait ConsignmentType
   case object Judgment extends ConsignmentType
   case object Standard extends ConsignmentType
-  case class FFID(extension: String, identificationBasis: String, puid: String, extensionMismatch: Boolean, formatName: String)
+  case class FFID(extension: Option[String], identificationBasis: String, puid: Option[String], extensionMismatch: Boolean, formatName: Option[String])
 
   def apply(config: Config): IO[MetadataUtils] = IO(new MetadataUtils(config))
 }

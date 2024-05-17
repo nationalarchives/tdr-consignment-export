@@ -65,6 +65,19 @@ class MainTest extends TestUtils {
     metadataFileWriteBody should equal(expectedJson)
   }
 
+  "run" should "return empty values if there are no ffid matches" in withContainers { case container: PostgreSQLContainer =>
+    val mappedPort = container.mappedPort(5432)
+    val (consignmentId, fileIds, consignmentReference) = stubExternalServices(mappedPort)
+    fileIds.foreach(fileId => addFFIDMetadata(fileId, mappedPort, hasNullMatchValues = true))
+    Main.run(List("export", "--consignmentId", consignmentId.toString, "--taskToken", "taskToken")).unsafeRunSync()
+
+    val expectedJson =
+      s"""{"FFID":[{"extension":null,"identificationBasis":"IdentificationBasis","puid":null,"extensionMismatch":true,"formatName":null}],
+         |"PropertyName":"Value","TransferringBody":"Test","ConsignmentReference":"$consignmentReference","Series":"Test"}""".stripMargin.replaceAll("\n", "")
+    val metadataFileWriteBody = getRequestBody(req => req.getRequest.getUrl == s"/${fileIds.head}.metadata" && req.getRequest.getMethod == RequestMethod.PUT)
+    metadataFileWriteBody should equal(expectedJson)
+  }
+
   "run" should "write the consignment metadata where it exists" in withContainers { case container: PostgreSQLContainer =>
     val mappedPort = container.mappedPort(5432)
     val (consignmentId, fileIds, consignmentReference) = stubExternalServices(mappedPort)
