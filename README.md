@@ -7,7 +7,11 @@ The infrastructure for the export, is defined in the [terraform]("https://github
 * Api gateway triggers a step function
 * The step function triggers an ECS task which runs the code in this repository.
 
-The code in this repository does the following:
+There are two modules in this repository.
+
+### Bagit Export Module
+The bagit-export module does the following:
+
 * Calls the API to get a list of files
 * Downloads the files from S3 to the EFS volume
 * Creates the Bagit bag
@@ -15,6 +19,13 @@ The code in this repository does the following:
 * Create a checksum file for the tar file
 * Upload to the export bucket.
 * Update the API with the export location
+
+### Export Module
+The export module does the following:
+* Copies the files for a given consignment from the clean bucket to the export bucket
+* For each file, it reads the metadata from the FileMetadata and ConsignmentMetadata tables. 
+* It then reads the transferring body name and consignment reference.
+* The metadata, body name and reference are written to a json object in a file name <uuid>.metadata in the same bucket.
 
 The code for the authoriser is in the [tdr-consignment-export-authoriser](https://github.com/nationalarchives/tdr-consignment-export-authoriser) project
 
@@ -42,11 +53,11 @@ Release notes will be auto generated based on the commit messages since the last
 There are multiple steps to the release process. On a merge to master:
 * The tests are run as they are for all branches
 * The version in `version.sbt` is incremented to the next non snapshot version
-* The tar.gz file containing the binary is created
+* Two tar.gz files are created, one for the export module and one for the bagit-export module.
 * Release notes are added. See the release notes section for more detail.
-* A release is created in github with the release notes and the zip file is uploaded.
+* A release is created in GitHub with the release notes and both zip files are uploaded.
 * The new version and the released notes are pushed to a branch and a pull request raised.
-* The docker image is built, using the latest zip file from github
+* The docker image is built, using the latest zip files from GitHub
 * The docker image is tagged using the latest version from `version.sbt` and pushed to ECR
 * The docker image is tagged with intg and pushed to ECR
 * The release branch is created.
@@ -56,7 +67,13 @@ To deploy to staging/production, you need to run the [deploy](https://github.com
 
 ### Tests
 
-Run `sbt tests` to run the tests in both projects.
+The export module tests need a docker container to run the tests against.
+
+```shell
+docker build -f Dockerfile-tests -t tests .
+```
+
+Run `sbt test` to run the tests in both projects.
 
 The exporter tests write temporary files to the directory defined in `efs.rootLocation` in the test application.conf. By default, it uses the `/tmp` directory. To use a different directory, set the `SCRATCH_DIRECTORY` environment variable when running the tests.
 
