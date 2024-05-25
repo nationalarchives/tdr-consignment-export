@@ -6,7 +6,7 @@ object Dependencies {
   private val log4CatsVersion = "2.7.0"
   private val mockitoScalaVersion = "1.17.31"
   private val monovoreDeclineVersion = "2.4.1"
-  private val awsUtilsVersion = "0.1.177"
+  private val awsUtilsVersion = "0.1.178"
   private val doobieVersion = "1.0.0-RC5"
   private val testContainersVersion = "0.41.3"
 
@@ -37,5 +37,5 @@ object Dependencies {
   lazy val keycloakAdminClient = "org.keycloak" % "keycloak-admin-client" % keycloakVersion
   lazy val testContainers = "com.dimafeng" %% "testcontainers-scala-scalatest" % testContainersVersion
   lazy val testContainersPostgres = "com.dimafeng" %% "testcontainers-scala-postgresql" % testContainersVersion
-  lazy val wiremock = "org.wiremock" % "wiremock" % "3.5.4"
+  lazy val wiremock = "org.wiremock" % "wiremock" % "3.6.0"
 }
