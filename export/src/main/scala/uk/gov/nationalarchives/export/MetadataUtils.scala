@@ -73,7 +73,7 @@ class MetadataUtils(config: Config) {
         sql""" SELECT b."Name",  "ConsignmentReference", COALESCE(s."Name", '')
            FROM "Consignment" c
            JOIN "Body" b ON b."BodyId" = c."BodyId"
-           LEFT JOIN "Series" s ON b."BodyId" = s."BodyId"
+           LEFT JOIN "Series" s ON c."SeriesId" = s."SeriesId"
            WHERE  "ConsignmentId" = CAST(${consignmentId.toString} AS UUID) """
           .query[(String, String, String)]
           .unique
