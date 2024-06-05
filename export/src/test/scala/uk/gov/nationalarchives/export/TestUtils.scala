@@ -235,8 +235,8 @@ class TestUtils extends AnyFlatSpec with TestContainerForAll with BeforeAndAfter
       _ <- sql"""INSERT INTO "Series" ("SeriesId", "BodyId", "Name", "Code") VALUES (CAST($seriesId AS UUID), CAST($bodyId AS UUID), 'Test', 'TST') """.update.run.transact(
         transactor
       )
-      _ <- sql""" INSERT INTO "Consignment" ("ConsignmentId", "UserId", "Datetime", "ConsignmentSequence", "ConsignmentReference", "ConsignmentType", "BodyId")
-         VALUES (CAST($consignmentId AS UUID), CAST($userId AS UUID), CAST($dateTime AS TIMESTAMP), $sequence, $consignmentRef, 'standard', CAST($bodyId AS UUID)) """.update.run
+      _ <- sql""" INSERT INTO "Consignment" ("ConsignmentId", "UserId", "Datetime", "ConsignmentSequence", "ConsignmentReference", "ConsignmentType", "BodyId", "SeriesId")
+         VALUES (CAST($consignmentId AS UUID), CAST($userId AS UUID), CAST($dateTime AS TIMESTAMP), $sequence, $consignmentRef, 'standard', CAST($bodyId AS UUID), CAST($seriesId AS UUID)) """.update.run
         .transact(transactor)
       _ <- fileIds.map { fileId =>
         sql""" INSERT INTO "File" ("FileId", "ConsignmentId", "UserId", "Datetime")
