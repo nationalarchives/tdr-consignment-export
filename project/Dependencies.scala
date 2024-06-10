@@ -1,7 +1,7 @@
 import sbt._
 
 object Dependencies {
-  private val githubPureConfigVersion = "0.17.6"
+  private val githubPureConfigVersion = "0.17.7"
   private val keycloakVersion = "24.0.5"
   private val log4CatsVersion = "2.7.0"
   private val mockitoScalaVersion = "1.17.31"
@@ -11,7 +11,7 @@ object Dependencies {
   private val testContainersVersion = "0.41.3"
 
   lazy val authUtils = "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.201"
-  lazy val awsRds = "software.amazon.awssdk" % "rds" % "2.25.68"
+  lazy val awsRds = "software.amazon.awssdk" % "rds" % "2.25.69"
   lazy val generatedGraphql = "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.377"
   lazy val s3Utils = "uk.gov.nationalarchives" %% "s3-utils" % awsUtilsVersion
   lazy val stepFunctionUtils = "uk.gov.nationalarchives" %% "stepfunction-utils" % awsUtilsVersion
