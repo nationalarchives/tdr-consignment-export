@@ -70,10 +70,10 @@ class MetadataUtils(config: Config) {
           .to[List]
           .transact(transactor)
       bodyRefAndSeries <-
-        sql""" SELECT b."Name",  "ConsignmentReference", s."Name"
+        sql""" SELECT b."Name",  "ConsignmentReference", COALESCE(s."Name", '')
            FROM "Consignment" c
            JOIN "Body" b ON b."BodyId" = c."BodyId"
-           JOIN "Series" s ON b."BodyId" = s."BodyId"
+           LEFT JOIN "Series" s ON c."SeriesId" = s."SeriesId"
            WHERE  "ConsignmentId" = CAST(${consignmentId.toString} AS UUID) """
           .query[(String, String, String)]
           .unique
