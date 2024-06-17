@@ -1,17 +1,17 @@
 import sbt._
 
 object Dependencies {
-  private val githubPureConfigVersion = "0.17.6"
-  private val keycloakVersion = "24.0.4"
+  private val githubPureConfigVersion = "0.17.7"
+  private val keycloakVersion = "25.0.0"
   private val log4CatsVersion = "2.7.0"
   private val mockitoScalaVersion = "1.17.31"
   private val monovoreDeclineVersion = "2.4.1"
-  private val awsUtilsVersion = "0.1.181"
+  private val awsUtilsVersion = "0.1.186"
   private val doobieVersion = "1.0.0-RC5"
-  private val testContainersVersion = "0.41.3"
+  private val testContainersVersion = "0.41.4"
 
-  lazy val authUtils = "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.201"
-  lazy val awsRds = "software.amazon.awssdk" % "rds" % "2.25.64"
+  lazy val authUtils = "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.203"
+  lazy val awsRds = "software.amazon.awssdk" % "rds" % "2.26.3"
   lazy val generatedGraphql = "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.377"
   lazy val s3Utils = "uk.gov.nationalarchives" %% "s3-utils" % awsUtilsVersion
   lazy val stepFunctionUtils = "uk.gov.nationalarchives" %% "stepfunction-utils" % awsUtilsVersion
@@ -23,7 +23,7 @@ object Dependencies {
   lazy val doobie = "org.tpolecat" %% "doobie-core" % doobieVersion
   lazy val doobiePostgres = "org.tpolecat" %% "doobie-postgres"  % doobieVersion
   lazy val postgres = "org.postgresql" % "postgresql" % "42.7.3"
-  lazy val graphqlClient = "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.162"
+  lazy val graphqlClient = "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.163"
   lazy val scalaTest = "org.scalatest" %% "scalatest" % "3.2.18"
   lazy val scalaCsv = "com.github.tototoshi" %% "scala-csv" % "1.3.10"
   lazy val log4cats = "org.typelevel" %% "log4cats-core" % log4CatsVersion
