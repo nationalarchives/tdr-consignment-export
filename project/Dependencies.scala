@@ -4,7 +4,7 @@ object Dependencies {
   private val githubPureConfigVersion = "0.17.7"
   private val keycloakVersion = "25.0.1"
   private val log4CatsVersion = "2.7.0"
-  private val mockitoScalaVersion = "1.17.31"
+  private val mockitoScalaVersion = "1.17.37"
   private val monovoreDeclineVersion = "2.4.1"
   private val awsUtilsVersion = "0.1.187"
   private val doobieVersion = "1.0.0-RC5"
