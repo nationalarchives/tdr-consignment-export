@@ -11,7 +11,7 @@ object Dependencies {
   private val testContainersVersion = "0.41.4"
 
   lazy val authUtils = "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.203"
-  lazy val awsRds = "software.amazon.awssdk" % "rds" % "2.26.11"
+  lazy val awsRds = "software.amazon.awssdk" % "rds" % "2.26.12"
   lazy val generatedGraphql = "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.377"
   lazy val s3Utils = "uk.gov.nationalarchives" %% "s3-utils" % awsUtilsVersion
   lazy val stepFunctionUtils = "uk.gov.nationalarchives" %% "stepfunction-utils" % awsUtilsVersion
@@ -25,7 +25,7 @@ object Dependencies {
   lazy val postgres = "org.postgresql" % "postgresql" % "42.7.3"
   lazy val graphqlClient = "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.166"
   lazy val scalaTest = "org.scalatest" %% "scalatest" % "3.2.19"
-  lazy val scalaCsv = "com.github.tototoshi" %% "scala-csv" % "1.4.0"
+  lazy val scalaCsv = "com.github.tototoshi" %% "scala-csv" % "1.4.1"
   lazy val log4cats = "org.typelevel" %% "log4cats-core" % log4CatsVersion
   lazy val log4catsSlf4j = "org.typelevel" %% "log4cats-slf4j" % log4CatsVersion
   lazy val pureConfig = "com.github.pureconfig" %% "pureconfig" % githubPureConfigVersion
@@ -37,5 +37,5 @@ object Dependencies {
   lazy val keycloakAdminClient = "org.keycloak" % "keycloak-admin-client" % keycloakVersion
   lazy val testContainers = "com.dimafeng" %% "testcontainers-scala-scalatest" % testContainersVersion
   lazy val testContainersPostgres = "com.dimafeng" %% "testcontainers-scala-postgresql" % testContainersVersion
-  lazy val wiremock = "org.wiremock" % "wiremock" % "3.7.0"
+  lazy val wiremock = "org.wiremock" % "wiremock" % "3.8.0"
 }
