@@ -25,7 +25,7 @@ object Dependencies {
   lazy val postgres = "org.postgresql" % "postgresql" % "42.7.3"
   lazy val graphqlClient = "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.166"
   lazy val scalaTest = "org.scalatest" %% "scalatest" % "3.2.19"
-  lazy val scalaCsv = "com.github.tototoshi" %% "scala-csv" % "1.4.0"
+  lazy val scalaCsv = "com.github.tototoshi" %% "scala-csv" % "1.4.1"
   lazy val log4cats = "org.typelevel" %% "log4cats-core" % log4CatsVersion
   lazy val log4catsSlf4j = "org.typelevel" %% "log4cats-slf4j" % log4CatsVersion
   lazy val pureConfig = "com.github.pureconfig" %% "pureconfig" % githubPureConfigVersion
