@@ -11,7 +11,7 @@ object Dependencies {
   private val testContainersVersion = "0.41.4"
 
   lazy val authUtils = "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.205"
-  lazy val awsRds = "software.amazon.awssdk" % "rds" % "2.26.18"
+  lazy val awsRds = "software.amazon.awssdk" % "rds" % "2.26.20"
   lazy val generatedGraphql = "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.377"
   lazy val s3Utils = "uk.gov.nationalarchives" %% "s3-utils" % awsUtilsVersion
   lazy val stepFunctionUtils = "uk.gov.nationalarchives" %% "stepfunction-utils" % awsUtilsVersion
