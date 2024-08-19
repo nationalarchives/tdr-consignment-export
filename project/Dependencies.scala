@@ -30,7 +30,7 @@ object Dependencies {
   lazy val log4catsSlf4j = "org.typelevel" %% "log4cats-slf4j" % log4CatsVersion
   lazy val pureConfig = "com.github.pureconfig" %% "pureconfig" % githubPureConfigVersion
   lazy val pureConfigCatsEffect = "com.github.pureconfig" %% "pureconfig-cats-effect" % githubPureConfigVersion
-  lazy val slf4j = "org.slf4j" % "slf4j-simple" % "2.0.13"
+  lazy val slf4j = "org.slf4j" % "slf4j-simple" % "2.0.16"
   lazy val mockitoScala = "org.mockito" %% "mockito-scala" % mockitoScalaVersion
   lazy val mockitoScalaTest = "org.mockito" %% "mockito-scala-scalatest" % mockitoScalaVersion
   lazy val keycloakCore = "org.keycloak" % "keycloak-core" % keycloakVersion
