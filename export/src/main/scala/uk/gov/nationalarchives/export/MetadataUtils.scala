@@ -74,15 +74,24 @@ class MetadataUtils(config: Config) {
            FROM "Consignment" c
            JOIN "Body" b ON b."BodyId" = c."BodyId"
            LEFT JOIN "Series" s ON c."SeriesId" = s."SeriesId"
-           WHERE  "ConsignmentId" = CAST(${consignmentId.toString} AS UUID) """
+           WHERE  "ConsignmentId" = CAST(${consignmentId.toString} AS UUID)
+           """
           .query[(String, String, String)]
+          .unique
+          .transact(transactor)
+      transferCompleteDate <-
+        sql""" SELECT TO_CHAR("TransferInitiatedDatetime",'YYYY-MM-DD HH:MI:SS') FROM "Consignment"
+            WHERE "ConsignmentId" = CAST(${consignmentId.toString} AS UUID)
+           """
+          .query[Option[String]] //This shouldn't ever be empty but if it is it will crash the export so better safe than sorry
           .unique
           .transact(transactor)
     } yield {
       consignmentMetadata ++ List(
         Metadata(consignmentId, "TransferringBody", bodyRefAndSeries._1),
         Metadata(consignmentId, "ConsignmentReference", bodyRefAndSeries._2),
-        Metadata(consignmentId, "Series", bodyRefAndSeries._3)
+        Metadata(consignmentId, "Series", bodyRefAndSeries._3),
+        Metadata(consignmentId, "TransferInitiatedDatetime", transferCompleteDate.getOrElse(""))
       )
     })
   }

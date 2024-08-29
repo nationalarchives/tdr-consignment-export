@@ -43,7 +43,7 @@ class MainTest extends TestUtils {
       val (consignmentId, fileIds, consignmentReference) = stubExternalServices(mappedPort)
       Main.run(List("export", "--consignmentId", consignmentId.toString, "--taskToken", "taskToken")).unsafeRunSync()
 
-      val expectedJson = s"""{"FFID":[],"PropertyName":"Value","TransferringBody":"Test","ConsignmentReference":"$consignmentReference","Series":"Test"}"""
+      val expectedJson = s"""{"FFID":[],"PropertyName":"Value","Series":"Test","TransferInitiatedDatetime":"2024-08-29 12:00:00","ConsignmentReference":"$consignmentReference","TransferringBody":"Test"}"""
       val serveEvents = s3Server.getAllServeEvents.asScala
       val metadataFileWriteBody = serveEvents
         .find(req => req.getRequest.getUrl == s"/${fileIds.head}.metadata" && req.getRequest.getMethod == RequestMethod.PUT)
@@ -60,7 +60,7 @@ class MainTest extends TestUtils {
 
     val expectedJson =
       s"""{"FFID":[{"extension":"Extension","identificationBasis":"IdentificationBasis","puid":"PUID","extensionMismatch":true,"formatName":"FormatName"}],
-         |"PropertyName":"Value","TransferringBody":"Test","ConsignmentReference":"$consignmentReference","Series":"Test"}""".stripMargin.replaceAll("\n", "")
+         |"PropertyName":"Value","Series":"Test","TransferInitiatedDatetime":"2024-08-29 12:00:00","ConsignmentReference":"$consignmentReference","TransferringBody":"Test"}""".stripMargin.replaceAll("\n", "")
     val metadataFileWriteBody = getRequestBody(req => req.getRequest.getUrl == s"/${fileIds.head}.metadata" && req.getRequest.getMethod == RequestMethod.PUT)
     metadataFileWriteBody should equal(expectedJson)
   }
@@ -73,7 +73,7 @@ class MainTest extends TestUtils {
 
     val expectedJson =
       s"""{"FFID":[{"extension":null,"identificationBasis":"IdentificationBasis","puid":null,"extensionMismatch":true,"formatName":null}],
-         |"PropertyName":"Value","TransferringBody":"Test","ConsignmentReference":"$consignmentReference","Series":"Test"}""".stripMargin.replaceAll("\n", "")
+         |"PropertyName":"Value","Series":"Test","TransferInitiatedDatetime":"2024-08-29 12:00:00","ConsignmentReference":"$consignmentReference","TransferringBody":"Test"}""".stripMargin.replaceAll("\n", "")
     val metadataFileWriteBody = getRequestBody(req => req.getRequest.getUrl == s"/${fileIds.head}.metadata" && req.getRequest.getMethod == RequestMethod.PUT)
     metadataFileWriteBody should equal(expectedJson)
   }
@@ -83,7 +83,7 @@ class MainTest extends TestUtils {
     val (consignmentId, fileIds, consignmentReference) = stubExternalServices(mappedPort)
     addConsignmentMetadata(consignmentId, mappedPort)
     Main.run(List("export", "--consignmentId", consignmentId.toString, "--taskToken", "taskToken")).unsafeRunSync()
-    val expectedJson = s"""{"FFID":[],"PropertyName":"Value","Series":"Test","ConsignmentMetadataTest":"TestValue","ConsignmentReference":"$consignmentReference","TransferringBody":"Test"}"""
+    val expectedJson = s"""{"FFID":[],"PropertyName":"Value","Series":"Test","ConsignmentReference":"$consignmentReference","TransferringBody":"Test","ConsignmentMetadataTest":"TestValue","TransferInitiatedDatetime":"2024-08-29 12:00:00"}"""
     val metadataFileWriteBody = getRequestBody(req => req.getRequest.getUrl == s"/${fileIds.head}.metadata" && req.getRequest.getMethod == RequestMethod.PUT)
     metadataFileWriteBody should equal(expectedJson)
   }
@@ -99,7 +99,7 @@ class MainTest extends TestUtils {
     addFileMetadata(redactedMetadata, mappedPort, false)
     Main.run(List("export", "--consignmentId", consignmentId.toString, "--taskToken", "taskToken")).unsafeRunSync()
 
-    val expectedJson = s"""{"FFID":[],"PropertyName":"Value","Series":"Test","OriginalFilepath":"/a/test/path","ConsignmentReference":"$consignmentReference","TransferringBody":"Test","OriginalFileReference":"Z12345"}"""
+    val expectedJson = s"""{"FFID":[],"PropertyName":"Value","Series":"Test","TransferInitiatedDatetime":"2024-08-29 12:00:00","OriginalFilepath":"/a/test/path","ConsignmentReference":"$consignmentReference","TransferringBody":"Test","OriginalFileReference":"Z12345"}"""
     val metadataFileWriteBody = getRequestBody(req => req.getRequest.getUrl == s"/${fileIds.head}.metadata" && req.getRequest.getMethod == RequestMethod.PUT)
     metadataFileWriteBody should equal(expectedJson)
   }
