@@ -80,7 +80,7 @@ class MetadataUtils(config: Config) {
           .unique
           .transact(transactor)
       transferCompleteDate <-
-        sql""" SELECT TO_CHAR("TransferInitiatedDatetime",'YYYY-MM-DD HH:MI:SS') FROM "Consignment"
+        sql""" SELECT TO_CHAR("TransferInitiatedDatetime",'YYYY-MM-DD HH24:MI:SS') FROM "Consignment"
             WHERE "ConsignmentId" = CAST(${consignmentId.toString} AS UUID)
            """
           .query[Option[String]] //This shouldn't ever be empty but if it is it will crash the export so better safe than sorry
