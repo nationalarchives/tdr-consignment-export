@@ -17,7 +17,7 @@ The bagit-export module does the following:
 * Creates the Bagit bag
 * Tar and zip the bag
 * Create a checksum file for the tar file
-* Upload to the export bucket.
+* Upload to the export bucket
 * Update the API with the export location
 
 ### Export Module
