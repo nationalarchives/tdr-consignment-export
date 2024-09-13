@@ -36,7 +36,9 @@ class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with T
     when(client.listObjectsV2(listObjectsCaptor.capture())).thenReturn(response)
     when(client.copyObject(copyObjectCaptor.capture)).thenReturn(CopyObjectResponse.builder.build)
 
-    utils.copyFiles(consignmentId, Standard).unsafeRunSync()
+    val consignmentMetadata = List(Metadata(UUID.randomUUID, "Series", "series"), Metadata(UUID.randomUUID, "TransferringBody", "body"))
+
+    utils.copyFiles(consignmentId, Standard, consignmentMetadata).unsafeRunSync()
 
     val listObjectsResponse = listObjectsCaptor.getValue
     listObjectsResponse.bucket() should equal("testCleanBucket")
@@ -60,7 +62,7 @@ class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with T
 
     when(client.listObjectsV2(any[ListObjectsV2Request])).thenReturn(response)
 
-    utils.copyFiles(consignmentId, Standard).unsafeRunSync()
+    utils.copyFiles(consignmentId, Standard, Nil).unsafeRunSync()
 
     verify(client, times(0)).copyObject(any[CopyObjectRequest])
   }
@@ -72,11 +74,12 @@ class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with T
 
     val s3Object = S3Object.builder.key(s"$consignmentId/${UUID.randomUUID()}").build
     val listObjectsV2Response = ListObjectsV2Response.builder.contents(s3Object).build
+
     when(client.listObjectsV2(any[ListObjectsV2Request])).thenReturn(listObjectsV2Response)
 
     when(client.copyObject(any[CopyObjectRequest])).thenThrow(new Exception("Error copying object"))
 
-    val response = utils.copyFiles(consignmentId, Standard).attempt.unsafeRunSync()
+    val response = utils.copyFiles(consignmentId, Standard, Nil).attempt.unsafeRunSync()
 
     response.isLeft should equal(true)
     response.left.value.getMessage should equal("Error copying object")
@@ -89,7 +92,7 @@ class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with T
 
     when(client.listObjectsV2(any[ListObjectsV2Request])).thenThrow(new Exception("List objects has failed"))
 
-    val response = utils.copyFiles(consignmentId, Standard).attempt.unsafeRunSync()
+    val response = utils.copyFiles(consignmentId, Standard, Nil).attempt.unsafeRunSync()
 
     response.isLeft should equal(true)
     response.left.value.getMessage should equal("List objects has failed")
@@ -112,11 +115,12 @@ class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with T
 
       val s3Object = S3Object.builder.key(s"$consignmentId/$fileId").build
       val response = ListObjectsV2Response.builder.contents(s3Object).build()
+      val consignmentMetadata = List(Metadata(UUID.randomUUID, "Series", "series"), Metadata(UUID.randomUUID, "TransferringBody", "body"))
 
       when(client.listObjectsV2(any[ListObjectsV2Request])).thenReturn(response)
       when(client.copyObject(copyObjectCaptor.capture)).thenReturn(CopyObjectResponse.builder.build)
 
-      utils.copyFiles(consignmentId, consignmentType).unsafeRunSync()
+      utils.copyFiles(consignmentId, consignmentType, consignmentMetadata).unsafeRunSync()
 
       copyObjectCaptor.getValue.destinationBucket() should equal(bucket)
     }
