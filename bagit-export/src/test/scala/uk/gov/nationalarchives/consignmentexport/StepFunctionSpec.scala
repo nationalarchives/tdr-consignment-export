@@ -24,7 +24,7 @@ class StepFunctionSpec extends ExportSpec {
     doAnswer(() => mockResponse).when(sfnUtils).sendTaskSuccessRequest(taskTokenCaptor.capture(), exportOutputCaptor.capture())
 
     val taskToken = "taskToken1234"
-    val exportOutput = ExportOutput(UUID.randomUUID(), "consignmentReference", "tb-name", "standard", "judgments3ExportBucket")
+    val exportOutput = ExportOutput(UUID.randomUUID(), "consignmentReference", "tb-name", "series-id","standard", "judgments3ExportBucket")
 
     StepFunction(sfnUtils).publishSuccess(taskToken, exportOutput).unsafeRunSync()
     taskTokenCaptor.getValue should equal(taskToken)

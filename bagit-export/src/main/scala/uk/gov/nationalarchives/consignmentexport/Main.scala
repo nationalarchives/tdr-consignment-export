@@ -16,7 +16,7 @@ import uk.gov.nationalarchives.aws.utils.stepfunction.StepFunctionClients.sfnAsy
 import uk.gov.nationalarchives.aws.utils.s3.S3Utils
 import uk.gov.nationalarchives.aws.utils.stepfunction.StepFunctionUtils
 import uk.gov.nationalarchives.consignmentexport.Arguments._
-import uk.gov.nationalarchives.consignmentexport.BagMetadata.{InternalSenderIdentifierKey, SourceOrganisationKey}
+import uk.gov.nationalarchives.consignmentexport.BagMetadata.{ConsignmentSeriesKey, InternalSenderIdentifierKey, SourceOrganisationKey}
 import uk.gov.nationalarchives.consignmentexport.Config.{Configuration, config}
 import uk.gov.nationalarchives.consignmentexport.GraphQlApi.backend
 import uk.gov.nationalarchives.consignmentexport.StepFunction.ExportOutput
@@ -86,6 +86,7 @@ object Main extends CommandIOApp("tdr-consignment-export", "Exports tdr files in
             ExportOutput(consignmentData.userid,
               bagMetadata.get(InternalSenderIdentifierKey).get(0),
               bagMetadata.get(SourceOrganisationKey).get(0),
+              bagMetadata.get(ConsignmentSeriesKey).get(0),
               consignmentType,
               s3Bucket
             ))
@@ -105,7 +106,6 @@ object Main extends CommandIOApp("tdr-consignment-export", "Exports tdr files in
           } yield ExitCode.Error
         }
     }
-
 
     def createBag(consignmentId: UUID, consignmentData: gce.GetConsignment, customMetadata: List[CustomMetadata], exportDatetime: ZonedDateTime, config: Configuration, basePath: String): IO[Metadata] = {
       val bagit = Bagit()

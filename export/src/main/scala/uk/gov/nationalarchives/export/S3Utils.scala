@@ -18,7 +18,7 @@ import java.util.UUID
 
 class S3Utils(config: Config, s3Client: S3Client) {
 
-  def copyFiles(consignmentId: UUID, consignmentType: ConsignmentType): IO[List[FileOutput]] = IO.blocking {
+  def copyFiles(consignmentId: UUID, consignmentType: ConsignmentType, consignmentMetadata: List[Metadata]): IO[List[FileOutput]] = IO.blocking {
     val listRequest = ListObjectsV2Request.builder().bucket(config.s3.cleanBucket).prefix(s"$consignmentId/").build
     val objects = s3Client.listObjectsV2(listRequest)
     val destinationBucket = consignmentType match {
@@ -39,7 +39,9 @@ class S3Utils(config: Config, s3Client: S3Client) {
           .destinationBucket(destinationBucket)
           .build()
         s3Client.copyObject(copyRequest)
-        FileOutput(destinationBucket, UUID.fromString(destinationKey))
+        val series = consignmentMetadata.find(_.propertyName == "Series").map(_.value)
+        val body = consignmentMetadata.find(_.propertyName == "TransferringBody").map(_.value)
+        FileOutput(destinationBucket, UUID.fromString(destinationKey), body, series)
       }
       .toList
   }
@@ -82,5 +84,5 @@ class S3Utils(config: Config, s3Client: S3Client) {
 object S3Utils {
   def apply(config: Config, s3Client: S3Client) = new S3Utils(config, s3Client)
 
-  case class FileOutput(bucket: String, fileId: UUID)
+  case class FileOutput(bucket: String, fileId: UUID, transferringBody: Option[String], series: Option[String])
 }
