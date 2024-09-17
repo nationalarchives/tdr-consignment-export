@@ -90,4 +90,27 @@ class BagMetadataSpec extends ExportSpec {
 
     bagMetadata.get("Consignment-Series").get(0) should be("")
   }
+
+  "the getBagMetadata method" should "override the consignment type when the conditions are met" in {
+    val consignmentId = UUID.randomUUID()
+    val overrideConsignmentTypeConditions = GetConsignment(
+      userId, Some(fixedDateTime), Some(fixedDateTime), Some(fixedDateTime), consignmentRef, Some(standardConsignmentType), Some(true), Some("YYYY"), Some("XXXX"), List()
+    )
+    val mockKeycloakClient = mock[KeycloakClient]
+
+    doAnswer(() => userRepresentation).when(mockKeycloakClient).getUserRepresentation(any[String])
+    val bagMetadata = BagMetadata(mockKeycloakClient).generateMetadata(consignmentId, overrideConsignmentTypeConditions, fixedDateTime).unsafeRunSync()
+
+    bagMetadata.get("Consignment-Series").get(0) should be("YYYY")
+    bagMetadata.get("Source-Organization").get(0) should be("XXXX")
+    bagMetadata.get("Consignment-Type").get(0) should be ("overrideConsignmentType")
+    bagMetadata.get("Internal-Sender-Identifier").get(0) should be("consignmentReference-1234")
+    bagMetadata.get("Consignment-Start-Datetime").get(0) should be(fixedDateTime.toFormattedPrecisionString)
+    bagMetadata.get("Consignment-Completed-Datetime").get(0) should be(fixedDateTime.toFormattedPrecisionString)
+    bagMetadata.get("Contact-Name").get(0) should be("FirstName LastName")
+    bagMetadata.get("Contact-Email").get(0) should be("firstName.lastName@something.com")
+    bagMetadata.get("Consignment-Export-Datetime").get(0) should be(fixedDateTime.toFormattedPrecisionString)
+    bagMetadata.get("Bag-Creator").get(0) should be(s"TDRExportv$version")
+    bagMetadata.get("Consignment-Include-Top-Level-Folder").get(0) should be("true")
+  }
 }

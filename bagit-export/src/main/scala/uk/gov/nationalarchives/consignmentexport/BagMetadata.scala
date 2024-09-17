@@ -24,8 +24,17 @@ class BagMetadata(keycloakClient: KeycloakClient)(implicit val logger: SelfAware
     } else { throw new RuntimeException(s"Incomplete details for user ${value.getId}") }
   }
 
+  private def consignmentTypeOverride(consignment: GetConsignment): Option[String] = {
+    val originalConsignmentType: Option[String] = consignment.consignmentType
+    originalConsignmentType match {
+      case Some("standard") if
+        consignment.transferringBodyName.contains("XXXX") && consignment.seriesName.contains("YYYY") => Some("overrideConsignmentType")
+      case _ => originalConsignmentType
+    }
+  }
+
   private def getConsignmentDetails(consignment: GetConsignment, exportDatetime: ZonedDateTime): Map[String, Option[String]] = {
-    val consignmentType: Option[String] = consignment.consignmentType
+    val consignmentType: Option[String] = consignmentTypeOverride(consignment)
     val seriesCode:Option[String]  = if(consignmentType.get.equals("judgment")){
       Some("")
     } else {
