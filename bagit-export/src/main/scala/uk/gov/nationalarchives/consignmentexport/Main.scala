@@ -88,7 +88,7 @@ object Main extends CommandIOApp("tdr-consignment-export", "Exports tdr files in
               bagMetadata.get(InternalSenderIdentifierKey).get(0),
               bagMetadata.get(SourceOrganisationKey).get(0),
               bagMetadata.get(ConsignmentSeriesKey).get(0),
-              consignmentTypeMessageOverride(consignmentType, consignmentData),
+              consignmentTypeMessageOverride(consignmentType, consignmentData, config),
               s3Bucket
             ))
           _ <- graphQlApi.updateConsignmentStatus(StatusType.export, StatusValue.completed)
@@ -128,10 +128,13 @@ object Main extends CommandIOApp("tdr-consignment-export", "Exports tdr files in
       } yield bagMetadata
     }
 
-  private def consignmentTypeMessageOverride(originalConsignmentType: String, consignmentData: GetConsignment): String = {
+  private def consignmentTypeMessageOverride(originalConsignmentType: String, consignmentData: GetConsignment, config: Configuration): String = {
+    val overrideTransferringBodies = config.consignmentTypeOverride.transferringBodies
+    val overrideSeries = config.consignmentTypeOverride.series
     originalConsignmentType.toLowerCase match {
       case "standard" if
-        consignmentData.transferringBodyName.contains("XXXX") && consignmentData.seriesName.contains("YYYY") => "overrideConsignmentType"
+        overrideTransferringBodies.contains(consignmentData.transferringBodyName.get)
+          && overrideSeries.contains(consignmentData.seriesName.get) => "historicalTribunal"
       case _ => originalConsignmentType
     }
   }
