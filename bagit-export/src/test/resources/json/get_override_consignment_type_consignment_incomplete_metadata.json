@@ -1,0 +1,48 @@
+{
+  "data": {
+    "getConsignment": {
+      "seriesName": "MOCK1 123",
+      "exportDatetime": "2021-01-27T13:35:15Z",
+      "createdDatetime": "2021-01-15T07:47:19Z",
+      "transferInitiatedDatetime": "2021-01-15T07:47:19Z",
+      "userid": "b2657adf-6e93-424f-b0f1-aadd26762a96",
+      "consignmentReference": "consignmentReference-1234",
+      "consignmentType": "standard",
+      "includeTopLevelFolder": false,
+      "transferringBodyName": "MOCK1 Department",
+      "files": [
+        {
+          "fileId": "7b19b272-d4d1-4d77-bf25-511dc6489d12",
+          "fileName": "name",
+          "fileType": "File",
+          "fileMetadata": [
+            {
+              "name": "ClientSideOriginalFilepath",
+              "value": "originalPath"
+            },
+            {
+              "name": "LegalStatus",
+              "value": "Public Record"
+            },
+            {
+              "name": "ClientSideFileSize",
+              "value": "1024"
+            },
+            {
+              "name": "ClientSideLastModifiedDate",
+              "value": "2021-01-26T17:10:58.047"
+            },
+            {
+              "name": "RightsCopyright",
+              "value": "Crown Copyright"
+            },
+            {
+              "name": "HeldBy",
+              "value": "TNA"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

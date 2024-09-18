@@ -7,6 +7,7 @@ import com.monovore.decline.Opts
 import com.monovore.decline.effect.CommandIOApp
 import com.typesafe.config.ConfigFactory
 import gov.loc.repository.bagit.domain.Metadata
+import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignment
 import graphql.codegen.GetConsignmentExport.{getConsignmentForExport => gce}
 import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata
 import org.typelevel.log4cats.SelfAwareStructuredLogger
@@ -87,7 +88,7 @@ object Main extends CommandIOApp("tdr-consignment-export", "Exports tdr files in
               bagMetadata.get(InternalSenderIdentifierKey).get(0),
               bagMetadata.get(SourceOrganisationKey).get(0),
               bagMetadata.get(ConsignmentSeriesKey).get(0),
-              consignmentType,
+              consignmentTypeMessageOverride(consignmentType, consignmentData),
               s3Bucket
             ))
           _ <- graphQlApi.updateConsignmentStatus(StatusType.export, StatusValue.completed)
@@ -126,4 +127,12 @@ object Main extends CommandIOApp("tdr-consignment-export", "Exports tdr files in
         _ <- bagit.writeTagManifestRows(bag, checksums)
       } yield bagMetadata
     }
+
+  private def consignmentTypeMessageOverride(originalConsignmentType: String, consignmentData: GetConsignment): String = {
+    originalConsignmentType.toLowerCase match {
+      case "standard" if
+        consignmentData.transferringBodyName.contains("XXXX") && consignmentData.seriesName.contains("YYYY") => "overrideConsignmentType"
+      case _ => originalConsignmentType
+    }
+  }
 }

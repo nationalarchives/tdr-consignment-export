@@ -16,8 +16,9 @@ class MainSpec extends ExternalServiceSpec {
 
   private val taskTokenValue = "taskToken1234"
   val standardInfo: ConsignmentTypeInfo = ConsignmentTypeInfo("standard", "", "test-output-bucket", "publish_success_request_body")
+  val overrideInfo: ConsignmentTypeInfo = ConsignmentTypeInfo("standard override", "override_consignment_type_", "test-output-bucket", "override_publish_success_request_body")
   val judgmentInfo: ConsignmentTypeInfo = ConsignmentTypeInfo("judgment", "judgment_", "test-output-bucket-judgment", "publish_judgment_success_request_body")
-  private val consignmentTypes: List[ConsignmentTypeInfo] = List(standardInfo, judgmentInfo)
+  private val consignmentTypes: List[ConsignmentTypeInfo] = List(standardInfo, overrideInfo, judgmentInfo)
 
   "the export job" should s"delete the directories after export is completed" in {
     setUpValidExternalServices("get_consignment_for_export_empty_folders.json")
