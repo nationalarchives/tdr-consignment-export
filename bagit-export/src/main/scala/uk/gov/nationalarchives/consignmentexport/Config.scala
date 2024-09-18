@@ -14,7 +14,7 @@ object Config {
   case class Auth(url: String, clientId: String, clientSecret: String, realm: String)
   case class EFS(rootLocation: String)
   case class StepFunction(endpoint: String)
-  case class ConsignmentTypeOverride(series: List[String], transferringBodies: List[String])
+  case class ConsignmentTypeOverride(judgmentSeries: List[String], transferringBodies: List[String])
   case class Configuration(s3: S3, api: Api, auth: Auth, efs: EFS, stepFunction: StepFunction, consignmentTypeOverride: ConsignmentTypeOverride)
 
   implicit def hint[A]: ProductHint[A] = ProductHint[A](ConfigFieldMapping(CamelCase, CamelCase))

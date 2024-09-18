@@ -130,7 +130,7 @@ object Main extends CommandIOApp("tdr-consignment-export", "Exports tdr files in
 
   private def consignmentTypeMessageOverride(originalConsignmentType: String, consignmentData: GetConsignment, config: Configuration): String = {
     val overrideTransferringBodies = config.consignmentTypeOverride.transferringBodies
-    val overrideSeries = config.consignmentTypeOverride.series
+    val overrideSeries = config.consignmentTypeOverride.judgmentSeries
     originalConsignmentType.toLowerCase match {
       case "standard" if
         overrideTransferringBodies.contains(consignmentData.transferringBodyName.get)
