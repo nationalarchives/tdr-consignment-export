@@ -2,12 +2,12 @@ import sbt._
 
 object Dependencies {
   private val githubPureConfigVersion = "0.17.7"
-  private val keycloakVersion = "25.0.5"
+  private val keycloakVersion = "25.0.6"
   private val log4CatsVersion = "2.7.0"
   private val mockitoScalaVersion = "1.17.37"
   private val monovoreDeclineVersion = "2.4.1"
-  private val awsUtilsVersion = "0.1.205"
-  private val doobieVersion = "1.0.0-RC5"
+  private val awsUtilsVersion = "0.1.207"
+  private val doobieVersion = "1.0.0-RC6"
   private val testContainersVersion = "0.41.4"
 
   lazy val authUtils = "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.213"
@@ -23,7 +23,7 @@ object Dependencies {
   lazy val doobie = "org.tpolecat" %% "doobie-core" % doobieVersion
   lazy val doobiePostgres = "org.tpolecat" %% "doobie-postgres"  % doobieVersion
   lazy val postgres = "org.postgresql" % "postgresql" % "42.7.4"
-  lazy val graphqlClient = "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.180"
+  lazy val graphqlClient = "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.181"
   lazy val scalaTest = "org.scalatest" %% "scalatest" % "3.2.19"
   lazy val scalaCsv = "com.github.tototoshi" %% "scala-csv" % "2.0.0"
   lazy val log4cats = "org.typelevel" %% "log4cats-core" % log4CatsVersion
