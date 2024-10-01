@@ -23,16 +23,11 @@ class PublishUtils(snsUtils: SNSUtils, config: Config) {
       if (groupResponses.isEmpty) {
         IO.pure(fileOutputs)
       } else {
-        publishMessages(groupResponses)
+        Temporal[IO].sleep(1.seconds) >> publishMessages(groupResponses)
       }
     }
 
-    fileOutputs.grouped(500).toList.flatTraverse { eachGroup =>
-      for {
-        results <- processGroup(eachGroup)
-        _ <- Temporal[IO].sleep(1.seconds)
-      } yield results
-    }
+    fileOutputs.grouped(500).toList.flatTraverse(processGroup)
   }
 }
 object PublishUtils {
