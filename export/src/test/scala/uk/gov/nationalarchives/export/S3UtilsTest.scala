@@ -53,6 +53,41 @@ class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with T
     copyObjectRequests.count(_.destinationKey() == fileIdTwo.toString) should equal(1)
   }
 
+  "copyFiles" should "return the correct number of files if the initial call to list objects is truncated" in {
+    val client = mock[S3Client]
+    val utils = new S3Utils(config, client)
+    val consignmentId = UUID.randomUUID()
+    val fileIdOne = UUID.randomUUID()
+    val fileIdTwo = UUID.randomUUID()
+    val listObjectsCaptor: ArgumentCaptor[ListObjectsV2Request] = ArgumentCaptor.forClass(classOf[ListObjectsV2Request])
+
+    val s3ObjectOne = S3Object.builder.key(s"$consignmentId/$fileIdOne").build
+    val s3ObjectTwo = S3Object.builder.key(s"$consignmentId/$fileIdTwo").build
+    val responseOne = ListObjectsV2Response.builder.contents(s3ObjectOne).nextContinuationToken("continue").build()
+    val responseTwo = ListObjectsV2Response.builder.contents(s3ObjectTwo).build()
+
+    when(client.listObjectsV2(listObjectsCaptor.capture())).thenReturn(responseOne, responseTwo)
+    when(client.copyObject(any[CopyObjectRequest])).thenReturn(CopyObjectResponse.builder.build)
+
+    val consignmentMetadata = List(Metadata(UUID.randomUUID, "Series", "series"), Metadata(UUID.randomUUID, "TransferringBody", "body"))
+
+    utils.copyFiles(consignmentId, Standard, consignmentMetadata).unsafeRunSync()
+
+    val listObjectsResponses = listObjectsCaptor.getAllValues.asScala
+
+    val firstCall = listObjectsResponses.last
+    val lastCall = listObjectsResponses.head
+
+    firstCall.bucket() should equal("testCleanBucket")
+    firstCall.prefix() should equal(s"$consignmentId/")
+    firstCall.continuationToken() should equal("continue")
+
+    lastCall.bucket() should equal("testCleanBucket")
+    lastCall.prefix() should equal(s"$consignmentId/")
+    lastCall.continuationToken() should equal(null)
+  }
+
+
   "copyFiles" should "not copy any files if there are none in the clean bucket" in {
     val client = mock[S3Client]
     val utils = new S3Utils(config, client)

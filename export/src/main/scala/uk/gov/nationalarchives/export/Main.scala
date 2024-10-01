@@ -3,19 +3,13 @@ package uk.gov.nationalarchives.`export`
 import cats.effect.{ExitCode, IO}
 import com.monovore.decline.Opts
 import com.monovore.decline.effect.CommandIOApp
-import io.circe.Printer
-import io.circe.generic.auto._
-import io.circe.syntax._
 import org.typelevel.log4cats.SelfAwareStructuredLogger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
-import pureconfig.{CamelCase, ConfigFieldMapping, ConfigSource}
 import pureconfig.generic.ProductHint
 import pureconfig.generic.auto._
 import pureconfig.module.catseffect.syntax._
-import software.amazon.awssdk.services.sns.model.PublishResponse
-import Arguments._
-import uk.gov.nationalarchives.aws.utils.sns.SNSUtils
-import uk.gov.nationalarchives.aws.utils.sns.SNSClients._
+import pureconfig.{CamelCase, ConfigFieldMapping, ConfigSource}
+import uk.gov.nationalarchives.`export`.Arguments._
 import uk.gov.nationalarchives.aws.utils.s3.S3Clients.s3
 import uk.gov.nationalarchives.aws.utils.stepfunction.StepFunctionClients.sfnAsyncClient
 import uk.gov.nationalarchives.aws.utils.stepfunction.StepFunctionUtils
@@ -40,6 +34,7 @@ object Main extends CommandIOApp("tdr-export", "Exports tdr files with a flat st
       config <- ConfigSource.default.loadF[IO, Config]
       stepFunction = StepFunction(StepFunctionUtils(sfnAsyncClient(config.sfn.endpoint)))
       s3Utils = S3Utils(config, s3(config.s3.endpoint))
+      publishUtils = PublishUtils(config)
       heartBeat <- runHeartbeat(stepFunction).start
       metadataUtils <- MetadataUtils(config)
       consignmentType <- metadataUtils.getConsignmentType(consignmentId)
@@ -49,7 +44,7 @@ object Main extends CommandIOApp("tdr-export", "Exports tdr files with a flat st
       _ <- IO.raiseWhen(fileMetadata.isEmpty)(new RuntimeException(s"Metadata for consignment $consignmentId is missing"))
       ffidMetadata <- metadataUtils.getFFIDMetadata(consignmentId)
       _ <- s3Utils.putMetadata(consignmentType, fileOutputs.map(_.fileId), fileMetadata, consignmentMetadata, ffidMetadata)
-      _ <- IO(fileOutputs.map(fileOutput => sendMessage(config, fileOutput)))
+      _ <- publishUtils.publishMessages(fileOutputs)
       _ <- stepFunction.publishSuccess(taskToken)
       _ <- heartBeat.cancel
     } yield ExitCode.Success
@@ -61,11 +56,5 @@ object Main extends CommandIOApp("tdr-export", "Exports tdr files with a flat st
         _ <- StepFunction(StepFunctionUtils(sfnAsyncClient(config.sfn.endpoint))).publishFailure(taskToken, err.getMessage)
       } yield ()
     }
-  }
-
-  private def sendMessage(config: Config, fileOutput: S3Utils.FileOutput): PublishResponse = {
-    val snsUtils = SNSUtils(sns(config.sns.endpoint))
-    snsUtils.publish(fileOutput.asJson.printWith(Printer.noSpaces), config.sns.topicArn)
-    PublishResponse.builder().build()
   }
 }
