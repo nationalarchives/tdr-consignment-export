@@ -1,7 +1,5 @@
 package uk.gov.nationalarchives.consignmentexport
 
-import java.time.{ZoneOffset, ZonedDateTime}
-import java.util.UUID
 import cats.effect._
 import com.monovore.decline.Opts
 import com.monovore.decline.effect.CommandIOApp
@@ -13,18 +11,20 @@ import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata
 import org.typelevel.log4cats.SelfAwareStructuredLogger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
 import uk.gov.nationalarchives.aws.utils.s3.S3Clients.s3Async
-import uk.gov.nationalarchives.aws.utils.stepfunction.StepFunctionClients.sfnAsyncClient
 import uk.gov.nationalarchives.aws.utils.s3.S3Utils
+import uk.gov.nationalarchives.aws.utils.stepfunction.StepFunctionClients.sfnAsyncClient
 import uk.gov.nationalarchives.aws.utils.stepfunction.StepFunctionUtils
 import uk.gov.nationalarchives.consignmentexport.Arguments._
 import uk.gov.nationalarchives.consignmentexport.BagMetadata.{ConsignmentSeriesKey, InternalSenderIdentifierKey, SourceOrganisationKey}
+import uk.gov.nationalarchives.consignmentexport.BuildInfo.version
 import uk.gov.nationalarchives.consignmentexport.Config.{Configuration, config}
+import uk.gov.nationalarchives.consignmentexport.ConsignmentStatus.{StatusType, StatusValue}
 import uk.gov.nationalarchives.consignmentexport.GraphQlApi.backend
 import uk.gov.nationalarchives.consignmentexport.StepFunction.ExportOutput
 import uk.gov.nationalarchives.tdr.keycloak.TdrKeycloakDeployment
-import uk.gov.nationalarchives.consignmentexport.BuildInfo.version
-import uk.gov.nationalarchives.consignmentexport.ConsignmentStatus.{StatusType, StatusValue}
 
+import java.time.{ZoneOffset, ZonedDateTime}
+import java.util.UUID
 import scala.concurrent.duration._
 import scala.language.{implicitConversions, postfixOps}
 
@@ -88,7 +88,7 @@ object Main extends CommandIOApp("tdr-consignment-export", "Exports tdr files in
               bagMetadata.get(InternalSenderIdentifierKey).get(0),
               bagMetadata.get(SourceOrganisationKey).get(0),
               bagMetadata.get(ConsignmentSeriesKey).get(0),
-              consignmentTypeMessageOverride(consignmentType, consignmentData, config),
+              Overrides.consignmentTypeMessageOverride(consignmentType, consignmentData, config.consignmentTypeOverride),
               s3Bucket
             ))
           _ <- graphQlApi.updateConsignmentStatus(StatusType.export, StatusValue.completed)
@@ -128,14 +128,14 @@ object Main extends CommandIOApp("tdr-consignment-export", "Exports tdr files in
       } yield bagMetadata
     }
 
-  private def consignmentTypeMessageOverride(originalConsignmentType: String, consignmentData: GetConsignment, config: Configuration): String = {
-    val overrideTransferringBodies = config.consignmentTypeOverride.transferringBodies
-    val overrideSeries = config.consignmentTypeOverride.judgmentSeries
-    originalConsignmentType.toLowerCase match {
-      case "standard" if
-        overrideTransferringBodies.contains(consignmentData.transferringBodyName.get)
-          && overrideSeries.contains(consignmentData.seriesName.get) => "historicalTribunal"
-      case _ => originalConsignmentType
-    }
-  }
+//  private def consignmentTypeMessageOverride(originalConsignmentType: String, consignmentData: GetConsignment, config: Configuration): String = {
+//    val overrideTransferringBodies = config.consignmentTypeOverride.transferringBodies
+//    val overrideSeries = config.consignmentTypeOverride.judgmentSeries
+//    originalConsignmentType.toLowerCase match {
+//      case "standard" if
+//        overrideTransferringBodies.contains(consignmentData.transferringBodyName.get)
+//          && overrideSeries.contains(consignmentData.seriesName.get) => "historicalTribunal"
+//      case _ => originalConsignmentType
+//    }
+//  }
 }
