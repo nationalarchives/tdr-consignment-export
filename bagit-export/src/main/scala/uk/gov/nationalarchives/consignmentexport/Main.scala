@@ -127,15 +127,4 @@ object Main extends CommandIOApp("tdr-consignment-export", "Exports tdr files in
         _ <- bagit.writeTagManifestRows(bag, checksums)
       } yield bagMetadata
     }
-
-//  private def consignmentTypeMessageOverride(originalConsignmentType: String, consignmentData: GetConsignment, config: Configuration): String = {
-//    val overrideTransferringBodies = config.consignmentTypeOverride.transferringBodies
-//    val overrideSeries = config.consignmentTypeOverride.judgmentSeries
-//    originalConsignmentType.toLowerCase match {
-//      case "standard" if
-//        overrideTransferringBodies.contains(consignmentData.transferringBodyName.get)
-//          && overrideSeries.contains(consignmentData.seriesName.get) => "historicalTribunal"
-//      case _ => originalConsignmentType
-//    }
-//  }
 }
