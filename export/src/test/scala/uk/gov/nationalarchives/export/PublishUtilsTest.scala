@@ -16,7 +16,7 @@ import java.util.UUID
 class PublishUtilsTest extends AnyFlatSpec with MockitoSugar {
 
   "publishMessages" should "retry any failed messages" in {
-    val config: Config = Config(Db(false, "", "", "", 5432), SFN(""), S3("", "", "", ""), SNS("", "testTopic"))
+    val config: Config = Config(Db(useIamAuth = false, "", "", "", 5432), SFN(""), S3("", "", "", ""), SNS("", "testTopic", 500))
     val snsUtils = mock[SNSUtils]
     def response(statusCode: Int): PublishResponse = PublishResponse.builder.sdkHttpResponse(SdkHttpFullResponse.builder.statusCode(statusCode).build).build().asInstanceOf[PublishResponse]
 

@@ -27,7 +27,7 @@ class PublishUtils(snsUtils: SNSUtils, config: Config) {
       }
     }
 
-    fileOutputs.grouped(500).toList.flatTraverse(processGroup)
+    fileOutputs.grouped(config.sns.messageGroupSize).toList.flatTraverse(processGroup)
   }
 }
 object PublishUtils {

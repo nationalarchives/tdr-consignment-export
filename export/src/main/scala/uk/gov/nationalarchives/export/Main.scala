@@ -22,7 +22,7 @@ object Main extends CommandIOApp("tdr-export", "Exports tdr files with a flat st
   case class Db(useIamAuth: Boolean, host: String, user: String, password: String, port: Int)
   case class S3(endpoint: String, cleanBucket: String, outputBucket: String, outputBucketJudgment: String)
   case class SFN(endpoint: String)
-  case class SNS(endpoint: String, topicArn: String)
+  case class SNS(endpoint: String, topicArn: String, messageGroupSize: Int)
   case class Config(db: Db, sfn: SFN, s3: S3, sns: SNS)
   implicit def logger: SelfAwareStructuredLogger[IO] = Slf4jLogger.getLogger[IO]
   implicit def hint[A]: ProductHint[A] = ProductHint[A](ConfigFieldMapping(CamelCase, CamelCase))

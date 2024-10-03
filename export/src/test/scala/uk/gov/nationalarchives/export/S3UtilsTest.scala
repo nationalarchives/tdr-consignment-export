@@ -18,7 +18,7 @@ import scala.jdk.CollectionConverters.ListHasAsScala
 
 class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with TableDrivenPropertyChecks {
 
-  val config: Config = Config(Db(false, "", "", "", 5432), SFN(""), S3("", "testCleanBucket", "outputBucket", "outputBucketJudgment"), SNS("", "testTopic"))
+  val config: Config = Config(Db(useIamAuth = false, "", "", "", 5432), SFN(""), S3("", "testCleanBucket", "outputBucket", "outputBucketJudgment"), SNS("", "testTopic", 500))
 
   "copyFiles" should "copy the files returned by list objects" in {
     val client = mock[S3Client]
@@ -86,7 +86,6 @@ class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with T
     lastCall.prefix() should equal(s"$consignmentId/")
     lastCall.continuationToken() should equal(null)
   }
-
 
   "copyFiles" should "not copy any files if there are none in the clean bucket" in {
     val client = mock[S3Client]
