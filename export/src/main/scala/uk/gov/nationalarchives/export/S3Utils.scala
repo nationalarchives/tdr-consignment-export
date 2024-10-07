@@ -1,33 +1,48 @@
 package uk.gov.nationalarchives.`export`
 
 import cats.effect.IO
-import io.circe.{Json, JsonObject, Printer}
 import io.circe.generic.auto._
+import io.circe.syntax._
+import io.circe.{Json, JsonObject, Printer}
 import software.amazon.awssdk.core.sync.RequestBody
 import software.amazon.awssdk.services.s3.S3Client
-import software.amazon.awssdk.services.s3.model.{CopyObjectRequest, ListObjectsV2Request, PutObjectRequest}
-import Main.Config
-import MetadataUtils._
-import S3Utils.FileOutput
-import io.circe.syntax._
-import Main.Config
-import MetadataUtils.{ConsignmentType, Judgment, Metadata, Standard}
+import software.amazon.awssdk.services.s3.model.{CopyObjectRequest, ListObjectsV2Request, PutObjectRequest, S3Object}
+import uk.gov.nationalarchives.`export`.Main.Config
+import uk.gov.nationalarchives.`export`.MetadataUtils.{ConsignmentType, Judgment, Metadata, Standard}
+import uk.gov.nationalarchives.`export`.S3Utils.FileOutput
 
-import scala.jdk.CollectionConverters._
 import java.util.UUID
+import scala.annotation.tailrec
+import scala.jdk.CollectionConverters._
 
 class S3Utils(config: Config, s3Client: S3Client) {
 
+  @tailrec
+  private def getAllObjects(prefix: String, currentObjects: List[S3Object] = Nil, continuationToken: Option[String] = None): List[S3Object] = {
+    val listRequestBuilder = ListObjectsV2Request
+      .builder()
+      .bucket(config.s3.cleanBucket)
+      .prefix(prefix)
+
+    val listRequest = continuationToken.map(token => listRequestBuilder.continuationToken(token).build)
+      .getOrElse(listRequestBuilder.build)
+
+    val listObjectsResponse = s3Client.listObjectsV2(listRequest)
+    val nextContinuationToken = Option(listObjectsResponse.nextContinuationToken())
+    if(nextContinuationToken.isEmpty) {
+      listObjectsResponse.contents().asScala.toList ++ currentObjects
+    } else {
+      getAllObjects(prefix, currentObjects ++ listObjectsResponse.contents().asScala.toList, nextContinuationToken)
+    }
+  }
+
   def copyFiles(consignmentId: UUID, consignmentType: ConsignmentType, consignmentMetadata: List[Metadata]): IO[List[FileOutput]] = IO.blocking {
-    val listRequest = ListObjectsV2Request.builder().bucket(config.s3.cleanBucket).prefix(s"$consignmentId/").build
-    val objects = s3Client.listObjectsV2(listRequest)
     val destinationBucket = consignmentType match {
       case Judgment => config.s3.outputBucketJudgment
       case Standard => config.s3.outputBucket
     }
-    objects
-      .contents()
-      .asScala
+
+    getAllObjects(s"$consignmentId/")
       .map { s3Object =>
         val key = s3Object.key
         val destinationKey = key.split("/").last
@@ -43,7 +58,6 @@ class S3Utils(config: Config, s3Client: S3Client) {
         val body = consignmentMetadata.find(_.propertyName == "TransferringBody").map(_.value)
         FileOutput(destinationBucket, UUID.fromString(destinationKey), body, series)
       }
-      .toList
   }
 
   def putMetadata(
