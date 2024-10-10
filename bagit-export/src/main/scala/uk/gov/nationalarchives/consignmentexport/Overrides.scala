@@ -13,7 +13,7 @@ object Overrides {
   }
 
   private def historicalTribunalTransfer(consignmentTypeOverride: ConsignmentTypeOverride, consignmentData: GetConsignment): Boolean = {
-    consignmentTypeOverride.transferringBodies.contains(consignmentData.transferringBodyName.get) &&
-      consignmentTypeOverride.judgmentSeries.contains(consignmentData.seriesName.get)
+    consignmentTypeOverride.transferringBodies.exists(consignmentData.transferringBodyName.contains) &&
+      consignmentTypeOverride.judgmentSeries.exists(consignmentData.seriesName.contains)
   }
 }
