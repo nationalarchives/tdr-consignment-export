@@ -18,7 +18,8 @@ class S3FilesSpec extends ExportSpec {
     Api(""),
     Auth("http://localhost:9002/auth", "tdr-backend-checks", "client-secret", "tdr"),
     EFS(""),
-    StepFunction("")
+    StepFunction(""),
+    ConsignmentTypeOverride(List(), List())
   )
 
   "the downloadFiles method" should "call the library method with the correct arguments" in {

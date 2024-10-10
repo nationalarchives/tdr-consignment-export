@@ -33,7 +33,9 @@ class GraphQlApiSpec extends ExportSpec {
     Api(""),
     Auth("authUrl", "clientId", "clientSecret", "realm"),
     EFS(""),
-    StepFunction(""))
+    StepFunction(""),
+    ConsignmentTypeOverride(List(), List())
+  )
 
   implicit val tdrKeycloakDeployment: TdrKeycloakDeployment = TdrKeycloakDeployment("authUrl", "realm", 3600)
 
