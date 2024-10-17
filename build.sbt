@@ -64,6 +64,7 @@ lazy val export = (project in file("export"))
       doobie,
       doobiePostgres,
       snsUtils,
+      catsEffectTest % Test,
       testContainers % Test,
       testContainersPostgres % Test,
       postgres % Test,

@@ -1,0 +1,77 @@
+{
+  "data": {
+    "getConsignment": {
+      "seriesName": "override-series",
+      "exportDatetime": "2021-01-27T13:35:15Z",
+      "createdDatetime": "2021-01-15T07:47:19Z",
+      "transferInitiatedDatetime": "2021-01-15T07:47:19Z",
+      "userid": "b2657adf-6e93-424f-b0f1-aadd26762a96",
+      "consignmentReference": "consignmentReference-1234",
+      "consignmentType": "standard",
+      "includeTopLevelFolder": false,
+      "transferringBodyName": "override-body",
+      "files": [
+        {
+          "fileId": "5e271e33-ae7e-4471-9f89-005c5d15c5a1",
+          "fileName": "name",
+          "fileType": "File",
+          "fileMetadata": [
+            {
+              "name": "ClientSideOriginalFilepath",
+              "value": "originalPath"
+            },
+            {
+              "name": "LegalStatus",
+              "value": "Public Record"
+            },
+            {
+              "name": "ClientSideFileSize",
+              "value": "1024"
+            },
+            {
+              "name": "ClientSideLastModifiedDate",
+              "value": "2021-01-26T17:10:58.047"
+            },
+            {
+              "name": "RightsCopyright",
+              "value": "Crown Copyright"
+            },
+            {
+              "name": "HeldBy",
+              "value": "TNA"
+            },
+            {
+              "name": "FoiExemptionCode",
+              "value": "open"
+            },
+            {
+              "name": "Language",
+              "value": "English"
+            },
+            {
+              "name": "SHA256ClientSideChecksum",
+              "value": "cd0aa9856147b6c5b4ff2b7dfee5da20aa38253099ef1b4a64aced233c9afe29"
+            }
+          ],
+          "ffidMetadata": {
+            "method": "pronom",
+            "softwareVersion": "6.5",
+            "datetime": 1617704135359,
+            "software": "Droid",
+            "matches": [
+              {
+                "extension": null,
+                "identificationBasis": "",
+                "puid": null,
+                "fileExtensionMismatch": false,
+                "formatName": ""
+              }
+            ],
+            "containerSignatureFileVersion": "DROID_SignatureFile_V96.xml",
+            "binarySignatureFileVersion": "container-signature-20200121.xml"
+          }
+        }
+      ]
+    }
+  }
+}
