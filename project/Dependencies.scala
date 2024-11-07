@@ -6,11 +6,11 @@ object Dependencies {
   private val log4CatsVersion = "2.7.0"
   private val mockitoScalaVersion = "1.17.37"
   private val monovoreDeclineVersion = "2.4.1"
-  private val awsUtilsVersion = "0.1.219"
+  private val awsUtilsVersion = "0.1.221"
   private val doobieVersion = "1.0.0-RC6"
   private val testContainersVersion = "0.41.4"
 
-  lazy val authUtils = "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.219"
+  lazy val authUtils = "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.220"
   lazy val awsRds = "software.amazon.awssdk" % "rds" % "2.26.27"
   lazy val generatedGraphql = "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.391"
   lazy val s3Utils = "uk.gov.nationalarchives" %% "s3-utils" % awsUtilsVersion
