@@ -6,7 +6,7 @@ import io.circe.syntax._
 import io.circe.{Json, JsonObject, Printer}
 import software.amazon.awssdk.core.sync.RequestBody
 import software.amazon.awssdk.services.s3.S3Client
-import software.amazon.awssdk.services.s3.model.{CopyObjectRequest, ListObjectsV2Request, PutObjectRequest, S3Object, TaggingDirective}
+import software.amazon.awssdk.services.s3.model.{CopyObjectRequest, ListObjectsV2Request, PutObjectRequest, S3Object, Tagging, TaggingDirective}
 import uk.gov.nationalarchives.`export`.Main.Config
 import uk.gov.nationalarchives.`export`.MetadataUtils.{ConsignmentType, Judgment, Metadata, Standard}
 import uk.gov.nationalarchives.`export`.S3Utils.FileOutput
@@ -53,6 +53,7 @@ class S3Utils(config: Config, s3Client: S3Client) {
           .destinationKey(destinationKey)
           .destinationBucket(destinationBucket)
           .taggingDirective(TaggingDirective.REPLACE)
+          .tagging(Tagging.builder().build())
           .build()
         s3Client.copyObject(copyRequest)
         val series = consignmentMetadata.find(_.propertyName == "Series").map(_.value)
