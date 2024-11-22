@@ -1,7 +1,7 @@
 import sbt._
 
 object Dependencies {
-  private val githubPureConfigVersion = "0.17.7"
+  private val githubPureConfigVersion = "0.17.8"
   private val keycloakVersion = "26.0.2"
   private val log4CatsVersion = "2.7.0"
   private val mockitoScalaVersion = "1.17.37"
