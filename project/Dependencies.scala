@@ -38,5 +38,5 @@ object Dependencies {
   lazy val keycloakAdminClient = "org.keycloak" % "keycloak-admin-client" % keycloakVersion
   lazy val testContainers = "com.dimafeng" %% "testcontainers-scala-scalatest" % testContainersVersion
   lazy val testContainersPostgres = "com.dimafeng" %% "testcontainers-scala-postgresql" % testContainersVersion
-  lazy val wiremock = "org.wiremock" % "wiremock" % "3.9.1"
+  lazy val wiremock = "org.wiremock" % "wiremock" % "3.9.2"
 }
