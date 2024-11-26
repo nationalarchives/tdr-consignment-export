@@ -1,12 +1,12 @@
 import sbt._
 
 object Dependencies {
-  private val githubPureConfigVersion = "0.17.7"
-  private val keycloakVersion = "26.0.2"
+  private val githubPureConfigVersion = "0.17.8"
+  private val keycloakVersion = "26.0.3"
   private val log4CatsVersion = "2.7.0"
   private val mockitoScalaVersion = "1.17.37"
   private val monovoreDeclineVersion = "2.4.1"
-  private val awsUtilsVersion = "0.1.221"
+  private val awsUtilsVersion = "0.1.222"
   private val doobieVersion = "1.0.0-RC6"
   private val testContainersVersion = "0.41.4"
 
@@ -17,8 +17,8 @@ object Dependencies {
   lazy val stepFunctionUtils = "uk.gov.nationalarchives" %% "stepfunction-utils" % awsUtilsVersion
   lazy val snsUtils = "uk.gov.nationalarchives" %% "sns-utils" % awsUtilsVersion
   lazy val bagit = "gov.loc" % "bagit" % "5.2.0"
-  lazy val catsEffect = "org.typelevel" %% "cats-effect" % "3.5.5"
-  lazy val catsEffectTest = "org.typelevel" %% "cats-effect-testkit" % "3.5.5"
+  lazy val catsEffect = "org.typelevel" %% "cats-effect" % "3.5.6"
+  lazy val catsEffectTest = "org.typelevel" %% "cats-effect-testkit" % "3.5.6"
   lazy val decline = "com.monovore" %% "decline" % monovoreDeclineVersion
   lazy val declineEffect = "com.monovore" %% "decline-effect" % monovoreDeclineVersion
   lazy val doobie = "org.tpolecat" %% "doobie-core" % doobieVersion
@@ -38,5 +38,5 @@ object Dependencies {
   lazy val keycloakAdminClient = "org.keycloak" % "keycloak-admin-client" % keycloakVersion
   lazy val testContainers = "com.dimafeng" %% "testcontainers-scala-scalatest" % testContainersVersion
   lazy val testContainersPostgres = "com.dimafeng" %% "testcontainers-scala-postgresql" % testContainersVersion
-  lazy val wiremock = "org.wiremock" % "wiremock" % "3.9.1"
+  lazy val wiremock = "org.wiremock" % "wiremock" % "3.9.2"
 }
