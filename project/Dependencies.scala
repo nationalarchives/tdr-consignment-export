@@ -2,7 +2,7 @@ import sbt._
 
 object Dependencies {
   private val githubPureConfigVersion = "0.17.8"
-  private val keycloakVersion = "26.0.3"
+  private val keycloakVersion = "26.0.7"
   private val log4CatsVersion = "2.7.0"
   private val mockitoScalaVersion = "1.17.37"
   private val monovoreDeclineVersion = "2.4.1"
@@ -35,7 +35,7 @@ object Dependencies {
   lazy val mockitoScala = "org.mockito" %% "mockito-scala" % mockitoScalaVersion
   lazy val mockitoScalaTest = "org.mockito" %% "mockito-scala-scalatest" % mockitoScalaVersion
   lazy val keycloakCore = "org.keycloak" % "keycloak-core" % keycloakVersion
-  lazy val keycloakAdminClient = "org.keycloak" % "keycloak-admin-client" % keycloakVersion
+  lazy val keycloakAdminClient = "org.keycloak" % "keycloak-admin-client" % "26.0.3"
   lazy val testContainers = "com.dimafeng" %% "testcontainers-scala-scalatest" % testContainersVersion
   lazy val testContainersPostgres = "com.dimafeng" %% "testcontainers-scala-postgresql" % testContainersVersion
   lazy val wiremock = "org.wiremock" % "wiremock" % "3.10.0"
