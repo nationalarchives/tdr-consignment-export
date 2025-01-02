@@ -9,6 +9,8 @@ The infrastructure for the export, is defined in the [terraform]("https://github
 
 There are two modules in this repository.
 
+**NOTE:** *Data services team should be notified of any changes to the Bagit Export package.*
+
 ### Bagit Export Module
 The bagit-export module does the following:
 
@@ -28,7 +30,6 @@ The export module does the following:
 * The metadata, body name and reference are written to a json object in a file name <uuid>.metadata in the same bucket.
 
 The code for the authoriser is in the [tdr-consignment-export-authoriser](https://github.com/nationalarchives/tdr-consignment-export-authoriser) project
-
 
 ### Running Locally
 
