@@ -86,12 +86,20 @@ class MetadataUtils(config: Config) {
           .query[Option[String]] //This shouldn't ever be empty but if it is it will crash the export so better safe than sorry
           .unique
           .transact(transactor)
+      metadataSchemaLibraryVersion <-
+        sql""" SELECT "MetadataSchemaLibraryVersion" FROM "Consignment"
+            WHERE "ConsignmentId" = CAST(${consignmentId.toString} AS UUID)
+           """
+        .query[Option[String]]
+        .unique
+        .transact(transactor)
     } yield {
       consignmentMetadata ++ List(
         Metadata(consignmentId, "TransferringBody", bodyRefAndSeries._1),
         Metadata(consignmentId, "ConsignmentReference", bodyRefAndSeries._2),
         Metadata(consignmentId, "Series", bodyRefAndSeries._3),
-        Metadata(consignmentId, "TransferInitiatedDatetime", transferCompleteDate.getOrElse(""))
+        Metadata(consignmentId, "TransferInitiatedDatetime", transferCompleteDate.getOrElse("")),
+        Metadata(consignmentId, "MetadataSchemaLibraryVersion", metadataSchemaLibraryVersion.getOrElse(""))
       )
     })
   }

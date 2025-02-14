@@ -222,6 +222,7 @@ class TestUtils extends AnyFlatSpec with TestContainerForAll with BeforeAndAfter
     val bodyId: String = UUID.randomUUID().toString
     val seriesId: String = UUID.randomUUID().toString
     val consignmentRef = UUID.randomUUID().toString.replaceAll("-", "")
+    val metadataSchemaLibraryVersion = "Schema-Library-Version-v0.1"
     val transactor = Transactor.fromDriverManager[IO](
       driver = "org.postgresql.Driver",
       url = jdbcUrl,
@@ -235,8 +236,8 @@ class TestUtils extends AnyFlatSpec with TestContainerForAll with BeforeAndAfter
       _ <- sql"""INSERT INTO "Series" ("SeriesId", "BodyId", "Name", "Code") VALUES (CAST($seriesId AS UUID), CAST($bodyId AS UUID), 'Test', 'TST') """.update.run.transact(
         transactor
       )
-      _ <- sql""" INSERT INTO "Consignment" ("ConsignmentId", "UserId", "Datetime", "ConsignmentSequence", "ConsignmentReference", "ConsignmentType", "BodyId", "SeriesId", "TransferInitiatedDatetime")
-         VALUES (CAST($consignmentId AS UUID), CAST($userId AS UUID), CAST($dateTime AS TIMESTAMP), $sequence, $consignmentRef, 'standard', CAST($bodyId AS UUID), CAST($seriesId AS UUID), '2024-08-29 00:00:00')""".update.run
+      _ <- sql""" INSERT INTO "Consignment" ("ConsignmentId", "UserId", "Datetime", "ConsignmentSequence", "ConsignmentReference", "ConsignmentType", "BodyId", "SeriesId", "TransferInitiatedDatetime", "MetadataSchemaLibraryVersion")
+         VALUES (CAST($consignmentId AS UUID), CAST($userId AS UUID), CAST($dateTime AS TIMESTAMP), $sequence, $consignmentRef, 'standard', CAST($bodyId AS UUID), CAST($seriesId AS UUID), '2024-08-29 00:00:00', $metadataSchemaLibraryVersion)""".update.run
         .transact(transactor)
       _ <- fileIds.map { fileId =>
         sql""" INSERT INTO "File" ("FileId", "ConsignmentId", "UserId", "Datetime")
