@@ -89,6 +89,8 @@ class MainTest extends TestUtils {
 
    val metadataFileWriteBody = getRequestBody(req => req.getRequest.getUrl == s"/${fileIds.head}.metadata" && req.getRequest.getMethod == RequestMethod.PUT)
 
+    JsonPath.read[Int](metadataFileWriteBody, "$.size()")  shouldEqual 7
+    JsonPath.read[Int](metadataFileWriteBody, "$.FFID[0].size()")  shouldEqual 5
     JsonPath.read[Option[String]](metadataFileWriteBody,   "$.FFID[0].extension") shouldEqual null
     JsonPath.read[String](metadataFileWriteBody, "$.FFID[0].identificationBasis") shouldEqual "IdentificationBasis"
     JsonPath.read[Option[String]](metadataFileWriteBody,   "$.FFID[0].puid") shouldEqual null
