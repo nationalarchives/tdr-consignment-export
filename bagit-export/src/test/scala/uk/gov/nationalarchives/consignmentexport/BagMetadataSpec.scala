@@ -46,7 +46,7 @@ class BagMetadataSpec extends ExportSpec {
     bagMetadata.get("Consignment-Export-Datetime").get(0) should be(fixedDateTime.toFormattedPrecisionString)
     bagMetadata.get("Bag-Creator").get(0) should be(s"TDRExportv$version")
     bagMetadata.get("Consignment-Include-Top-Level-Folder").get(0) should be("true")
-    bagMetadata.get("Schema-Library-Version").get(0) should be("Schema-Library-Version-v0.1")
+    bagMetadata.get("Metadata-Schema-Library-Version").get(0) should be("Schema-Library-Version-v0.1")
   }
 
   "the getBagMetadata method" should "throw an exception if a consignment metadata property is missing" in {

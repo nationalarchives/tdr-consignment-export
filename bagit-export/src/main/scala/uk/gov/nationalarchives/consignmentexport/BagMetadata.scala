@@ -84,7 +84,7 @@ object BagMetadata {
   val InternalSenderIdentifierKey = "Internal-Sender-Identifier"
   val ConsignmentTypeKey = "Consignment-Type"
   val ConsignmentIncludeTopLevelFolder = "Consignment-Include-Top-Level-Folder"
-  val MetadataSchemaLibraryVersion = "Schema-Library-Version"
+  val MetadataSchemaLibraryVersion = "Metadata-Schema-Library-Version"
 
   case class UserDetails(contactName: String, contactEmail: String)
 
