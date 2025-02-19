@@ -50,7 +50,7 @@ class BagMetadata(keycloakClient: KeycloakClient)(implicit val logger: SelfAware
       ConsignmentExportDatetimeKey -> Some(exportDatetime.toFormattedPrecisionString),
       ContactNameKey -> Some(userDetails.contactName),
       ContactEmailKey -> Some(userDetails.contactEmail),
-      BagCreator -> Some(s"TDRExportv$version"),
+      BagCreator -> Some(s"TDRExportv$version")
     )
     metadataSchemaLibraryVersion match {
       case Some(version) => metadataMap + (MetadataSchemaLibraryVersion -> Some(version))
