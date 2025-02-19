@@ -18,9 +18,9 @@ class BagMetadataSpec extends ExportSpec {
   private val consignmentRef = "consignmentReference-1234"
   private val standardConsignmentType = "standard"
   private val JudgmentConsignmentType = "judgment"
-  private val MetadataSchemaLibraryVersion = "Schema-Library-Version-v0.1"
+  private val metadataSchemaLibraryVersion = "Schema-Library-Version-v0.1"
   private val consignment = GetConsignment(
-    userId, Some(fixedDateTime), Some(fixedDateTime), Some(fixedDateTime), consignmentRef, Some(standardConsignmentType), Some(true), Some(series), Some(transferringBody), List(), Some(MetadataSchemaLibraryVersion)
+    userId, Some(fixedDateTime), Some(fixedDateTime), Some(fixedDateTime), consignmentRef, Some(standardConsignmentType), Some(true), Some(series), Some(transferringBody), List(), Some(metadataSchemaLibraryVersion)
   )
   private val userRepresentation = new UserRepresentation()
   userRepresentation.setId(userId.toString)
@@ -53,7 +53,7 @@ class BagMetadataSpec extends ExportSpec {
     val consignmentId = UUID.randomUUID()
     val missingPropertyKey = "Consignment-Start-Datetime"
     val incompleteConsignment = GetConsignment(
-      userId, None, Some(fixedDateTime), Some(fixedDateTime), consignmentRef, Some(standardConsignmentType), Some(true), Some(series), Some(transferringBody), List() ,Some(MetadataSchemaLibraryVersion)
+      userId, None, Some(fixedDateTime), Some(fixedDateTime), consignmentRef, Some(standardConsignmentType), Some(true), Some(series), Some(transferringBody), List() ,Some(metadataSchemaLibraryVersion)
     )
     val mockKeycloakClient = mock[KeycloakClient]
 
@@ -83,7 +83,7 @@ class BagMetadataSpec extends ExportSpec {
   "the getBagMetadata method" should "return an empty series id for a 'judgment' consignment type" in {
     val consignmentId = UUID.randomUUID()
     val judgmentTypeConsignment = GetConsignment(
-      userId, Some(fixedDateTime), Some(fixedDateTime), Some(fixedDateTime), consignmentRef, Some(JudgmentConsignmentType), Some(true), None, Some(transferringBody), List(),Some(MetadataSchemaLibraryVersion)
+      userId, Some(fixedDateTime), Some(fixedDateTime), Some(fixedDateTime), consignmentRef, Some(JudgmentConsignmentType), Some(true), None, Some(transferringBody), List(),Some(metadataSchemaLibraryVersion)
     )
     val mockKeycloakClient = mock[KeycloakClient]
 
