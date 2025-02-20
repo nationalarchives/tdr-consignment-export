@@ -1,15 +1,16 @@
 package uk.gov.nationalarchives.consignmentexport
 
-import java.time.ZonedDateTime
-import java.util.UUID
 import cats.effect.IO
 import gov.loc.repository.bagit.domain.Metadata
 import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignment
 import org.keycloak.representations.idm.UserRepresentation
 import org.typelevel.log4cats.SelfAwareStructuredLogger
-import uk.gov.nationalarchives.consignmentexport.BagMetadata.{BagCreator, _}
+import uk.gov.nationalarchives.consignmentexport.BagMetadata._
 import uk.gov.nationalarchives.consignmentexport.BuildInfo.version
 import uk.gov.nationalarchives.consignmentexport.Utils._
+
+import java.time.ZonedDateTime
+import java.util.UUID
 
 class BagMetadata(keycloakClient: KeycloakClient)(implicit val logger: SelfAwareStructuredLogger[IO]) {
 
@@ -36,8 +37,9 @@ class BagMetadata(keycloakClient: KeycloakClient)(implicit val logger: SelfAware
     val completedDatetime: Option[String] = consignment.transferInitiatedDatetime.map(_.toFormattedPrecisionString)
     val includeTopLevelFolder: Option[String] = consignment.includeTopLevelFolder.map(_.toString)
     val userDetails: UserDetails = keycloakClient.getUserRepresentation(consignment.userid.toString).toUserDetails
+    val metadataSchemaLibraryVersion: Option[String] = consignment.metadataSchemaLibraryVersion
 
-    Map(
+    val metadataMap: Map[String,Option[String]] = Map (
       InternalSenderIdentifierKey -> Some(consignment.consignmentReference),
       ConsignmentSeriesKey -> seriesCode,
       SourceOrganisationKey -> bodyName,
@@ -50,6 +52,10 @@ class BagMetadata(keycloakClient: KeycloakClient)(implicit val logger: SelfAware
       ContactEmailKey -> Some(userDetails.contactEmail),
       BagCreator -> Some(s"TDRExportv$version")
     )
+    metadataSchemaLibraryVersion match {
+      case Some(version) => metadataMap + (MetadataSchemaLibraryVersion -> Some(version))
+      case None => metadataMap
+    }
   }
 
   def generateMetadata(consignmentId: UUID, consignment: GetConsignment, exportDatetime: ZonedDateTime): IO[Metadata] = {
@@ -78,6 +84,7 @@ object BagMetadata {
   val InternalSenderIdentifierKey = "Internal-Sender-Identifier"
   val ConsignmentTypeKey = "Consignment-Type"
   val ConsignmentIncludeTopLevelFolder = "Consignment-Include-Top-Level-Folder"
+  val MetadataSchemaLibraryVersion = "Metadata-Schema-Library-Version"
 
   case class UserDetails(contactName: String, contactEmail: String)
 
