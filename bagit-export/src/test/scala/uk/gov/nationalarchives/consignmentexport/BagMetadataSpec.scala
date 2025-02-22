@@ -1,13 +1,13 @@
 package uk.gov.nationalarchives.consignmentexport
 
-import java.time.ZonedDateTime
-import java.util.UUID
-
+import cats.effect.unsafe.implicits.global
 import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignment
 import org.keycloak.representations.idm.UserRepresentation
 import uk.gov.nationalarchives.consignmentexport.BuildInfo.version
 import uk.gov.nationalarchives.consignmentexport.Utils._
-import cats.effect.unsafe.implicits.global
+
+import java.time.ZonedDateTime
+import java.util.UUID
 
 class BagMetadataSpec extends ExportSpec {
 
@@ -18,8 +18,9 @@ class BagMetadataSpec extends ExportSpec {
   private val consignmentRef = "consignmentReference-1234"
   private val standardConsignmentType = "standard"
   private val JudgmentConsignmentType = "judgment"
+  private val metadataSchemaLibraryVersion = "Schema-Library-Version-v0.1"
   private val consignment = GetConsignment(
-    userId, Some(fixedDateTime), Some(fixedDateTime), Some(fixedDateTime), consignmentRef, Some(standardConsignmentType), Some(true), Some(series), Some(transferringBody), List()
+    userId, Some(fixedDateTime), Some(fixedDateTime), Some(fixedDateTime), consignmentRef, Some(standardConsignmentType), Some(true), Some(series), Some(transferringBody), List(), Some(metadataSchemaLibraryVersion)
   )
   private val userRepresentation = new UserRepresentation()
   userRepresentation.setId(userId.toString)
@@ -45,13 +46,14 @@ class BagMetadataSpec extends ExportSpec {
     bagMetadata.get("Consignment-Export-Datetime").get(0) should be(fixedDateTime.toFormattedPrecisionString)
     bagMetadata.get("Bag-Creator").get(0) should be(s"TDRExportv$version")
     bagMetadata.get("Consignment-Include-Top-Level-Folder").get(0) should be("true")
+    bagMetadata.get("Metadata-Schema-Library-Version").get(0) should be("Schema-Library-Version-v0.1")
   }
 
   "the getBagMetadata method" should "throw an exception if a consignment metadata property is missing" in {
     val consignmentId = UUID.randomUUID()
     val missingPropertyKey = "Consignment-Start-Datetime"
     val incompleteConsignment = GetConsignment(
-      userId, None, Some(fixedDateTime), Some(fixedDateTime), consignmentRef, Some(standardConsignmentType), Some(true), Some(series), Some(transferringBody), List()
+      userId, None, Some(fixedDateTime), Some(fixedDateTime), consignmentRef, Some(standardConsignmentType), Some(true), Some(series), Some(transferringBody), List() ,Some(metadataSchemaLibraryVersion)
     )
     val mockKeycloakClient = mock[KeycloakClient]
 
@@ -81,7 +83,7 @@ class BagMetadataSpec extends ExportSpec {
   "the getBagMetadata method" should "return an empty series id for a 'judgment' consignment type" in {
     val consignmentId = UUID.randomUUID()
     val judgmentTypeConsignment = GetConsignment(
-      userId, Some(fixedDateTime), Some(fixedDateTime), Some(fixedDateTime), consignmentRef, Some(JudgmentConsignmentType), Some(true), None, Some(transferringBody), List()
+      userId, Some(fixedDateTime), Some(fixedDateTime), Some(fixedDateTime), consignmentRef, Some(JudgmentConsignmentType), Some(true), None, Some(transferringBody), List(),Some(metadataSchemaLibraryVersion)
     )
     val mockKeycloakClient = mock[KeycloakClient]
 

@@ -68,7 +68,8 @@ lazy val export = (project in file("export"))
       testContainers % Test,
       testContainersPostgres % Test,
       postgres % Test,
-      wiremock % Test
+      wiremock % Test,
+      jsonpath % Test
     ),
     name := "tdr-export",
     (Universal / packageName) := "tdr-export",

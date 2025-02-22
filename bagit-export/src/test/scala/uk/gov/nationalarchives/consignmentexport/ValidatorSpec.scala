@@ -33,7 +33,8 @@ class ValidatorSpec extends ExportSpec {
     Some(true),
     Some("series-code"),
     Some("tb-name"),
-    metadata
+    metadata,
+    Some("Schema-Library-Version-v0.1")
   )
 
   "validateConsignmentHasFiles" should "return an error if the consignment has no files" in {

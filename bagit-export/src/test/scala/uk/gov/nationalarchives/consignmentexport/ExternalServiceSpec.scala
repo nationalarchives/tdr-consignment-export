@@ -218,8 +218,9 @@ class ExternalServiceSpec extends AnyFlatSpec with BeforeAndAfterEach with Befor
                                software;
                                softwareVersion
                              }
+                           };
+                           metadataSchemaLibraryVersion
                            }
-                         }
                   }",
                   "variables":{
                     "consignmentId":"$consignmentId"
