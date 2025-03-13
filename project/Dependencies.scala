@@ -8,7 +8,7 @@ object Dependencies {
   private val monovoreDeclineVersion = "2.5.0"
   private val awsUtilsVersion = "0.1.235"
   private val doobieVersion = "1.0.0-RC8"
-  private val testContainersVersion = "0.41.8"
+  private val testContainersVersion = "0.43.0"
 
   lazy val authUtils = "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.234"
   lazy val awsRds = "software.amazon.awssdk" % "rds" % "2.26.27"
