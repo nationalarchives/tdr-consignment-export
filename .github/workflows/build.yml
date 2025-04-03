@@ -50,8 +50,6 @@ jobs:
         run: |
           ./wizcli auth --id ${{ secrets.WIZ_CLIENT_ID }} --secret ${{ secrets.WIZ_CLIENT_SECRET }}
       - name: Run wiz CLI IaC scan
-        run: ./wizcli iac scan --path . --name ${{ inputs.image-name }}-${{github.run_number}} --project ${{ secrets.WIZ_PROJECT_TDR}}
-      - name: Build new image
         run: ./wizcli iac scan --path . --name tdr-consignment-export-${{github.run_number}} --project ${{ secrets.WIZ_PROJECT_TDR}}
       - name: Build image
         run: |
