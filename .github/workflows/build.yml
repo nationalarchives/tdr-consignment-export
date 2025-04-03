@@ -42,14 +42,36 @@ jobs:
         uses: docker/login-action@v1
         with:
           registry: ${{ secrets.MANAGEMENT_ACCOUNT }}.dkr.ecr.eu-west-2.amazonaws.com
-      - run: |
+      - name: Download Wiz CLI
+        run: |
+          curl -o wizcli https://wizcli.app.wiz.io/wizcli
+          chmod +x wizcli
+      - name: Authenticate to Wiz API
+        run: |
+          ./wizcli auth --id ${{ secrets.WIZ_CLIENT_ID }} --secret ${{ secrets.WIZ_CLIENT_SECRET }}
+      - name: Run wiz CLI IaC scan
+        run: ./wizcli iac scan --path . --name ${{ inputs.image-name }}-${{github.run_number}} --project ${{ secrets.WIZ_PROJECT_TDR}}
+      - name: Build new image
+        run: ./wizcli iac scan --path . --name tdr-consignment-export-${{github.run_number}} --project ${{ secrets.WIZ_PROJECT_TDR}}
+      - name: Build image
+        run: |
           gh release create --generate-notes ${{ steps.build.outputs.latest-tag}} bagit-export/target/universal/tdr-consignment-export.tgz export/target/universal/tdr-export.tgz
           gh pr create --fill --label 'Version bump'
           docker build --pull --no-cache -t ${{ secrets.MANAGEMENT_ACCOUNT }}.dkr.ecr.eu-west-2.amazonaws.com/consignment-export:${{ steps.build.outputs.latest-tag}} .
+        env:
+          GITHUB_TOKEN: ${{ secrets.WORKFLOW_PAT }}
+      - name: Wiz Docker Scan
+        run: |
+          ./wizcli docker scan --image ${{ secrets.MANAGEMENT_ACCOUNT }}.dkr.ecr.eu-west-2.amazonaws.com/consignment-export:${{ steps.build.outputs.latest-tag }} --project ${{ secrets.WIZ_PROJECT_TDR}}
+      - name: Push image to ECR
+        run: |
           docker push ${{ secrets.MANAGEMENT_ACCOUNT }}.dkr.ecr.eu-west-2.amazonaws.com/consignment-export:${{ steps.build.outputs.latest-tag}}
           gh workflow run deploy.yml -f environment=intg -f to-deploy=${{ steps.build.outputs.latest-tag}}
         env:
           GITHUB_TOKEN: ${{ secrets.WORKFLOW_PAT }}
+      - name: Wiz Docker Tag
+        run: |
+          ./wizcli docker tag --image ${{ secrets.MANAGEMENT_ACCOUNT }}.dkr.ecr.eu-west-2.amazonaws.com/consignment-export:${{ steps.build.outputs.latest-tag}}
       - name: Send success message
         uses: nationalarchives/tdr-github-actions/.github/actions/slack-send@main
         with:
