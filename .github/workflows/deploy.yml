@@ -12,6 +12,7 @@ on:
           - intg
           - staging
           - prod
+          - test
         default: 'intg'
       to-deploy:
         description: 'Version to deploy'
