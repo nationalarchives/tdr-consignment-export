@@ -2,7 +2,7 @@ import sbt._
 
 object Dependencies {
   private val githubPureConfigVersion = "0.17.8"
-  private val keycloakVersion = "26.2.0"
+  private val keycloakVersion = "26.2.1"
   private val log4CatsVersion = "2.7.0"
   private val mockitoScalaVersion = "1.17.37"
   private val monovoreDeclineVersion = "2.5.0"
@@ -24,7 +24,7 @@ object Dependencies {
   lazy val doobie = "org.tpolecat" %% "doobie-core" % doobieVersion
   lazy val doobiePostgres = "org.tpolecat" %% "doobie-postgres"  % doobieVersion
   lazy val postgres = "org.postgresql" % "postgresql" % "42.7.5"
-  lazy val graphqlClient = "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.221"
+  lazy val graphqlClient = "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.223"
   lazy val scalaTest = "org.scalatest" %% "scalatest" % "3.2.19"
   lazy val scalaCsv = "com.github.tototoshi" %% "scala-csv" % "2.0.0"
   lazy val log4cats = "org.typelevel" %% "log4cats-core" % log4CatsVersion
@@ -38,6 +38,6 @@ object Dependencies {
   lazy val keycloakAdminClient = "org.keycloak" % "keycloak-admin-client" % "26.0.5"
   lazy val testContainers = "com.dimafeng" %% "testcontainers-scala-scalatest" % testContainersVersion
   lazy val testContainersPostgres = "com.dimafeng" %% "testcontainers-scala-postgresql" % testContainersVersion
-  lazy val wiremock = "org.wiremock" % "wiremock" % "3.12.1"
+  lazy val wiremock = "org.wiremock" % "wiremock" % "3.13.0"
   lazy val jsonpath = "com.jayway.jsonpath" % "json-path-assert" % "2.9.0"
 }
