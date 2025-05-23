@@ -50,7 +50,8 @@ val commonSettings = Seq(
     stepFunctionUtils
   ),
   (Test / fork) := true,
-  (Test / envVars) := Map("AWS_ACCESS_KEY_ID" -> "test", "AWS_SECRET_ACCESS_KEY" -> "test"),
+  (Test / envVars) := Map("AWS_ACCESS_KEY_ID" -> "test", "AWS_SECRET_ACCESS_KEY" -> "test",
+    "AWS_REQUEST_CHECKSUM_CALCULATION" -> "when_required", "AWS_RESPONSE_CHECKSUM_CALCULATION" -> "when_required"),
   (Test / javaOptions) += s"-Dconfig.file=${sourceDirectory.value}/test/resources/application.conf",
   buildInfoKeys := Seq[BuildInfoKey](version),
   buildInfoPackage := "uk.gov.nationalarchives.consignmentexport",
@@ -91,6 +92,5 @@ lazy val bagitExport = (project in file("bagit-export"))
     ),
     (Universal / packageName) := "tdr-consignment-export",
     dependencyOverrides += "org.scala-lang.modules" %% "scala-java8-compat" % "1.0.2",
-    (Test / javaOptions) += s"-Dconfig.file=${sourceDirectory.value}/test/resources/application.conf",
-    (Test / envVars) := Map("AWS_REQUEST_CHECKSUM_CALCULATION" -> "when_required", "AWS_RESPONSE_CHECKSUM_CALCULATION" -> "when_required")
+    (Test / javaOptions) += s"-Dconfig.file=${sourceDirectory.value}/test/resources/application.conf"
   ).enablePlugins(JavaAppPackaging, UniversalPlugin, BuildInfoPlugin)
