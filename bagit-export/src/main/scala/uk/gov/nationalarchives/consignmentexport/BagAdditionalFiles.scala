@@ -26,7 +26,7 @@ class BagAdditionalFiles(rootDirectory: Path) {
     val filteredMetadata: List[CustomMetadata] = customMetadata.filter(_.allowExport).sortBy(_.exportOrdinal.getOrElse(Int.MaxValue))
     val header: List[String] = filteredMetadata.map(f => f.fullName.getOrElse(f.name))
     val fileMetadataRows: List[List[String]] = files.map(file => {
-      val groupedMetadata = file.fileMetadata.groupBy(_.name).view.mapValues(_.map(_.value).mkString("|")).toMap
+      val groupedMetadata = file.fileMetadata.groupBy(_.name).view.mapValues(_.map(_.value).mkString(";")).toMap
       filteredMetadata.map(customMetadata => groupedMetadata.get(customMetadata.name).map(fileMetadataValue => {
         if (customMetadata.name == "ClientSideOriginalFilepath" || customMetadata.name == "OriginalFilepath") {
           dataPath(fileMetadataValue)
