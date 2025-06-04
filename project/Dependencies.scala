@@ -6,7 +6,7 @@ object Dependencies {
   private val log4CatsVersion = "2.7.1"
   private val mockitoScalaVersion = "1.17.45"
   private val monovoreDeclineVersion = "2.5.0"
-  private val awsUtilsVersion = "0.1.272"
+  private val awsUtilsVersion = "0.1.273"
   private val doobieVersion = "1.0.0-RC9"
   private val testContainersVersion = "0.43.0"
 
@@ -24,7 +24,7 @@ object Dependencies {
   lazy val doobie = "org.tpolecat" %% "doobie-core" % doobieVersion
   lazy val doobiePostgres = "org.tpolecat" %% "doobie-postgres"  % doobieVersion
   lazy val postgres = "org.postgresql" % "postgresql" % "42.7.6"
-  lazy val graphqlClient = "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.229"
+  lazy val graphqlClient = "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.231"
   lazy val scalaTest = "org.scalatest" %% "scalatest" % "3.2.19"
   lazy val scalaCsv = "com.github.tototoshi" %% "scala-csv" % "2.0.0"
   lazy val log4cats = "org.typelevel" %% "log4cats-core" % log4CatsVersion
