@@ -26,14 +26,13 @@ class BagAdditionalFiles(rootDirectory: Path) {
     val filteredMetadata: List[CustomMetadata] = customMetadata.filter(_.allowExport).sortBy(_.exportOrdinal.getOrElse(Int.MaxValue))
     val header: List[String] = filteredMetadata.map(f => f.fullName.getOrElse(f.name))
     val fileMetadataRows: List[List[String]] = files.map(file => {
-      val groupedMetadata = file.fileMetadata.groupBy(_.name).view.mapValues(_.map(_.value).mkString(";")).toMap
-      filteredMetadata.map(customMetadata => groupedMetadata.get(customMetadata.name).map(fileMetadataValue => {
+      filteredMetadata.map(customMetadata => file.fileMetadata.find(_.name == customMetadata.name).map(metadata => {
         if (customMetadata.name == "ClientSideOriginalFilepath" || customMetadata.name == "OriginalFilepath") {
-          dataPath(fileMetadataValue)
+          dataPath(metadata.value)
         } else if (filteredMetadata.find(_.name == customMetadata.name).exists(_.dataType == DataType.DateTime)) {
-          LocalDateTime.parse(fileMetadataValue, parseFormatter).format(formatter)
+          LocalDateTime.parse(metadata.value, parseFormatter).format(formatter)
         } else {
-          fileMetadataValue
+          metadata.value
         }
       }).getOrElse(""))
     })
