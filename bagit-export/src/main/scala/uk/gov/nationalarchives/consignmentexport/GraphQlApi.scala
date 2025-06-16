@@ -50,7 +50,7 @@ class GraphQlApi(config: Configuration,
 
   def updateConsignmentStatus(statusType: String, status: String): IO[Option[Int]] = for {
     token <- keycloak.serviceAccountToken(config.auth.clientId, config.auth.clientSecret).toIO
-    exportResult <- updateConsignmentClient.getResult(token, ucs.document, ucs.Variables(ConsignmentStatusInput(consignmentId, statusType, Some(status))).some).toIO
+    exportResult <- updateConsignmentClient.getResult(token, ucs.document, ucs.Variables(ConsignmentStatusInput(consignmentId, statusType, Some(status), None)).some).toIO
     consignmentStatus <-
       IO.fromOption(exportResult.data)(new RuntimeException(s"No data returned from the update consignment status call for consignment $consignmentId ${exportResult.errorString}"))
     updateConsignmentStatus = consignmentStatus.updateConsignmentStatus
