@@ -11,7 +11,7 @@ object Dependencies {
   private val testContainersVersion = "0.43.0"
 
   lazy val authUtils = "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.249"
-  lazy val awsRds = "software.amazon.awssdk" % "rds" % "2.31.74"
+  lazy val awsRds = "software.amazon.awssdk" % "rds" % "2.31.77"
   lazy val generatedGraphql = "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.422"
   lazy val s3Utils = "uk.gov.nationalarchives" %% "s3-utils" % awsUtilsVersion
   lazy val stepFunctionUtils = "uk.gov.nationalarchives" %% "stepfunction-utils" % "0.1.282"
@@ -35,7 +35,7 @@ object Dependencies {
   lazy val mockitoScala = "org.mockito" %% "mockito-scala" % mockitoScalaVersion
   lazy val mockitoScalaTest = "org.mockito" %% "mockito-scala-scalatest" % mockitoScalaVersion
   lazy val keycloakCore = "org.keycloak" % "keycloak-core" % keycloakVersion
-  lazy val keycloakAdminClient = "org.keycloak" % "keycloak-admin-client" % "26.0.5"
+  lazy val keycloakAdminClient = "org.keycloak" % "keycloak-admin-client" % "26.0.6"
   lazy val testContainers = "com.dimafeng" %% "testcontainers-scala-scalatest" % testContainersVersion
   lazy val testContainersPostgres = "com.dimafeng" %% "testcontainers-scala-postgresql" % testContainersVersion
   lazy val wiremock = "org.wiremock" % "wiremock" % "3.13.1"
