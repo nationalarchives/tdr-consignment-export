@@ -17,8 +17,8 @@ object Dependencies {
   lazy val stepFunctionUtils = "uk.gov.nationalarchives" %% "stepfunction-utils" % "0.1.282"
   lazy val snsUtils = "uk.gov.nationalarchives" %% "sns-utils" % awsUtilsVersion
   lazy val bagit = "gov.loc" % "bagit" % "5.2.0"
-  lazy val catsEffect = "org.typelevel" %% "cats-effect" % "3.6.1"
-  lazy val catsEffectTest = "org.typelevel" %% "cats-effect-testkit" % "3.6.1"
+  lazy val catsEffect = "org.typelevel" %% "cats-effect" % "3.6.2"
+  lazy val catsEffectTest = "org.typelevel" %% "cats-effect-testkit" % "3.6.2"
   lazy val decline = "com.monovore" %% "decline" % monovoreDeclineVersion
   lazy val declineEffect = "com.monovore" %% "decline-effect" % monovoreDeclineVersion
   lazy val doobie = "org.tpolecat" %% "doobie-core" % doobieVersion
