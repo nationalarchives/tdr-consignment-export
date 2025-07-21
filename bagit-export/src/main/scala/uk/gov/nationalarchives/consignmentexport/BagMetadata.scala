@@ -5,7 +5,7 @@ import gov.loc.repository.bagit.domain.Metadata
 import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignment
 import org.keycloak.representations.idm.UserRepresentation
 import org.typelevel.log4cats.SelfAwareStructuredLogger
-import uk.gov.nationalarchives.consignmentexport.BagMetadata._
+import uk.gov.nationalarchives.consignmentexport.BagMetadata.{MetadataSchemaLibraryVersion, _}
 import uk.gov.nationalarchives.consignmentexport.BuildInfo.version
 import uk.gov.nationalarchives.consignmentexport.Utils._
 
@@ -37,7 +37,7 @@ class BagMetadata(keycloakClient: KeycloakClient)(implicit val logger: SelfAware
     val completedDatetime: Option[String] = consignment.transferInitiatedDatetime.map(_.toFormattedPrecisionString)
     val includeTopLevelFolder: Option[String] = consignment.includeTopLevelFolder.map(_.toString)
     val userDetails: UserDetails = keycloakClient.getUserRepresentation(consignment.userid.toString).toUserDetails
-    val metadataSchemaLibraryVersion: Option[String] = consignment.metadataSchemaLibraryVersion
+    val metadataSchemaLibraryVersion: String = consignment.metadataSchemaLibraryVersion.getOrElse("")
 
     val metadataMap: Map[String,Option[String]] = Map (
       InternalSenderIdentifierKey -> Some(consignment.consignmentReference),
@@ -50,12 +50,11 @@ class BagMetadata(keycloakClient: KeycloakClient)(implicit val logger: SelfAware
       ConsignmentExportDatetimeKey -> Some(exportDatetime.toFormattedPrecisionString),
       ContactNameKey -> Some(userDetails.contactName),
       ContactEmailKey -> Some(userDetails.contactEmail),
-      BagCreator -> Some(s"TDRExportv$version")
+      BagCreator -> Some(s"TDRExportv$version"),
+      MetadataSchemaLibraryVersion -> Some(metadataSchemaLibraryVersion)
     )
-    metadataSchemaLibraryVersion match {
-      case Some(version) => metadataMap + (MetadataSchemaLibraryVersion -> Some(version))
-      case None => metadataMap
-    }
+
+    metadataMap
   }
 
   def generateMetadata(consignmentId: UUID, consignment: GetConsignment, exportDatetime: ZonedDateTime): IO[Metadata] = {
