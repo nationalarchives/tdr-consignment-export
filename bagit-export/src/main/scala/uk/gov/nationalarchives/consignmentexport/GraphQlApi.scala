@@ -34,12 +34,6 @@ class GraphQlApi(config: Configuration,
     val errorString: String = response.errors.map(_.message).mkString("\n")
   }
 
-  def getCustomMetadata: IO[List[cm.CustomMetadata]] = for {
-    token <- keycloak.serviceAccountToken(config.auth.clientId, config.auth.clientSecret).toIO
-    metadata <- customMetadataStatusClient.getResult(token, cm.document, cm.Variables(consignmentId).some).toIO
-    data <- IO.fromOption(metadata.data)(new RuntimeException("No custom metadata definitions found"))
-  } yield data.customMetadata
-
   def getConsignmentMetadata: IO[Option[gce.GetConsignment]] = for {
     token <- keycloak.serviceAccountToken(config.auth.clientId, config.auth.clientSecret).toIO
     exportResult <- consignmentClient.getResult(token, gce.document, gce.Variables(consignmentId).some).toIO
