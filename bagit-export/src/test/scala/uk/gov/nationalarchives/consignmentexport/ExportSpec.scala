@@ -39,10 +39,11 @@ abstract class ExportSpec extends AnyFlatSpec with MockitoSugar with Matchers wi
                       originalPath: String = "originalPath",
                       checkSum: String = "clientSideChecksumValue"): List[FileMetadata] = {
     List(
+      FileMetadata("FileReference", "fileReference"),
       FileMetadata("Filename", "File Name"),
       FileMetadata("FileType", "File"),
       FileMetadata("ClientSideFileSize", "1"),
-      FileMetadata("ClientSideLastModifiedDate", lastModified.format(DateTimeFormatter.ISO_DATE_TIME)),
+      FileMetadata("ClientSideFileLastModifiedDate", lastModified.format(DateTimeFormatter.ISO_DATE_TIME)),
       FileMetadata("ClientSideOriginalFilepath", originalPath),
       FileMetadata("FoiExemptionCode", "foiExemption;foiExemption2"),
       FileMetadata("HeldBy", "heldBy"),
