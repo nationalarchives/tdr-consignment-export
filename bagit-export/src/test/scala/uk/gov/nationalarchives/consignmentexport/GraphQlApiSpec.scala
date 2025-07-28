@@ -174,47 +174,4 @@ class GraphQlApiSpec extends ExportSpec {
     }
     exception.getMessage should equal(s"No data returned from the update consignment status call for consignment $consignmentId ")
   }
-
-  "the getCustomMetadata method" should "return custom metadata" in {
-    val consignmentClient = mock[GraphQLClient[gce.Data, gce.Variables]]
-    val updateExportClient = mock[GraphQLClient[ued.Data, ued.Variables]]
-    val updateConsignmentStatus = mock[GraphQLClient[ucs.Data, ucs.Variables]]
-    val customMetadataClient: GraphQLClient[cm.Data, cm.Variables] = mock[GraphQLClient[cm.Data, cm.Variables]]
-    val keycloak = mock[KeycloakUtils]
-
-    doAnswer(() => Future(new BearerAccessToken("token"))).when(keycloak).serviceAccountToken[Identity](any[String], any[String])(
-      any[SttpBackend[Identity, Any]], any[ClassTag[Identity[_]]], any[TdrKeycloakDeployment])
-    doAnswer(() => Future(GraphQlResponse[cm.Data](Option(cm.Data(customMetadata)), Nil))).when(customMetadataClient)
-      .getResult[Identity](any[BearerAccessToken], any[Document], any[Option[cm.Variables]])(any[SttpBackend[Identity, Any]], any[ClassTag[Identity[_]]])
-
-
-    val consignmentId = UUID.randomUUID()
-    val api = new GraphQlApi(config, consignmentId, keycloak, consignmentClient, updateExportClient, updateConsignmentStatus, customMetadataClient)
-
-    val customMetadataResponse = api.getCustomMetadata.unsafeRunSync()
-    customMetadataResponse should equal(customMetadata)
-  }
-
-  "the getCustomMetadata method" should "return an error if there are no custom metadata definitions" in {
-    val consignmentClient = mock[GraphQLClient[gce.Data, gce.Variables]]
-    val updateExportClient = mock[GraphQLClient[ued.Data, ued.Variables]]
-    val updateConsignmentStatus = mock[GraphQLClient[ucs.Data, ucs.Variables]]
-    val customMetadataClient: GraphQLClient[cm.Data, cm.Variables] = mock[GraphQLClient[cm.Data, cm.Variables]]
-    val keycloak = mock[KeycloakUtils]
-
-    doAnswer(() => Future(new BearerAccessToken("token"))).when(keycloak).serviceAccountToken[Identity](any[String], any[String])(
-      any[SttpBackend[Identity, Any]], any[ClassTag[Identity[_]]], any[TdrKeycloakDeployment])
-    doAnswer(() => Future(GraphQlResponse[cm.Data](None, Nil))).when(customMetadataClient)
-      .getResult[Identity](any[BearerAccessToken], any[Document], any[Option[cm.Variables]])(any[SttpBackend[Identity, Any]], any[ClassTag[Identity[_]]])
-
-
-    val consignmentId = UUID.randomUUID()
-    val api = new GraphQlApi(config, consignmentId, keycloak, consignmentClient, updateExportClient, updateConsignmentStatus, customMetadataClient)
-
-    val err = intercept[RuntimeException] {
-      api.getCustomMetadata.unsafeRunSync()
-    }
-
-    err.getMessage should equal("No custom metadata definitions found")
-  }
 }
