@@ -82,7 +82,7 @@ class TestUtils extends AnyFlatSpec with TestContainerForAll with BeforeAndAfter
           <ETag>"9b2cf535f27731c974343645a3985328"</ETag>
         </CopyObjectResult>
       s3Server.stubFor(
-        head(urlEqualTo(destinationName))
+        head(urlMatching(s"$destinationName/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"))
           .willReturn(ok().withHeader("Content-Length", "1"))
       )
       s3Server.stubFor(
@@ -90,7 +90,7 @@ class TestUtils extends AnyFlatSpec with TestContainerForAll with BeforeAndAfter
           .willReturn(ok().withHeader("Content-Length", "1"))
       )
       s3Server.stubFor(
-        put(urlEqualTo(destinationName))
+        put(urlMatching(s"$destinationName/[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"))
           .withHost(equalTo("output.localhost"))
           .withHeader("x-amz-copy-source", equalTo(s"clean$sourceName"))
           .willReturn(okXml(response.toString()))
