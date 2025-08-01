@@ -50,7 +50,7 @@ class MainTest extends TestUtils {
         .find(req => req.getRequest.getUrl == s"/${fileIds.head}.metadata" && req.getRequest.getMethod == RequestMethod.PUT)
         .map(_.getRequest.getBodyAsString)
         .getOrElse("")
-      val jsonReturned = metadataFileWriteBody.split("\n").tail.head.trim
+      val jsonReturned = metadataFileWriteBody.split("\n").tail.head.trim.dropRight(1).drop(1)
 
       JsonPath.read[Int](jsonReturned, "$.size()")  shouldEqual 7
       JsonPath.read[String](jsonReturned, "$.PropertyName") shouldEqual "Value"
@@ -69,7 +69,7 @@ class MainTest extends TestUtils {
     fileIds.foreach(fileId => addFFIDMetadata(fileId, mappedPort))
     Main.run(List("export", "--consignmentId", consignmentId.toString, "--taskToken", "taskToken")).unsafeRunSync()
 
-    val metadataFileWriteBody = getRequestBody(req => req.getRequest.getUrl == s"/${fileIds.head}.metadata" && req.getRequest.getMethod == RequestMethod.PUT)
+    val metadataFileWriteBody = getRequestBody(req => req.getRequest.getUrl == s"/${fileIds.head}.metadata" && req.getRequest.getMethod == RequestMethod.PUT).drop(1).dropRight(1)
 
     JsonPath.read[Int](metadataFileWriteBody, "$.FFID[0].size()")  shouldEqual 5
     JsonPath.read[String](metadataFileWriteBody, "$.FFID[0].extension") shouldEqual "Extension"
@@ -87,7 +87,7 @@ class MainTest extends TestUtils {
     fileIds.foreach(fileId => addFFIDMetadata(fileId, mappedPort, hasNullMatchValues = true))
     Main.run(List("export", "--consignmentId", consignmentId.toString, "--taskToken", "taskToken")).unsafeRunSync()
 
-    val metadataFileWriteBody = getRequestBody(req => req.getRequest.getUrl == s"/${fileIds.head}.metadata" && req.getRequest.getMethod == RequestMethod.PUT)
+    val metadataFileWriteBody = getRequestBody(req => req.getRequest.getUrl == s"/${fileIds.head}.metadata" && req.getRequest.getMethod == RequestMethod.PUT).drop(1).dropRight(1)
 
     JsonPath.read[Int](metadataFileWriteBody, "$.FFID[0].size()")  shouldEqual 5
     JsonPath.read[Option[String]](metadataFileWriteBody,   "$.FFID[0].extension") shouldEqual null
@@ -105,7 +105,7 @@ class MainTest extends TestUtils {
     addConsignmentMetadata(consignmentId, mappedPort)
     Main.run(List("export", "--consignmentId", consignmentId.toString, "--taskToken", "taskToken")).unsafeRunSync()
 
-    val metadataFileWriteBody = getRequestBody(req => req.getRequest.getUrl == s"/${fileIds.head}.metadata" && req.getRequest.getMethod == RequestMethod.PUT)
+    val metadataFileWriteBody = getRequestBody(req => req.getRequest.getUrl == s"/${fileIds.head}.metadata" && req.getRequest.getMethod == RequestMethod.PUT).drop(1).dropRight(1)
     JsonPath.read[java.util.List[Any]](metadataFileWriteBody, "$.FFID").asScala.toArray shouldEqual Array.empty[Any]
     JsonPath.read[String](metadataFileWriteBody, "$.PropertyName") shouldEqual "Value"
     JsonPath.read[String](metadataFileWriteBody, "$.Series") shouldEqual "Test"
@@ -128,7 +128,7 @@ class MainTest extends TestUtils {
     addFileMetadata(redactedMetadata, mappedPort, includeFFIDMetadata = false)
     Main.run(List("export", "--consignmentId", consignmentId.toString, "--taskToken", "taskToken")).unsafeRunSync()
 
-    val metadataFileWriteBody = getRequestBody(req => req.getRequest.getUrl == s"/${fileIds.head}.metadata" && req.getRequest.getMethod == RequestMethod.PUT)
+    val metadataFileWriteBody = getRequestBody(req => req.getRequest.getUrl == s"/${fileIds.head}.metadata" && req.getRequest.getMethod == RequestMethod.PUT).drop(1).dropRight(1)
 
     JsonPath.read[java.util.List[Any]](metadataFileWriteBody, "$.FFID").asScala.toArray shouldEqual Array.empty[Any]
     JsonPath.read[String](metadataFileWriteBody, "$.OriginalFilepath") shouldEqual "/a/test/path"

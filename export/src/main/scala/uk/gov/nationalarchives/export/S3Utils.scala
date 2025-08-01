@@ -50,7 +50,7 @@ class S3Utils(config: Config, s3Client: S3Client) {
           .builder()
           .sourceKey(key)
           .sourceBucket(config.s3.cleanBucket)
-          .destinationKey(destinationKey)
+          .destinationKey(s"$destinationKey/${UUID.randomUUID()}")
           .destinationBucket(destinationBucket)
           .taggingDirective(TaggingDirective.REPLACE)
           .tagging(Tagging.builder().build())
@@ -89,8 +89,8 @@ class S3Utils(config: Config, s3Client: S3Client) {
         .fromMap(metadataJson)
         .deepMerge(ffidObject)
         .toJson
-        .printWith(Printer.noSpaces)
-      val body = RequestBody.fromString(allObjects)
+
+      val body = RequestBody.fromString(Json.arr(allObjects).noSpaces)
       val request = PutObjectRequest.builder.bucket(outputBucket).key(s"$fileId.metadata").build
       s3Client.putObject(request, body)
     }

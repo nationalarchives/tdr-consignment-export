@@ -49,8 +49,8 @@ class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with T
     copyObjectRequests.count(_.sourceKey() == s"$consignmentId/$fileIdOne") should equal(1)
     copyObjectRequests.count(_.sourceKey() == s"$consignmentId/$fileIdTwo") should equal(1)
 
-    copyObjectRequests.count(_.destinationKey() == fileIdOne.toString) should equal(1)
-    copyObjectRequests.count(_.destinationKey() == fileIdTwo.toString) should equal(1)
+    copyObjectRequests.count(_.destinationKey().startsWith(fileIdOne.toString)) should equal(1)
+    copyObjectRequests.count(_.destinationKey().startsWith(fileIdTwo.toString)) should equal(1)
   }
 
   "copyFiles" should "return the correct number of files if the initial call to list objects is truncated" in {
@@ -194,7 +194,7 @@ class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with T
       .unsafeRunSync()
 
     val body = bodyCaptor.getValue.contentStreamProvider().newStream().readAllBytes().map(_.toChar).mkString
-    body should equal("""{"FFID":[],"TestFile":"TestFileValue","TestConsignment":"TestConsignmentValue"}""")
+    body should equal("""[{"FFID":[],"TestFile":"TestFileValue","TestConsignment":"TestConsignmentValue"}]""")
   }
 
   "createMetadata" should s"not write metadata if the file is not in the list of file ids" in {
@@ -217,7 +217,7 @@ class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with T
       .unsafeRunSync()
 
     val body = bodyCaptor.getValue.contentStreamProvider().newStream().readAllBytes().map(_.toChar).mkString
-    body should equal("""{"FFID":[],"TestFile1":"TestFileValue1"}""")
+    body should equal("""[{"FFID":[],"TestFile1":"TestFileValue1"}]""")
   }
 
   "createMetadata" should s"return an error if there is an error writing to s3" in {
