@@ -22,7 +22,7 @@ class PublishUtilsTest extends AnyFlatSpec with MockitoSugar {
 
     when(snsUtils.publish(any[String], any[String]))
       .thenReturn(response(400), List.fill(10)(response(400)) ++ List(response(200)):_*)
-    val outputs = (1 to 600).map(_ => FileOutput("", UUID.randomUUID, None, None)).toList
+    val outputs = (1 to 600).map(_ => FileOutput("", UUID.randomUUID, UUID.randomUUID, None, None)).toList
 
     val fileOutputs = TestControl.executeEmbed(new PublishUtils(snsUtils, config).publishMessages(outputs))
 
