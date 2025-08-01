@@ -50,15 +50,15 @@ class MainTest extends TestUtils {
         .find(req => req.getRequest.getUrl == s"/${fileIds.head}.metadata" && req.getRequest.getMethod == RequestMethod.PUT)
         .map(_.getRequest.getBodyAsString)
         .getOrElse("")
-      val jsonReturned = metadataFileWriteBody.split("\n").tail.head.trim.dropRight(1).drop(1)
+      val jsonReturned = metadataFileWriteBody.split("\n").tail.head.trim
 
-      JsonPath.read[Int](jsonReturned, "$.size()")  shouldEqual 7
-      JsonPath.read[String](jsonReturned, "$.PropertyName") shouldEqual "Value"
-      JsonPath.read[String](jsonReturned, "$.Series") shouldEqual "Test"
-      JsonPath.read[String](jsonReturned, "$.TransferInitiatedDatetime") shouldEqual "2024-08-29 00:00:00"
-      JsonPath.read[String](jsonReturned, "$.ConsignmentReference") shouldEqual consignmentReference
-      JsonPath.read[String](jsonReturned, "$.TransferringBody") shouldEqual "Test"
-      JsonPath.read[String](jsonReturned, "$.MetadataSchemaLibraryVersion") shouldEqual "Schema-Library-Version-v0.1"
+      JsonPath.read[Int](jsonReturned, "$.[0].size()")  shouldEqual 7
+      JsonPath.read[String](jsonReturned, "$.[0].PropertyName") shouldEqual "Value"
+      JsonPath.read[String](jsonReturned, "$.[0].Series") shouldEqual "Test"
+      JsonPath.read[String](jsonReturned, "$.[0].TransferInitiatedDatetime") shouldEqual "2024-08-29 00:00:00"
+      JsonPath.read[String](jsonReturned, "$.[0].ConsignmentReference") shouldEqual consignmentReference
+      JsonPath.read[String](jsonReturned, "$.[0].TransferringBody") shouldEqual "Test"
+      JsonPath.read[String](jsonReturned, "$.[0].MetadataSchemaLibraryVersion") shouldEqual "Schema-Library-Version-v0.1"
 
   }
 
@@ -69,14 +69,14 @@ class MainTest extends TestUtils {
     fileIds.foreach(fileId => addFFIDMetadata(fileId, mappedPort))
     Main.run(List("export", "--consignmentId", consignmentId.toString, "--taskToken", "taskToken")).unsafeRunSync()
 
-    val metadataFileWriteBody = getRequestBody(req => req.getRequest.getUrl == s"/${fileIds.head}.metadata" && req.getRequest.getMethod == RequestMethod.PUT).drop(1).dropRight(1)
+    val metadataFileWriteBody = getRequestBody(req => req.getRequest.getUrl == s"/${fileIds.head}.metadata" && req.getRequest.getMethod == RequestMethod.PUT)
 
-    JsonPath.read[Int](metadataFileWriteBody, "$.FFID[0].size()")  shouldEqual 5
-    JsonPath.read[String](metadataFileWriteBody, "$.FFID[0].extension") shouldEqual "Extension"
-    JsonPath.read[String](metadataFileWriteBody, "$.FFID[0].identificationBasis") shouldEqual "IdentificationBasis"
-    JsonPath.read[String](metadataFileWriteBody, "$.FFID[0].puid") shouldEqual "PUID"
-    JsonPath.read[Boolean](metadataFileWriteBody, "$.FFID[0].extensionMismatch") shouldEqual true
-    JsonPath.read[String](metadataFileWriteBody, "$.FFID[0].formatName") shouldEqual "FormatName"
+    JsonPath.read[Int](metadataFileWriteBody, "$.[0].FFID[0].size()")  shouldEqual 5
+    JsonPath.read[String](metadataFileWriteBody, "$.[0].FFID[0].extension") shouldEqual "Extension"
+    JsonPath.read[String](metadataFileWriteBody, "$.[0].FFID[0].identificationBasis") shouldEqual "IdentificationBasis"
+    JsonPath.read[String](metadataFileWriteBody, "$.[0].FFID[0].puid") shouldEqual "PUID"
+    JsonPath.read[Boolean](metadataFileWriteBody, "$.[0].FFID[0].extensionMismatch") shouldEqual true
+    JsonPath.read[String](metadataFileWriteBody, "$.[0].FFID[0].formatName") shouldEqual "FormatName"
 
   }
 
@@ -87,14 +87,14 @@ class MainTest extends TestUtils {
     fileIds.foreach(fileId => addFFIDMetadata(fileId, mappedPort, hasNullMatchValues = true))
     Main.run(List("export", "--consignmentId", consignmentId.toString, "--taskToken", "taskToken")).unsafeRunSync()
 
-    val metadataFileWriteBody = getRequestBody(req => req.getRequest.getUrl == s"/${fileIds.head}.metadata" && req.getRequest.getMethod == RequestMethod.PUT).drop(1).dropRight(1)
+    val metadataFileWriteBody = getRequestBody(req => req.getRequest.getUrl == s"/${fileIds.head}.metadata" && req.getRequest.getMethod == RequestMethod.PUT)
 
-    JsonPath.read[Int](metadataFileWriteBody, "$.FFID[0].size()")  shouldEqual 5
-    JsonPath.read[Option[String]](metadataFileWriteBody,   "$.FFID[0].extension") shouldEqual null
-    JsonPath.read[String](metadataFileWriteBody, "$.FFID[0].identificationBasis") shouldEqual "IdentificationBasis"
-    JsonPath.read[Option[String]](metadataFileWriteBody,   "$.FFID[0].puid") shouldEqual null
-    JsonPath.read[Boolean](metadataFileWriteBody,"$.FFID[0].extensionMismatch") shouldEqual true
-    JsonPath.read[Option[String]](metadataFileWriteBody,   "$.FFID[0].formatName") shouldEqual null
+    JsonPath.read[Int](metadataFileWriteBody, "$.[0].FFID[0].size()")  shouldEqual 5
+    JsonPath.read[Option[String]](metadataFileWriteBody, "$.[0].FFID[0].extension") shouldEqual null
+    JsonPath.read[String](metadataFileWriteBody, "$.[0].FFID[0].identificationBasis") shouldEqual "IdentificationBasis"
+    JsonPath.read[Option[String]](metadataFileWriteBody, "$.[0].FFID[0].puid") shouldEqual null
+    JsonPath.read[Boolean](metadataFileWriteBody,"$.[0].FFID[0].extensionMismatch") shouldEqual true
+    JsonPath.read[Option[String]](metadataFileWriteBody, "$.[0].FFID[0].formatName") shouldEqual null
 
   }
 
@@ -105,14 +105,14 @@ class MainTest extends TestUtils {
     addConsignmentMetadata(consignmentId, mappedPort)
     Main.run(List("export", "--consignmentId", consignmentId.toString, "--taskToken", "taskToken")).unsafeRunSync()
 
-    val metadataFileWriteBody = getRequestBody(req => req.getRequest.getUrl == s"/${fileIds.head}.metadata" && req.getRequest.getMethod == RequestMethod.PUT).drop(1).dropRight(1)
-    JsonPath.read[java.util.List[Any]](metadataFileWriteBody, "$.FFID").asScala.toArray shouldEqual Array.empty[Any]
-    JsonPath.read[String](metadataFileWriteBody, "$.PropertyName") shouldEqual "Value"
-    JsonPath.read[String](metadataFileWriteBody, "$.Series") shouldEqual "Test"
-    JsonPath.read[String](metadataFileWriteBody, "$.TransferInitiatedDatetime") shouldEqual "2024-08-29 00:00:00"
-    JsonPath.read[String](metadataFileWriteBody, "$.ConsignmentReference") shouldEqual consignmentReference
-    JsonPath.read[String](metadataFileWriteBody, "$.TransferringBody") shouldEqual "Test"
-    JsonPath.read[String](metadataFileWriteBody, "$.MetadataSchemaLibraryVersion") shouldEqual "Schema-Library-Version-v0.1"
+    val metadataFileWriteBody = getRequestBody(req => req.getRequest.getUrl == s"/${fileIds.head}.metadata" && req.getRequest.getMethod == RequestMethod.PUT)
+    JsonPath.read[java.util.List[Any]](metadataFileWriteBody, "$.[0].FFID").asScala.toArray shouldEqual Array.empty[Any]
+    JsonPath.read[String](metadataFileWriteBody, "$.[0].PropertyName") shouldEqual "Value"
+    JsonPath.read[String](metadataFileWriteBody, "$.[0].Series") shouldEqual "Test"
+    JsonPath.read[String](metadataFileWriteBody, "$.[0].TransferInitiatedDatetime") shouldEqual "2024-08-29 00:00:00"
+    JsonPath.read[String](metadataFileWriteBody, "$.[0].ConsignmentReference") shouldEqual consignmentReference
+    JsonPath.read[String](metadataFileWriteBody, "$.[0].TransferringBody") shouldEqual "Test"
+    JsonPath.read[String](metadataFileWriteBody, "$.[0].MetadataSchemaLibraryVersion") shouldEqual "Schema-Library-Version-v0.1"
 
   }
 
@@ -128,10 +128,10 @@ class MainTest extends TestUtils {
     addFileMetadata(redactedMetadata, mappedPort, includeFFIDMetadata = false)
     Main.run(List("export", "--consignmentId", consignmentId.toString, "--taskToken", "taskToken")).unsafeRunSync()
 
-    val metadataFileWriteBody = getRequestBody(req => req.getRequest.getUrl == s"/${fileIds.head}.metadata" && req.getRequest.getMethod == RequestMethod.PUT).drop(1).dropRight(1)
+    val metadataFileWriteBody = getRequestBody(req => req.getRequest.getUrl == s"/${fileIds.head}.metadata" && req.getRequest.getMethod == RequestMethod.PUT)
 
-    JsonPath.read[java.util.List[Any]](metadataFileWriteBody, "$.FFID").asScala.toArray shouldEqual Array.empty[Any]
-    JsonPath.read[String](metadataFileWriteBody, "$.OriginalFilepath") shouldEqual "/a/test/path"
+    JsonPath.read[java.util.List[Any]](metadataFileWriteBody, "$.[0].FFID").asScala.toArray shouldEqual Array.empty[Any]
+    JsonPath.read[String](metadataFileWriteBody, "$.[0].OriginalFilepath") shouldEqual "/a/test/path"
   }
 
   "run" should "return an error if there is no consignment entry" in withContainers {
