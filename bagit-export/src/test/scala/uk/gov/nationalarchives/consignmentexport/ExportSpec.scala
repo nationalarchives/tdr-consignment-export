@@ -39,10 +39,11 @@ abstract class ExportSpec extends AnyFlatSpec with MockitoSugar with Matchers wi
                       originalPath: String = "originalPath",
                       checkSum: String = "clientSideChecksumValue"): List[FileMetadata] = {
     List(
-      FileMetadata("Filename", "File Name"),
-      FileMetadata("FileType", "File"),
+      FileMetadata("FileReference", "fileReference"),
+      FileMetadata("Filename", "fileName"),
+      FileMetadata("FileType", "fileType"),
       FileMetadata("ClientSideFileSize", "1"),
-      FileMetadata("ClientSideLastModifiedDate", lastModified.format(DateTimeFormatter.ISO_DATE_TIME)),
+      FileMetadata("ClientSideFileLastModifiedDate", lastModified.format(DateTimeFormatter.ISO_DATE_TIME)),
       FileMetadata("ClientSideOriginalFilepath", originalPath),
       FileMetadata("FoiExemptionCode", "foiExemption;foiExemption2"),
       FileMetadata("HeldBy", "heldBy"),
@@ -50,7 +51,21 @@ abstract class ExportSpec extends AnyFlatSpec with MockitoSugar with Matchers wi
       FileMetadata("LegalStatus", "legalStatus"),
       FileMetadata("RightsCopyright", "rightsCopyright"),
       FileMetadata("SHA256ClientSideChecksum", checkSum),
-      FileMetadata("OriginalFilepath", "nonRedactedFilepath")
+      FileMetadata("OriginalFilepath", "nonRedactedFilepath"),
+      FileMetadata("UUID", "uuid"),
+      FileMetadata("former_reference_department", "formerReferenceDepartment"),
+      FileMetadata("ParentReference", "parentReference"),
+      FileMetadata("file_name_translation", "fileNameTranslation"),
+      FileMetadata("end_date", lastModified.format(DateTimeFormatter.ISO_DATE_TIME)),
+      FileMetadata("DescriptionAlternate", "descriptionAlternate"),
+      FileMetadata("DescriptionClosed", "descriptionClosed"),
+      FileMetadata("description", "description"),
+      FileMetadata("TitleAlternate", "titleAlternate"),
+      FileMetadata("TitleClosed", "titleClosed"),
+      FileMetadata("FoiExemptionAsserted", lastModified.format(DateTimeFormatter.ISO_DATE_TIME)),
+      FileMetadata("ClosurePeriod", "30"),
+      FileMetadata("ClosureStartDate", lastModified.format(DateTimeFormatter.ISO_DATE_TIME)),
+      FileMetadata("ClosureType", "closureType")
     )
   }
 }

@@ -3,39 +3,39 @@ package uk.gov.nationalarchives.consignmentexport
 import cats.effect.IO
 import com.github.tototoshi.csv.CSVWriter
 import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignment.Files
-import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata
-import graphql.codegen.types.DataType
+import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignment.Files.FileMetadata
+import uk.gov.nationalarchives.consignmentexport.BagAdditionalFiles.MetadataConfiguration
 import uk.gov.nationalarchives.consignmentexport.Validator.{ValidatedAntivirusMetadata, ValidatedFFIDMetadata}
+import uk.gov.nationalarchives.tdr.schemautils.ConfigUtils
+import uk.gov.nationalarchives.tdr.schemautils.ConfigUtils.DownloadFileDisplayProperty
 
 import java.io.File
 import java.nio.file.Path
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
-class BagAdditionalFiles(rootDirectory: Path) {
-
+class BagAdditionalFiles(rootDirectory: Path, metadataConfig: MetadataConfiguration) {
   def createAntivirusMetadataCsv(validatedAntivirusMetadata: List[ValidatedAntivirusMetadata]): IO[File] = {
     val header = List("Filepath", "AV-Software", "AV-SoftwareVersion")
     val avMetadataRows = validatedAntivirusMetadata.map(av => List(dataPath(av.filePath), av.software, av.softwareVersion))
     writeToCsv("file-av.csv", header, avMetadataRows)
   }
 
-  def createFileMetadataCsv(files: List[Files], customMetadata: List[CustomMetadata]): IO[File] = {
-    val parseFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd[ ]['T']HH:mm:ss[.SSS][.SS][.S]")
-    val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")
-    val filteredMetadata: List[CustomMetadata] = customMetadata.filter(_.allowExport).sortBy(_.exportOrdinal.getOrElse(Int.MaxValue))
-    val header: List[String] = filteredMetadata.map(f => f.fullName.getOrElse(f.name))
+  def createFileMetadataCsv(files: List[Files]): IO[File] = {
+    val orderedProperties = orderedExportProperties()
+
+    val dataHeaderMapper = metadataConfig.dataHeaderMapper
+
     val fileMetadataRows: List[List[String]] = files.map(file => {
-      filteredMetadata.map(customMetadata => file.fileMetadata.find(_.name == customMetadata.name).map(metadata => {
-        if (customMetadata.name == "ClientSideOriginalFilepath" || customMetadata.name == "OriginalFilepath") {
-          dataPath(metadata.value)
-        } else if (filteredMetadata.find(_.name == customMetadata.name).exists(_.dataType == DataType.DateTime)) {
-          LocalDateTime.parse(metadata.value, parseFormatter).format(formatter)
-        } else {
-          metadata.value
-        }
-      }).getOrElse(""))
+      orderedProperties.map(op => {
+        val key = op.key
+        val metadataHeader = dataHeaderMapper(key)
+        val metadata: List[FileMetadata] = file.fileMetadata.filter(_.name == metadataHeader)
+        exportValue(key, metadata)
+      })
     })
+
+    val header: List[String] = orderedProperties.map(op => metadataConfig.exportHeaderMapper(op.key))
     writeToCsv("file-metadata.csv", header, fileMetadataRows)
   }
 
@@ -45,6 +45,26 @@ class BagAdditionalFiles(rootDirectory: Path) {
       List(dataPath(f.filePath), f.extension, f.puid, f.formatName, f.extensionMismatch, f.software, f.softwareVersion, f.binarySignatureFileVersion, f.containerSignatureFileVersion)
     })
     writeToCsv("file-ffid.csv", header, metadataRows)
+  }
+
+  def orderedExportProperties(): List[DownloadFileDisplayProperty] = {
+    metadataConfig.exportDisplayProperties
+      .filter(dlp => metadataConfig.exportProperties(dlp.key) == "true")
+      .sortBy(_.columnIndex)
+  }
+
+  def exportValue(propertyKey: String, metadata: List[FileMetadata]): String = {
+    lazy val propertyType = metadataConfig.propertyTypeEvaluator(propertyKey)
+    lazy val parseFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd[ ]['T']HH:mm:ss[.SSS][.SS][.S]")
+    lazy val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")
+    if (metadata.isEmpty) { "" } else {
+      val metadataValue = metadata.head.value
+      propertyKey match {
+        case pk if pk == "file_path" || pk == "original_identifier" => dataPath(metadataValue)
+        case _ if propertyType == "date" => LocalDateTime.parse(metadataValue, parseFormatter).format(formatter)
+        case _ => metadataValue
+      }
+    }
   }
 
   private def dataPath(filePath: String): String = s"data/$filePath"
@@ -59,5 +79,22 @@ class BagAdditionalFiles(rootDirectory: Path) {
 }
 
 object BagAdditionalFiles {
-  def apply(rootDirectory: Path): BagAdditionalFiles = new BagAdditionalFiles(rootDirectory)
+  private val config = ConfigUtils.loadConfiguration
+  private val propertyTypeEvaluator = config.getPropertyType
+  private val exportProperties = config.propertyToOutputMapper("allowExport")
+  private val exportDisplayProperties = config.downloadFileDisplayProperties("BagitExportTemplate")
+  private val exportHeaderMapper = config.propertyToOutputMapper("tdrBagitExportHeader")
+  private val dataHeaderMapper = config.propertyToOutputMapper("tdrDataLoadHeader")
+
+  private val metadataConfig = MetadataConfiguration(propertyTypeEvaluator, exportDisplayProperties, exportProperties, exportHeaderMapper, dataHeaderMapper)
+
+  def apply(rootDirectory: Path): BagAdditionalFiles = new BagAdditionalFiles(rootDirectory, metadataConfig)
+
+  case class MetadataConfiguration(
+                                    propertyTypeEvaluator: String => String,
+                                    exportDisplayProperties: List[DownloadFileDisplayProperty],
+                                    exportProperties: String => String,
+                                    exportHeaderMapper: String => String,
+                                    dataHeaderMapper: String => String
+                                  )
 }
