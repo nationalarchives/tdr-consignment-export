@@ -6,7 +6,7 @@ object Dependencies {
   private val log4CatsVersion = "2.7.1"
   private val mockitoScalaVersion = "2.0.0"
   private val monovoreDeclineVersion = "2.5.0"
-  private val awsUtilsVersion = "0.1.286"
+  private val awsUtilsVersion = "0.1.287"
   private val doobieVersion = "1.0.0-RC10"
   private val testContainersVersion = "0.43.0"
 
@@ -14,7 +14,7 @@ object Dependencies {
   lazy val awsRds = "software.amazon.awssdk" % "rds" % "2.32.13"
   lazy val generatedGraphql = "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.423"
   lazy val s3Utils = "uk.gov.nationalarchives" %% "s3-utils" % awsUtilsVersion
-  lazy val stepFunctionUtils = "uk.gov.nationalarchives" %% "stepfunction-utils" % "0.1.286"
+  lazy val stepFunctionUtils = "uk.gov.nationalarchives" %% "stepfunction-utils" % "0.1.287"
   lazy val snsUtils = "uk.gov.nationalarchives" %% "sns-utils" % awsUtilsVersion
   lazy val bagit = "gov.loc" % "bagit" % "5.2.0"
   lazy val catsEffect = "org.typelevel" %% "cats-effect" % "3.6.3"
