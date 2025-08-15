@@ -83,11 +83,6 @@ class ExternalServiceSpec extends AnyFlatSpec with BeforeAndAfterEach with Befor
 
   def graphQlUrl: String = wiremockGraphqlServer.url(graphQlPath)
 
-  def graphqlGetCustomMetadata(): StubMapping = wiremockGraphqlServer.stubFor(post(urlEqualTo(graphQlPath))
-    .withRequestBody(containing("customMetadata"))
-    .willReturn(okJson(fromResource(s"json/custom_metadata.json").mkString))
-  )
-
   def graphqlGetConsignmentMissingMetadata: StubMapping = wiremockGraphqlServer.stubFor(post(urlEqualTo(graphQlPath))
     .withRequestBody(equalToJson(generateGetConsignmentForExportQuery("50df01e6-2e5e-4269-97e7-531a755b417d")))
     .willReturn(okJson("""{"data": {}}"""))
