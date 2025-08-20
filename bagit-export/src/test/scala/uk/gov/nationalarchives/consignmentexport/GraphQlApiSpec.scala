@@ -1,26 +1,24 @@
 package uk.gov.nationalarchives.consignmentexport
 
-import java.time.{LocalDateTime, ZonedDateTime}
-import java.util.UUID
+import cats.effect.unsafe.implicits.global
 import cats.implicits._
 import com.nimbusds.oauth2.sdk.token.BearerAccessToken
 import graphql.codegen.GetConsignmentExport
 import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignment.Files
 import graphql.codegen.GetConsignmentExport.{getConsignmentForExport => gce}
-import graphql.codegen.GetCustomMetadata.{customMetadata => cm}
-import graphql.codegen.UpdateExportData.{updateExportData => ued}
 import graphql.codegen.UpdateConsignmentStatus.{updateConsignmentStatus => ucs}
+import graphql.codegen.UpdateExportData.{updateExportData => ued}
 import sangria.ast.Document
 import sttp.client3.{HttpURLConnectionBackend, Identity, SttpBackend}
 import uk.gov.nationalarchives.consignmentexport.Config._
-import uk.gov.nationalarchives.consignmentexport.ExportSpec.customMetadata
+import uk.gov.nationalarchives.consignmentexport.ConsignmentStatus.{StatusType, StatusValue}
 import uk.gov.nationalarchives.tdr.keycloak.{KeycloakUtils, TdrKeycloakDeployment}
 import uk.gov.nationalarchives.tdr.{GraphQLClient, GraphQlResponse}
 
+import java.time.{LocalDateTime, ZonedDateTime}
+import java.util.UUID
 import scala.concurrent.{ExecutionContextExecutor, Future}
 import scala.reflect.ClassTag
-import cats.effect.unsafe.implicits.global
-import uk.gov.nationalarchives.consignmentexport.ConsignmentStatus.{StatusType, StatusValue}
 
 class GraphQlApiSpec extends ExportSpec {
   implicit val executionContext: ExecutionContextExecutor = scala.concurrent.ExecutionContext.global
@@ -43,10 +41,9 @@ class GraphQlApiSpec extends ExportSpec {
     val consignmentClient = mock[GraphQLClient[gce.Data, gce.Variables]]
     val updateExportClient = mock[GraphQLClient[ued.Data, ued.Variables]]
     val updateConsignmentStatus = mock[GraphQLClient[ucs.Data, ucs.Variables]]
-    val customMetadataClient: GraphQLClient[cm.Data, cm.Variables] = mock[GraphQLClient[cm.Data, cm.Variables]]
     val keycloak = mock[KeycloakUtils]
     val consignmentId = UUID.randomUUID()
-    val api = new GraphQlApi(config, consignmentId, keycloak, consignmentClient, updateExportClient, updateConsignmentStatus, customMetadataClient)
+    val api = new GraphQlApi(config, consignmentId, keycloak, consignmentClient, updateExportClient, updateConsignmentStatus)
 
     doAnswer(() => Future(new BearerAccessToken("token"))).when(keycloak).serviceAccountToken[Identity](
       any[String], any[String])(any[SttpBackend[Identity, Any]], any[ClassTag[Identity[_]]], any[TdrKeycloakDeployment])
@@ -62,10 +59,9 @@ class GraphQlApiSpec extends ExportSpec {
     val consignmentClient = mock[GraphQLClient[gce.Data, gce.Variables]]
     val updateExportClient = mock[GraphQLClient[ued.Data, ued.Variables]]
     val updateConsignmentStatus = mock[GraphQLClient[ucs.Data, ucs.Variables]]
-    val customMetadataClient: GraphQLClient[cm.Data, cm.Variables] = mock[GraphQLClient[cm.Data, cm.Variables]]
     val keycloak = mock[KeycloakUtils]
     val consignmentId = UUID.randomUUID()
-    val api = new GraphQlApi(config, consignmentId, keycloak, consignmentClient, updateExportClient, updateConsignmentStatus, customMetadataClient)
+    val api = new GraphQlApi(config, consignmentId, keycloak, consignmentClient, updateExportClient, updateConsignmentStatus)
     doAnswer(() => Future(new BearerAccessToken("token"))).when(keycloak).serviceAccountToken[Identity](any[String], any[String])(
       any[SttpBackend[Identity, Any]], any[ClassTag[Identity[_]]], any[TdrKeycloakDeployment])
     val data = new GraphQlResponse[ued.Data](Option.empty[ued.Data], List())
@@ -87,10 +83,9 @@ class GraphQlApiSpec extends ExportSpec {
     val consignmentClient = mock[GraphQLClient[gce.Data, gce.Variables]]
     val updateExportClient = mock[GraphQLClient[ued.Data, ued.Variables]]
     val updateConsignmentStatus = mock[GraphQLClient[ucs.Data, ucs.Variables]]
-    val customMetadataClient: GraphQLClient[cm.Data, cm.Variables] = mock[GraphQLClient[cm.Data, cm.Variables]]
     val keycloak = mock[KeycloakUtils]
     val consignmentId = UUID.randomUUID()
-    val api = new GraphQlApi(config, consignmentId, keycloak, consignmentClient, updateExportClient, updateConsignmentStatus, customMetadataClient)
+    val api = new GraphQlApi(config, consignmentId, keycloak, consignmentClient, updateExportClient, updateConsignmentStatus)
     val fileId = UUID.randomUUID()
     val lastModified = LocalDateTime.now()
     val fileMetadata = createMetadata(lastModified, "clientSideOriginalFilePath", "clientSideChecksum")
@@ -120,10 +115,9 @@ class GraphQlApiSpec extends ExportSpec {
     val consignmentClient = mock[GraphQLClient[gce.Data, gce.Variables]]
     val updateExportClient = mock[GraphQLClient[ued.Data, ued.Variables]]
     val updateConsignmentStatus = mock[GraphQLClient[ucs.Data, ucs.Variables]]
-    val customMetadataClient: GraphQLClient[cm.Data, cm.Variables] = mock[GraphQLClient[cm.Data, cm.Variables]]
     val keycloak = mock[KeycloakUtils]
     val consignmentId = UUID.randomUUID()
-    val api = new GraphQlApi(config, consignmentId, keycloak, consignmentClient, updateExportClient, updateConsignmentStatus, customMetadataClient)
+    val api = new GraphQlApi(config, consignmentId, keycloak, consignmentClient, updateExportClient, updateConsignmentStatus)
 
     doAnswer(() => Future(new BearerAccessToken("token"))).when(keycloak).serviceAccountToken[Identity](any[String], any[String])(
       any[SttpBackend[Identity, Any]], any[ClassTag[Identity[_]]], any[TdrKeycloakDeployment])
@@ -140,10 +134,9 @@ class GraphQlApiSpec extends ExportSpec {
     val consignmentClient = mock[GraphQLClient[gce.Data, gce.Variables]]
     val updateExportClient = mock[GraphQLClient[ued.Data, ued.Variables]]
     val updateConsignmentStatus = mock[GraphQLClient[ucs.Data, ucs.Variables]]
-    val customMetadataClient: GraphQLClient[cm.Data, cm.Variables] = mock[GraphQLClient[cm.Data, cm.Variables]]
     val keycloak = mock[KeycloakUtils]
     val consignmentId = UUID.randomUUID()
-    val api = new GraphQlApi(config, consignmentId, keycloak, consignmentClient, updateExportClient, updateConsignmentStatus, customMetadataClient)
+    val api = new GraphQlApi(config, consignmentId, keycloak, consignmentClient, updateExportClient, updateConsignmentStatus)
 
     doAnswer(() => Future(new BearerAccessToken("token"))).when(keycloak).serviceAccountToken[Identity](any[String], any[String])(
       any[SttpBackend[Identity, Any]], any[ClassTag[Identity[_]]], any[TdrKeycloakDeployment])
@@ -159,10 +152,9 @@ class GraphQlApiSpec extends ExportSpec {
     val consignmentClient = mock[GraphQLClient[gce.Data, gce.Variables]]
     val updateExportClient = mock[GraphQLClient[ued.Data, ued.Variables]]
     val updateConsignmentStatus = mock[GraphQLClient[ucs.Data, ucs.Variables]]
-    val customMetadataClient: GraphQLClient[cm.Data, cm.Variables] = mock[GraphQLClient[cm.Data, cm.Variables]]
     val keycloak = mock[KeycloakUtils]
     val consignmentId = UUID.randomUUID()
-    val api = new GraphQlApi(config, consignmentId, keycloak, consignmentClient, updateExportClient, updateConsignmentStatus, customMetadataClient)
+    val api = new GraphQlApi(config, consignmentId, keycloak, consignmentClient, updateExportClient, updateConsignmentStatus)
 
     doAnswer(() => Future(new BearerAccessToken("token"))).when(keycloak).serviceAccountToken[Identity](any[String], any[String])(
       any[SttpBackend[Identity, Any]], any[ClassTag[Identity[_]]], any[TdrKeycloakDeployment])

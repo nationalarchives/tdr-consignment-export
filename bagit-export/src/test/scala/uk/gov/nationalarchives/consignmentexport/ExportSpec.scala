@@ -4,15 +4,11 @@ import cats.effect.IO
 import cats.implicits.catsSyntaxOptionId
 import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignment.Files
 import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignment.Files.FileMetadata
-import graphql.codegen.GetCustomMetadata.customMetadata.CustomMetadata
-import graphql.codegen.types.DataType
-import graphql.codegen.types.DataType.{DateTime, Text}
-import graphql.codegen.types.PropertyType.Defined
-import org.typelevel.log4cats.SelfAwareStructuredLogger
 import org.mockito.scalatest.MockitoSugar
 import org.scalatest.EitherValues
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import org.typelevel.log4cats.SelfAwareStructuredLogger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
 
 import java.time.LocalDateTime
@@ -68,30 +64,4 @@ abstract class ExportSpec extends AnyFlatSpec with MockitoSugar with Matchers wi
       FileMetadata("ClosureType", "closureType")
     )
   }
-}
-object ExportSpec {
-  def createCustomMetadata(name: String, fullName: String, exportOrdinal: Int, dataType: DataType = Text, allowExport: Boolean = true): CustomMetadata = CustomMetadata(name, None, Some(fullName), Defined, Some("MandatoryClosure"), dataType, editable = true, multiValue = false,
-    Some("Open"),
-    1,
-    Nil,
-    Option(exportOrdinal),
-    allowExport = allowExport
-  )
-
-  val customMetadata: List[CustomMetadata] = List(
-    createCustomMetadata("ClientSideFileSize", "File Size", 5),
-    createCustomMetadata("ClientSideLastModifiedDate", "Last Modified Date", 10, DateTime),
-    createCustomMetadata("ClientSideOriginalFilepath", "File Path", 2),
-    createCustomMetadata("Filename", "File Name", 3),
-    createCustomMetadata("FileType", "File Type", 4),
-    createCustomMetadata("FoiExemptionCode", "FOI Exemption Code", 10),
-    createCustomMetadata("HeldBy", "Held By", 8),
-    createCustomMetadata("Language", "Language", 9),
-    createCustomMetadata("LegalStatus", "Legal Status", 7),
-    createCustomMetadata("RightsCopyright", "Rights Copyright", 6),
-    createCustomMetadata("SHA256ClientSideChecksum", "Checksum", 12),
-    createCustomMetadata("OriginalFilepath", "OriginalFilepath", 13),
-    createCustomMetadata("FileReference", "file_reference", 1),
-    createCustomMetadata("ParentReference", "parent_reference", 14),
-  )
 }
