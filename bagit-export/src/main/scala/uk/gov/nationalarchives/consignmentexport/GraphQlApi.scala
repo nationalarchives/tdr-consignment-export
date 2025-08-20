@@ -1,22 +1,20 @@
 package uk.gov.nationalarchives.consignmentexport
 
-import java.time.ZonedDateTime
-import java.util.UUID
+import cats.effect.IO
 import cats.implicits._
-import uk.gov.nationalarchives.tdr.{GraphQLClient, GraphQlResponse}
 import graphql.codegen.GetConsignmentExport.{getConsignmentForExport => gce}
-import uk.gov.nationalarchives.tdr.keycloak.{KeycloakUtils, TdrKeycloakDeployment}
+import graphql.codegen.UpdateConsignmentStatus.{updateConsignmentStatus => ucs}
 import graphql.codegen.UpdateExportData.{updateExportData => ued}
 import graphql.codegen.types.{ConsignmentStatusInput, UpdateExportDataInput}
-import graphql.codegen.GetCustomMetadata.{customMetadata => cm}
-import sttp.client3.{HttpURLConnectionBackend, Identity, SttpBackend}
-import GraphQlApi._
-import cats.effect.IO
-import graphql.codegen.GetCustomMetadata.customMetadata.Variables
-import graphql.codegen.UpdateConsignmentStatus.{updateConsignmentStatus => ucs}
 import org.typelevel.log4cats.SelfAwareStructuredLogger
+import sttp.client3.{HttpURLConnectionBackend, Identity, SttpBackend}
 import uk.gov.nationalarchives.consignmentexport.Config.Configuration
+import uk.gov.nationalarchives.consignmentexport.GraphQlApi._
+import uk.gov.nationalarchives.tdr.keycloak.{KeycloakUtils, TdrKeycloakDeployment}
+import uk.gov.nationalarchives.tdr.{GraphQLClient, GraphQlResponse}
 
+import java.time.ZonedDateTime
+import java.util.UUID
 import scala.concurrent.{ExecutionContextExecutor, Future}
 
 class GraphQlApi(config: Configuration,
@@ -24,8 +22,7 @@ class GraphQlApi(config: Configuration,
                  keycloak: KeycloakUtils,
                  consignmentClient: GraphQLClient[gce.Data, gce.Variables],
                  updateExportDataClient: GraphQLClient[ued.Data, ued.Variables],
-                 updateConsignmentClient: GraphQLClient[ucs.Data, ucs.Variables],
-                 customMetadataStatusClient: GraphQLClient[cm.Data, Variables])(
+                 updateConsignmentClient: GraphQLClient[ucs.Data, ucs.Variables])(
                   implicit val logger: SelfAwareStructuredLogger[IO],
                   keycloakDeployment: TdrKeycloakDeployment,
                   backend: SttpBackend[Identity, Any]) {
@@ -73,8 +70,7 @@ object GraphQlApi {
     val getConsignmentClient = new GraphQLClient[gce.Data, gce.Variables](apiUrl)
     val updateExportDataClient = new GraphQLClient[ued.Data, ued.Variables](apiUrl)
     val updateConsignmentStatus = new GraphQLClient[ucs.Data, ucs.Variables](apiUrl)
-    val customMetadataStatusClient: GraphQLClient[cm.Data, Variables] = new GraphQLClient[cm.Data, cm.Variables](apiUrl)
-    new GraphQlApi(config, consignmentId, keycloak, getConsignmentClient, updateExportDataClient, updateConsignmentStatus, customMetadataStatusClient)(logger, keycloakDeployment, backend)
+    new GraphQlApi(config, consignmentId, keycloak, getConsignmentClient, updateExportDataClient, updateConsignmentStatus)(logger, keycloakDeployment, backend)
   }
 
   implicit class FutureUtils[T](f: Future[T]) {
