@@ -3,7 +3,7 @@ package uk.gov.nationalarchives.`export`
 import cats.effect.IO
 import io.circe.generic.auto._
 import io.circe.syntax._
-import io.circe.{Json, JsonObject, Printer}
+import io.circe.{Json, JsonObject}
 import software.amazon.awssdk.core.sync.RequestBody
 import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.s3.model.{CopyObjectRequest, ListObjectsV2Request, PutObjectRequest, S3Object, Tagging, TaggingDirective}
@@ -45,7 +45,9 @@ class S3Utils(config: Config, s3Client: S3Client) {
     getAllObjects(s"$consignmentId/")
       .map { s3Object =>
         val key = s3Object.key
-        val destinationKey = key.split("/").last
+        val fileId = UUID.randomUUID()
+        val assetId = key.split("/").last
+        val destinationKey = s"$assetId/$fileId"
         val copyRequest = CopyObjectRequest
           .builder()
           .sourceKey(key)
@@ -58,16 +60,16 @@ class S3Utils(config: Config, s3Client: S3Client) {
         s3Client.copyObject(copyRequest)
         val series = consignmentMetadata.find(_.propertyName == "Series").map(_.value)
         val body = consignmentMetadata.find(_.propertyName == "TransferringBody").map(_.value)
-        FileOutput(destinationBucket, UUID.fromString(destinationKey), body, series)
+        FileOutput(destinationBucket, UUID.fromString(assetId), fileId, body, series)
       }
   }
 
   def putMetadata(
-      consignmentType: ConsignmentType,
-      fileIds: List[UUID],
-      fileMetadata: List[Metadata],
-      consignmentMetadata: List[Metadata],
-      ffidMetadata: Map[UUID, List[MetadataUtils.FFID]]
+     consignmentType: ConsignmentType,
+     fileOutputs: List[FileOutput],
+     fileMetadata: List[Metadata],
+     consignmentMetadata: List[Metadata],
+     ffidMetadata: Map[UUID, List[MetadataUtils.FFID]]
   ): IO[Unit] = IO.blocking {
     val groupedMetadata = fileMetadata.groupBy(_.id)
     val outputBucket = consignmentType match {
@@ -78,20 +80,20 @@ class S3Utils(config: Config, s3Client: S3Client) {
     def jsonFromMetadata(metadata: List[Metadata]): Map[String, Json] =
       metadata.map(m => m.propertyName -> Json.fromString(m.value)).toMap
 
-    fileIds.foreach { fileId =>
-      val ffidArray = ffidMetadata.getOrElse(fileId, Nil)
+    fileOutputs.foreach { fileOutput =>
+      val ffidArray = ffidMetadata.getOrElse(fileOutput.assetId, Nil)
       val metadataJson = groupedMetadata
-        .get(fileId)
+        .get(fileOutput.assetId)
         .map(jsonFromMetadata)
-        .getOrElse(Map.empty) ++ jsonFromMetadata(consignmentMetadata)
+        .getOrElse(Map.empty) ++ jsonFromMetadata(consignmentMetadata) ++ Map("fileId" -> Json.fromString(fileOutput.fileId.toString))
       val ffidObject = JsonObject.fromMap(Map("FFID" -> ffidArray.asJson))
       val allObjects = JsonObject
         .fromMap(metadataJson)
         .deepMerge(ffidObject)
         .toJson
-        .printWith(Printer.noSpaces)
-      val body = RequestBody.fromString(allObjects)
-      val request = PutObjectRequest.builder.bucket(outputBucket).key(s"$fileId.metadata").build
+
+      val body = RequestBody.fromString(Json.arr(allObjects).noSpaces)
+      val request = PutObjectRequest.builder.bucket(outputBucket).key(s"${fileOutput.assetId}.metadata").build
       s3Client.putObject(request, body)
     }
   }
@@ -100,5 +102,5 @@ class S3Utils(config: Config, s3Client: S3Client) {
 object S3Utils {
   def apply(config: Config, s3Client: S3Client) = new S3Utils(config, s3Client)
 
-  case class FileOutput(bucket: String, fileId: UUID, transferringBody: Option[String], series: Option[String])
+  case class FileOutput(bucket: String, assetId: UUID, fileId: UUID, transferringBody: Option[String], series: Option[String])
 }
