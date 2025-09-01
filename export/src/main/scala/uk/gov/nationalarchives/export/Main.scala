@@ -43,7 +43,7 @@ object Main extends CommandIOApp("tdr-export", "Exports tdr files with a flat st
       fileMetadata <- metadataUtils.getFileMetadata(consignmentId)
       _ <- IO.raiseWhen(fileMetadata.isEmpty)(new RuntimeException(s"Metadata for consignment $consignmentId is missing"))
       ffidMetadata <- metadataUtils.getFFIDMetadata(consignmentId)
-      _ <- s3Utils.putMetadata(consignmentType, fileOutputs.map(_.fileId), fileMetadata, consignmentMetadata, ffidMetadata)
+      _ <- s3Utils.putMetadata(consignmentType, fileOutputs, fileMetadata, consignmentMetadata, ffidMetadata)
       _ <- publishUtils.publishMessages(fileOutputs)
       _ <- stepFunction.publishSuccess(taskToken)
       _ <- heartBeat.cancel

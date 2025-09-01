@@ -16,10 +16,10 @@ class BagAdditionalFilesSpec extends ExportSpec {
       "file_reference","file_name","file_type","file_size","file_path","rights_copyright","legal_status","held_by",
       "date_last_modified","closure_type","closure_start_date","closure_period","foi_exemption_code","foi_exemption_asserted",
       "title_closed","title_alternate","description","description_closed","description_alternate","language","end_date",
-      "file_name_translation","original_identifier","parent_reference","former_reference_department","UUID")
+      "file_name_translation","original_identifier","parent_reference","former_reference_department","UUID","related_material")
 
     val orderedProperties = BagAdditionalFiles(getClass.getResource(".").getPath.toPath).orderedExportProperties()
-    orderedProperties.size shouldBe 26
+    orderedProperties.size shouldBe expectedPropertiesOrder.size
     val propertiesOrder = orderedProperties.map(_.key)
     propertiesOrder should equal(expectedPropertiesOrder)
   }
@@ -78,7 +78,7 @@ class BagAdditionalFilesSpec extends ExportSpec {
       "file_reference", "file_name", "file_type", "file_size", "clientside_original_filepath", "rights_copyright", "legal_status",
       "held_by", "date_last_modified", "closure_type", "closure_start_date", "closure_period", "foi_exemption_code",
       "foi_exemption_asserted", "title_closed", "title_alternate", "description", "description_closed", "description_alternate",
-      "language", "end_date", "file_name_translation", "original_filepath", "parent_reference", "former_reference_department", "UUID")
+      "language", "end_date", "file_name_translation", "original_filepath", "parent_reference", "former_reference_department", "UUID", "related_material")
     val expectedOrderedFilePropertyValues = List(
       "fileReference", "fileName", "fileType", "1", "data/originalFilePath", "rightsCopyright", "legalStatus", "heldBy", "2021-02-03T10:33:30",
       "closureType", "2021-02-03T10:33:30", "30", "foiExemption;foiExemption2", "2021-02-03T10:33:30", "titleClosed", "titleAlternate",
@@ -92,7 +92,7 @@ class BagAdditionalFilesSpec extends ExportSpec {
     header.split(",").toList should equal(expectedOrderedHeaders)
     rest.length should equal(2)
     rest.head.split(",").toList should equal(expectedOrderedFilePropertyValues)
-    rest.last should equal("folderReference,folderName,folderType,,data/folder,,,,,,,,,,,,,,,,,,,,,")
+    rest.last should equal("folderReference,folderName,folderType,,data/folder,,,,,,,,,,,,,,,,,,,,,,")
     source.close()
     new File("exporter/src/test/resources/file-metadata.csv").delete()
   }
