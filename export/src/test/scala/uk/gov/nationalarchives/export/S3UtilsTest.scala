@@ -12,6 +12,7 @@ import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.s3.model._
 import Main._
 import MetadataUtils._
+import uk.gov.nationalarchives.`export`.S3Utils.FileOutput
 
 import java.util.UUID
 import scala.jdk.CollectionConverters.ListHasAsScala
@@ -49,8 +50,8 @@ class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with T
     copyObjectRequests.count(_.sourceKey() == s"$consignmentId/$fileIdOne") should equal(1)
     copyObjectRequests.count(_.sourceKey() == s"$consignmentId/$fileIdTwo") should equal(1)
 
-    copyObjectRequests.count(_.destinationKey() == fileIdOne.toString) should equal(1)
-    copyObjectRequests.count(_.destinationKey() == fileIdTwo.toString) should equal(1)
+    copyObjectRequests.count(_.destinationKey().startsWith(fileIdOne.toString)) should equal(1)
+    copyObjectRequests.count(_.destinationKey().startsWith(fileIdTwo.toString)) should equal(1)
   }
 
   "copyFiles" should "return the correct number of files if the initial call to list objects is truncated" in {
@@ -168,7 +169,7 @@ class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with T
 
       when(client.putObject(putObjectRequestCaptor.capture(), any[RequestBody])).thenReturn(PutObjectResponse.builder.build)
 
-      utils.putMetadata(consignmentType, List(fileId), Nil, List(Metadata(UUID.randomUUID(), "Test", "TestValue")), Map.empty).unsafeRunSync()
+      utils.putMetadata(consignmentType, List(FileOutput("", fileId, UUID.randomUUID, None, None)), Nil, List(Metadata(UUID.randomUUID(), "Test", "TestValue")), Map.empty).unsafeRunSync()
 
       putObjectRequestCaptor.getValue.bucket() should equal(bucket)
     }
@@ -186,7 +187,7 @@ class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with T
     utils
       .putMetadata(
         Standard,
-        List(fileId),
+        List(FileOutput("", fileId, UUID.randomUUID, None, None)),
         List(Metadata(fileId, "TestFile", "TestFileValue")),
         List(Metadata(UUID.randomUUID(), "TestConsignment", "TestConsignmentValue")),
         Map.empty
@@ -194,7 +195,7 @@ class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with T
       .unsafeRunSync()
 
     val body = bodyCaptor.getValue.contentStreamProvider().newStream().readAllBytes().map(_.toChar).mkString
-    body should equal("""{"FFID":[],"TestFile":"TestFileValue","TestConsignment":"TestConsignmentValue"}""")
+    body.startsWith("""[{"FFID":[],"TestFile":"TestFileValue","TestConsignment":"TestConsignmentValue","fileId":"""") should equal(true)
   }
 
   "createMetadata" should s"not write metadata if the file is not in the list of file ids" in {
@@ -209,7 +210,7 @@ class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with T
     utils
       .putMetadata(
         Standard,
-        List(fileId),
+        List(FileOutput("", fileId, UUID.randomUUID, None, None)),
         List(Metadata(fileId, "TestFile1", "TestFileValue1"), Metadata(UUID.randomUUID(), "TestFile2", "TestFileValue2")),
         Nil,
         Map.empty
@@ -217,7 +218,7 @@ class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with T
       .unsafeRunSync()
 
     val body = bodyCaptor.getValue.contentStreamProvider().newStream().readAllBytes().map(_.toChar).mkString
-    body should equal("""{"FFID":[],"TestFile1":"TestFileValue1"}""")
+    body.startsWith("""[{"FFID":[],"TestFile1":"TestFileValue1","fileId":"""") should equal(true)
   }
 
   "createMetadata" should s"return an error if there is an error writing to s3" in {
@@ -230,7 +231,7 @@ class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with T
     val response = utils
       .putMetadata(
         Standard,
-        List(fileId),
+        List(FileOutput("", fileId, UUID.randomUUID, None, None)),
         List(Metadata(fileId, "TestFile1", "TestFileValue1")),
         Nil,
         Map.empty
