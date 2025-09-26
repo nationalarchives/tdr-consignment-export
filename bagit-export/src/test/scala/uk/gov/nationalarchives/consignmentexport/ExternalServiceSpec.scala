@@ -195,26 +195,30 @@ class ExternalServiceSpec extends AnyFlatSpec with BeforeAndAfterEach with Befor
                                  name;
                                  value
                                };
-                             ffidMetadata{
-                               software;
-                               softwareVersion;
-                               binarySignatureFileVersion;
-                               containerSignatureFileVersion;
-                               method;
-                               matches{
-                                 extension;
-                                 identificationBasis;
-                                 puid;
-                                 fileExtensionMismatch;
-                                 formatName
+                               ffidMetadata{
+                                 software;
+                                 softwareVersion;
+                                 binarySignatureFileVersion;
+                                 containerSignatureFileVersion;
+                                 method;
+                                 matches{
+                                   extension;
+                                   identificationBasis;
+                                   puid;
+                                   fileExtensionMismatch;
+                                   formatName
+                                 }
+                               };
+                               antivirusMetadata{
+                                 software;
+                                 softwareVersion
                                }
                              };
-                             antivirusMetadata{
-                               software;
-                               softwareVersion
-                             }
-                           };
-                           metadataSchemaLibraryVersion
+                             metadataSchemaLibraryVersion
+                             consignmentMetadata {
+                               propertyName
+                               value
+                             };
                            }
                   }",
                   "variables":{
