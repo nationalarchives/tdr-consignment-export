@@ -2,7 +2,7 @@ package uk.gov.nationalarchives.consignmentexport
 
 import cats.effect.IO
 import com.github.tototoshi.csv.CSVWriter
-import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignment.Files
+import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignment.{ConsignmentMetadata, Files}
 import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignment.Files.FileMetadata
 import uk.gov.nationalarchives.consignmentexport.BagAdditionalFiles.MetadataConfiguration
 import uk.gov.nationalarchives.consignmentexport.Validator.{ValidatedAntivirusMetadata, ValidatedFFIDMetadata}
@@ -21,17 +21,16 @@ class BagAdditionalFiles(rootDirectory: Path, metadataConfig: MetadataConfigurat
     writeToCsv("file-av.csv", header, avMetadataRows)
   }
 
-  def createFileMetadataCsv(files: List[Files]): IO[File] = {
-    val orderedProperties = orderedExportProperties()
-
-    val dataHeaderMapper = metadataConfig.dataHeaderMapper
-
+  def createFileMetadataCsv(consignmentType: ConsignmentType, files: List[Files], consignmentMetadata: List[ConsignmentMetadata]): IO[File] = {
+    val orderedProperties = orderedExportProperties(consignmentType)
+    
     val fileMetadataRows: List[List[String]] = files.map(file => {
       orderedProperties.map(op => {
-        val key = op.key
-        val metadataHeader = dataHeaderMapper(key)
-        val metadata: List[FileMetadata] = file.fileMetadata.filter(_.name == metadataHeader)
-        exportValue(key, metadata)
+        val metadataHeader = metadataConfig.dataHeaderMapper(op.key)
+        val isNotFolder = !file.fileType.contains("Folder")
+        val metadataValue = file.fileMetadata.find(_.name == metadataHeader).map(_.value)
+          .orElse(if (isNotFolder) consignmentMetadata.find(_.propertyName == metadataHeader).map(_.value) else None)
+        exportValue(op.key, metadataValue)
       })
     })
 
@@ -46,25 +45,25 @@ class BagAdditionalFiles(rootDirectory: Path, metadataConfig: MetadataConfigurat
     })
     writeToCsv("file-ffid.csv", header, metadataRows)
   }
-
-  def orderedExportProperties(): List[DownloadFileDisplayProperty] = {
+  
+  def orderedExportProperties(consignmentType: ConsignmentType): List[DownloadFileDisplayProperty] = {
     metadataConfig.exportDisplayProperties
       .filter(dlp => metadataConfig.exportProperties(dlp.key) == "true")
+      .filter(dlp => consignmentType == Judgment || metadataConfig.judgmentProperties(dlp.key) != "true")
       .sortBy(_.columnIndex)
   }
 
-  def exportValue(propertyKey: String, metadata: List[FileMetadata]): String = {
+  def exportValue(propertyKey: String, metadataValue: Option[String]): String = {
     lazy val propertyType = metadataConfig.propertyTypeEvaluator(propertyKey)
     lazy val parseFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd[ ]['T']HH:mm:ss[.SSS][.SS][.S]")
     lazy val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")
-    if (metadata.isEmpty) { "" } else {
-      val metadataValue = metadata.head.value
+    metadataValue.map { mv =>
       propertyKey match {
-        case pk if pk == "file_path" || pk == "original_identifier" => dataPath(metadataValue)
-        case _ if propertyType == "date" => LocalDateTime.parse(metadataValue, parseFormatter).format(formatter)
-        case _ => metadataValue
+        case pk if pk == "file_path" || pk == "original_identifier" => dataPath(mv)
+        case _ if propertyType == "date" => LocalDateTime.parse(mv, parseFormatter).format(formatter)
+        case _ => mv
       }
-    }
+    }.getOrElse("")
   }
 
   private def dataPath(filePath: String): String = s"data/$filePath"
@@ -82,11 +81,12 @@ object BagAdditionalFiles {
   private val config = ConfigUtils.loadConfiguration
   private val propertyTypeEvaluator = config.getPropertyType
   private val exportProperties = config.propertyToOutputMapper("allowExport")
+  private val judgmentProperties = config.propertyToOutputMapper("judgmentOnly")
   private val exportDisplayProperties = config.downloadFileDisplayProperties("BagitExportTemplate")
   private val exportHeaderMapper = config.propertyToOutputMapper("tdrBagitExportHeader")
   private val dataHeaderMapper = config.propertyToOutputMapper("tdrDataLoadHeader")
 
-  private val metadataConfig = MetadataConfiguration(propertyTypeEvaluator, exportDisplayProperties, exportProperties, exportHeaderMapper, dataHeaderMapper)
+  private val metadataConfig = MetadataConfiguration(propertyTypeEvaluator, exportDisplayProperties, exportProperties, judgmentProperties, exportHeaderMapper, dataHeaderMapper)
 
   def apply(rootDirectory: Path): BagAdditionalFiles = new BagAdditionalFiles(rootDirectory, metadataConfig)
 
@@ -94,6 +94,7 @@ object BagAdditionalFiles {
                                     propertyTypeEvaluator: String => String,
                                     exportDisplayProperties: List[DownloadFileDisplayProperty],
                                     exportProperties: String => String,
+                                    judgmentProperties: String => String,
                                     exportHeaderMapper: String => String,
                                     dataHeaderMapper: String => String
                                   )

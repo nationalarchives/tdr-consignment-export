@@ -65,15 +65,15 @@ object Main extends CommandIOApp("tdr-consignment-export", "Exports tdr files in
           consignmentData <- IO.fromEither(validator.validateConsignmentResult(consignmentResult))
           _ <- IO.fromEither(validator.validateConsignmentHasFiles(consignmentData))
           _ <- s3Files.downloadFiles(consignmentData.files, config.s3.cleanBucket, consignmentId, consignmentData.consignmentReference, basePath)
-          bagMetadata <- createBag(consignmentId, consignmentData, exportDatetime, config, basePath)
+          consignmentType = consignmentData.consignmentType.map(ConsignmentType(_)).getOrElse(Standard)
+          bagMetadata <- createBag(consignmentType, consignmentId, consignmentData, exportDatetime, config, basePath)
 
           // The owner and group in the below command have no effect on the file permissions. It just makes tar idempotent
           consignmentReference = consignmentData.consignmentReference
           tarPath = s"$basePath/$consignmentReference.tar.gz"
           _ <- bashCommands.runCommand(s"tar --sort=name --owner=root:0 --group=root:0 --mtime ${java.time.LocalDate.now.toString} -C $basePath -c ./${consignmentData.consignmentReference} | gzip -n > $tarPath")
           _ <- bashCommands.runCommand(s"sha256sum $tarPath > $tarPath.sha256")
-          consignmentType = consignmentData.consignmentType.getOrElse("standard")
-          s3Bucket = if (consignmentType.contains("judgment")) {
+          s3Bucket = if (consignmentType == Judgment) {
             config.s3.outputBucketJudgment
           } else {
             config.s3.outputBucket
@@ -105,7 +105,7 @@ object Main extends CommandIOApp("tdr-consignment-export", "Exports tdr files in
         }
     }
 
-    def createBag(consignmentId: UUID, consignmentData: gce.GetConsignment, exportDatetime: ZonedDateTime, config: Configuration, basePath: String): IO[Metadata] = {
+    def createBag(consignmentType: ConsignmentType, consignmentId: UUID, consignmentData: gce.GetConsignment, exportDatetime: ZonedDateTime, config: Configuration, basePath: String): IO[Metadata] = {
       val bagit = Bagit()
       val keycloakClient = KeycloakClient(config)
       val validator = Validator(consignmentId)
@@ -117,7 +117,7 @@ object Main extends CommandIOApp("tdr-consignment-export", "Exports tdr files in
         checkSumMismatches = ChecksumValidator().findChecksumMismatches(bag, consignmentData.files)
         _ = if (checkSumMismatches.nonEmpty) throw new RuntimeException(s"Checksum mismatch for file(s): ${checkSumMismatches.mkString("\n")}")
         bagAdditionalFiles = BagAdditionalFiles(bag.getRootDir)
-        fileMetadataCsv <- bagAdditionalFiles.createFileMetadataCsv(consignmentData.files)
+        fileMetadataCsv <- bagAdditionalFiles.createFileMetadataCsv(consignmentType, consignmentData.files, consignmentData.consignmentMetadata)
         ffidMetadataCsv <- bagAdditionalFiles.createFfidMetadataCsv(validatedFfidMetadata)
         antivirusCsv <- bagAdditionalFiles.createAntivirusMetadataCsv(validatedAntivirusMetadata)
         checksums <- ChecksumCalculator().calculateChecksums(fileMetadataCsv, ffidMetadataCsv, antivirusCsv)

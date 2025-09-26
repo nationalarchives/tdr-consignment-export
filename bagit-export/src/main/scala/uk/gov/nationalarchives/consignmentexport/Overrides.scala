@@ -4,11 +4,11 @@ import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignme
 import uk.gov.nationalarchives.consignmentexport.Config.ConsignmentTypeOverride
 
 object Overrides {
-  def consignmentTypeMessageOverride(originalConsignmentType: String, consignmentData: GetConsignment, consignmentTypeOverride: ConsignmentTypeOverride): String = {
-    originalConsignmentType.toLowerCase match {
-      case "standard" if
+  def consignmentTypeMessageOverride(originalConsignmentType: ConsignmentType, consignmentData: GetConsignment, consignmentTypeOverride: ConsignmentTypeOverride): String = {
+    originalConsignmentType match {
+      case Standard if
         historicalTribunalTransfer(consignmentTypeOverride, consignmentData) => "historicalTribunal"
-      case _ => originalConsignmentType
+      case _ => originalConsignmentType.name
     }
   }
 
