@@ -172,56 +172,60 @@ class ExternalServiceSpec extends AnyFlatSpec with BeforeAndAfterEach with Befor
   }
 
   private def generateGetConsignmentForExportQuery(consignmentId: String): String = {
-    val query = """query getConsignmentForExport($consignmentId:UUID!){
-                   getConsignment(consignmentid:$consignmentId){
-                     userid
-                     createdDatetime
-                     transferInitiatedDatetime
-                     exportDatetime
-                     consignmentReference
-                     consignmentType
-                     includeTopLevelFolder
-                     seriesName
-                     transferringBodyName
-                     files{
-                       fileId
-                       fileType
-                       fileName
-                       fileReference
-                       parentReference
-                       originalFilePath
-                       fileMetadata{
-                         name
-                         value
-                       }
-                       ffidMetadata{
-                         software
-                         softwareVersion
-                         binarySignatureFileVersion
-                         containerSignatureFileVersion
-                         method
-                         matches{
-                           extension
-                           identificationBasis
-                           puid
-                           fileExtensionMismatch
-                           formatName
-                         }
-                       }
-                       antivirusMetadata{
-                         software
-                         softwareVersion
-                       }
-                     }
-                     metadataSchemaLibraryVersion
-                     consignmentMetadata{
-                       propertyName
-                       value
-                     }
-                   }
-                 }"""
-    val normalizedQuery = query.replaceAll("\\s+", " ").trim
-    s"""{"query":"$normalizedQuery","variables":{"consignmentId":"$consignmentId"}}"""
+    val formattedJsonBody =
+      s"""{"query":"query getConsignmentForExport($$consignmentId:UUID!){
+                           getConsignment(consignmentid:$$consignmentId){
+                             userid;
+                             createdDatetime;
+                             transferInitiatedDatetime;
+                             exportDatetime;
+                             consignmentReference;
+                             consignmentType;
+                             includeTopLevelFolder;
+                             seriesName;
+                             transferringBodyName;
+                             files{
+                               fileId;
+                               fileType;
+                               fileName;
+                               fileReference;
+                               parentReference;
+                               originalFilePath;
+                               fileMetadata{
+                                 name;
+                                 value
+                               };
+                             ffidMetadata{
+                               software;
+                               softwareVersion;
+                               binarySignatureFileVersion;
+                               containerSignatureFileVersion;
+                               method;
+                               matches{
+                                 extension;
+                                 identificationBasis;
+                                 puid;
+                                 fileExtensionMismatch;
+                                 formatName
+                               }
+                             };
+                             antivirusMetadata{
+                               software;
+                               softwareVersion
+                             }
+                           };
+                           metadataSchemaLibraryVersion;
+                           consignmentMetadata {
+                             propertyName;
+                             value;
+                           }
+                           }
+                  }",
+                  "variables":{
+                    "consignmentId":"$consignmentId"
+                  }
+          }"""
+    formattedJsonBody.replaceAll("\n\\s*", "").replaceAll(";", " ")
   }
 
 }
