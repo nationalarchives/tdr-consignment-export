@@ -216,7 +216,7 @@ class ExternalServiceSpec extends AnyFlatSpec with BeforeAndAfterEach with Befor
                              };
                              metadataSchemaLibraryVersion;
                              consignmentMetadata {
-                               propertyName
+                               propertyName;
                                value
                              };
                            }
