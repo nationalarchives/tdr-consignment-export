@@ -76,7 +76,8 @@
             "softwareVersion": "softwareVersion"
           }
         }
-      ]
+      ],
+      "consignmentMetadata": []
     },
     "metadataSchemaLibraryVersion": "1.0.0"
   }
