@@ -28,9 +28,10 @@ class BagAdditionalFiles(rootDirectory: Path, metadataConfig: MetadataConfigurat
       orderedProperties.map(op => {
         val metadataHeader = metadataConfig.dataHeaderMapper(op.key)
         val isNotFolder = !file.fileType.contains("Folder")
-        val metadataValue = file.fileMetadata.find(_.name == metadataHeader).map(_.value)
-          .orElse(if (isNotFolder) consignmentMetadata.find(_.propertyName == metadataHeader).map(_.value) else None)
-        exportValue(op.key, metadataValue)
+        val valueFromFileMetadata = file.fileMetadata.find(_.name == metadataHeader).map(_.value)
+        val fallbackValueFromConsignmentMetadata = 
+          if (isNotFolder) consignmentMetadata.find(_.propertyName == metadataHeader).map(_.value) else None
+        exportValue(op.key, valueFromFileMetadata.orElse(fallbackValueFromConsignmentMetadata))
       })
     })
 
