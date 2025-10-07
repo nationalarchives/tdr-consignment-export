@@ -214,7 +214,11 @@ class ExternalServiceSpec extends AnyFlatSpec with BeforeAndAfterEach with Befor
                                softwareVersion
                              }
                            };
-                           metadataSchemaLibraryVersion
+                           metadataSchemaLibraryVersion;
+                           consignmentMetadata{
+                             propertyName;
+                             value
+                           }
                            }
                   }",
                   "variables":{

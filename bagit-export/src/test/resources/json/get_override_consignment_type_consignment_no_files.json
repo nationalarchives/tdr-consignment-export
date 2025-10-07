@@ -9,7 +9,8 @@
       "consignmentReference": "consignmentReference-1234",
       "consignmentType": "standard",
       "transferringBodyName": "override-body",
-      "files": []
+      "files": [],
+      "consignmentMetadata": []
     }
   }
 }
