@@ -92,7 +92,7 @@ class GraphQlApiSpec extends ExportSpec {
     val originalFilePath = "/originalFilePath".some
     val metadataSchemaLibraryVersion = "Schema-Library-Version-v0.1".some
     val consignment = GetConsignmentExport.getConsignmentForExport.GetConsignment(
-      userId, Some(fixedDate), Some(fixedDate), Some(fixedDate), consignmentRef, Some(consignmentType), None, Some(series), Some(transferringBody), List(Files(fileId, "File".some, "name".some, None, None, originalFilePath, fileMetadata, Option.empty, Option.empty)),metadataSchemaLibraryVersion
+      userId, Some(fixedDate), Some(fixedDate), Some(fixedDate), consignmentRef, Some(consignmentType), None, Some(series), Some(transferringBody), List(Files(fileId, "File".some, "name".some, None, None, originalFilePath, fileMetadata, Option.empty, Option.empty)),metadataSchemaLibraryVersion, List()
     )
 
     doAnswer(() => Future(new BearerAccessToken("token"))).when(keycloak).serviceAccountToken[Identity](any[String], any[String])(

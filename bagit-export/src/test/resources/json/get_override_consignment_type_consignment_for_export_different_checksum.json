@@ -75,7 +75,8 @@
             "softwareVersion": "softwareVersion"
           }
         }
-      ]
+      ],
+      "consignmentMetadata": []
     }
   }
 }

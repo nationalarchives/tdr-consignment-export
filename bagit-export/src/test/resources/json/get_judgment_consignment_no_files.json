@@ -9,7 +9,8 @@
       "consignmentReference": "consignmentReference-1234",
       "consignmentType": "judgment",
       "transferringBodyName": "MOCK1 Department",
-      "files": []
+      "files": [],     
+      "consignmentMetadata": []
     }
   }
 }
