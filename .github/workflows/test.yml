@@ -1,5 +1,6 @@
 name: TDR Run Consignment Export Tests
 on:
+  workflow_dispatch:
   pull_request:
   push:
     branches-ignore:
@@ -10,7 +11,7 @@ permissions:
   contents: read
 jobs:
   test:
-    uses: nationalarchives/tdr-github-actions/.github/workflows/tdr_test.yml@main
+    uses: nationalarchives/tdr-github-actions/.github/workflows/tdr_test.yml@dependency-review-action
     with:
       repo-name: tdr-consignment-export
       test-command: |
