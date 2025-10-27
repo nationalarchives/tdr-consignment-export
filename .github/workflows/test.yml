@@ -8,7 +8,7 @@ on:
       - release-*
 permissions:
   id-token: write
-  contents: write
+  contents: read
 jobs:
   test:
     uses: nationalarchives/tdr-github-actions/.github/workflows/tdr_test.yml@dependency-review-action
