@@ -1,5 +1,6 @@
 queue_rules:
   - name: default
+    batch_size: 1
     conditions:
       - "check-success=test / test"
       - "check-success=security/snyk (nationalarchives)"
