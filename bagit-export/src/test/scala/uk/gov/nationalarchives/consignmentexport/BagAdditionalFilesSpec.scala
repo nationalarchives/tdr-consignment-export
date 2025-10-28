@@ -25,8 +25,7 @@ class BagAdditionalFilesSpec extends ExportSpec {
     propertiesOrder should equal(expectedPropertiesOrder)
   }
 
-  // TODO: Replace `ignore` with `in` on release of press summaries and updates
-  "orderedExportProperties" should "return correctly ordered properties to be included in export for a Judgment transfer" ignore {
+  "orderedExportProperties" should "return correctly ordered properties to be included in export for a Judgment transfer" in {
     val expectedPropertiesOrder: List[String] = List(
       "file_reference","file_name","file_type","file_size","file_path","rights_copyright","legal_status","held_by",
       "date_last_modified","closure_type","closure_start_date","closure_period","foi_exemption_code","foi_exemption_asserted",
@@ -108,8 +107,7 @@ class BagAdditionalFilesSpec extends ExportSpec {
     new File("exporter/src/test/resources/file-metadata.csv").delete()
   }
 
-  // TODO: Replace `ignore` with `in` on release of press summaries and updates
-  "fileMetadataCsv" should "produce a file with the correct rows for a Judgment consignment" ignore {
+  "fileMetadataCsv" should "produce a file with the correct rows for a Judgment consignment" in {
     val bagAdditionalFiles = BagAdditionalFiles(getClass.getResource(".").getPath.toPath)
     val lastModified = LocalDateTime.parse("2021-02-03T10:33:30.414")
     val originalFilePath = "originalFilePath"
