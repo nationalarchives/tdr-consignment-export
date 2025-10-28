@@ -40,7 +40,7 @@ jobs:
           docker tag ${{ secrets.MANAGEMENT_ACCOUNT }}.dkr.ecr.eu-west-2.amazonaws.com/consignment-export:${{ github.event.inputs.to-deploy }} ${{ secrets.MANAGEMENT_ACCOUNT }}.dkr.ecr.eu-west-2.amazonaws.com/consignment-export:${{ github.event.inputs.environment }}
           docker push ${{ secrets.MANAGEMENT_ACCOUNT }}.dkr.ecr.eu-west-2.amazonaws.com/consignment-export:${{ github.event.inputs.environment }}
       - name: Send success message
-        uses: nationalarchives/tdr-github-actions/.github/actions/slack-send@77d3f5c03ca72725da44436301b496b29fd5fbda
+        uses: nationalarchives/tdr-github-actions/.github/actions/slack-send@305d1b677f31b77f35cd4679ebd469857de9e967
         with:
           message: "*consignment-export* :whale: The '${{ github.event.inputs.to-deploy }}' image has been tagged with '${{ github.event.inputs.environment }}' in ECR"
           slack-url: ${{ secrets.SLACK_WEBHOOK }}
