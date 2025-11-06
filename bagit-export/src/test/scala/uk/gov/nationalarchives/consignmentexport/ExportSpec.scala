@@ -63,7 +63,8 @@ abstract class ExportSpec extends AnyFlatSpec with MockitoSugar with Matchers wi
       FileMetadata("ClosureStartDate", lastModified.format(DateTimeFormatter.ISO_DATE_TIME)),
       FileMetadata("ClosureType", "closureType"),
       FileMetadata("RelatedMaterial", "relatedMaterial"),
-      FileMetadata("RestrictionsOnUse", "restrictions on use")
+      FileMetadata("RestrictionsOnUse", "restrictions on use"),
+      FileMetadata("EvidenceProvidedBy", "evidence provided by test")
     )
   }
 }
