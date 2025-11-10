@@ -2,7 +2,7 @@ import Dependencies._
 import ReleaseTransformations._
 import java.io.FileWriter
 
-ThisBuild / scalaVersion := "2.13.16"
+ThisBuild / scalaVersion := "2.13.17"
 ThisBuild / organization := "uk.gov.nationalarchives"
 ThisBuild / organizationName := "The National Archives"
 
