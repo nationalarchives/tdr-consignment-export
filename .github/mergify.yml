@@ -1,8 +1,18 @@
 queue_rules:
   - name: default
-    conditions:
+    batch_size: 1
+    queue_conditions:
+      - author=tna-da-bot
       - "check-success=test / test"
       - "check-success=security/snyk (nationalarchives)"
+    merge_conditions:
+      - author=tna-da-bot
+      - "check-success=test / test"
+      - "check-success=security/snyk (nationalarchives)"
+      - or:
+          - files=build.sbt
+          - files~=^(!?project/)
+          - files=version.sbt
 pull_request_rules:
   - name: automatic merge for Scala Steward
     conditions:
