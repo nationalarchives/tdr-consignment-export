@@ -1,7 +1,11 @@
 queue_rules:
   - name: default
     batch_size: 1
-    conditions:
+    queue_conditions:
+      - author=tna-da-bot
+      - "check-success=test / test"
+      - "check-success=security/snyk (nationalarchives)"
+    merge_conditions:
       - author=tna-da-bot
       - "check-success=test / test"
       - "check-success=security/snyk (nationalarchives)"
