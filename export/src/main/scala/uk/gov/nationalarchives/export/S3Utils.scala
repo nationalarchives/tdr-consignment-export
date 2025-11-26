@@ -85,7 +85,7 @@ class S3Utils(config: Config, s3Client: S3Client) {
       val metadataJson = groupedMetadata
         .get(fileOutput.assetId)
         .map(jsonFromMetadata)
-        .getOrElse(Map.empty) ++ jsonFromMetadata(consignmentMetadata) ++ Map("fileId" -> Json.fromString(fileOutput.fileId.toString))
+        .getOrElse(Map.empty) ++ jsonFromMetadata(consignmentMetadata)
       val ffidObject = JsonObject.fromMap(Map("FFID" -> ffidArray.asJson))
       val allObjects = JsonObject
         .fromMap(metadataJson)

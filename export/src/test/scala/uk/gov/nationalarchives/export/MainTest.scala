@@ -52,7 +52,7 @@ class MainTest extends TestUtils {
         .getOrElse("")
       val jsonReturned = metadataFileWriteBody.split("\n").tail.head.trim
 
-      JsonPath.read[Int](jsonReturned, "$.[0].size()")  shouldEqual 8
+      JsonPath.read[Int](jsonReturned, "$.[0].size()")  shouldEqual 7
       JsonPath.read[String](jsonReturned, "$.[0].PropertyName") shouldEqual "Value"
       JsonPath.read[String](jsonReturned, "$.[0].Series") shouldEqual "Test"
       JsonPath.read[String](jsonReturned, "$.[0].TransferInitiatedDatetime") shouldEqual "2024-08-29 00:00:00"
