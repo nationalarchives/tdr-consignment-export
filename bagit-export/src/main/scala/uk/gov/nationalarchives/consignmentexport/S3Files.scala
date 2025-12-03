@@ -3,6 +3,7 @@ package uk.gov.nationalarchives.consignmentexport
 import cats.effect.IO
 import cats.implicits._
 import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignment.Files
+import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignment.Files.FileMetadata
 import org.typelevel.log4cats.SelfAwareStructuredLogger
 import software.amazon.awssdk.services.s3.model.GetObjectResponse
 import uk.gov.nationalarchives.aws.utils.s3.S3Utils
@@ -39,10 +40,14 @@ class S3Files(s3Utils: S3Utils, config: Configuration)(implicit val logger: Self
     })
   }
 
+  private def retained(metadata: List[FileMetadata]): Boolean = {
+    metadata.exists(_.name == "RetentionType")
+  }
+
   def downloadFiles(files: List[Files], bucket: String, consignmentId: UUID, consignmentReference: String, rootLocation: String): IO[Unit] = {
     for {
       _ <- createDownloadDirectories(files, consignmentReference, rootLocation)
-      _ <- files.filter(!_.isFolder)
+      _ <- files.filter(f => !f.isFolder && !retained(f.fileMetadata))
         .grouped(downloadBatchSize).toSeq.map(batchDownloadingFiles(_, bucket, consignmentId, consignmentReference, rootLocation)).sequence
       _ <- logger.info(s"Files downloaded from S3 for consignment $consignmentId")
     } yield ()

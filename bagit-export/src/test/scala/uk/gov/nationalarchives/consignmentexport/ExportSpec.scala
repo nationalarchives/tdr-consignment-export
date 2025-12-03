@@ -33,7 +33,11 @@ abstract class ExportSpec extends AnyFlatSpec with MockitoSugar with Matchers wi
   def createMetadata(
                       lastModified: LocalDateTime,
                       originalPath: String = "originalPath",
-                      checkSum: String = "clientSideChecksumValue"): List[FileMetadata] = {
+                      checkSum: String = "clientSideChecksumValue",
+                      retentionType: Option[String] = None): List[FileMetadata] = {
+
+    val retained = if (retentionType.nonEmpty) { List(FileMetadata("RetentionType", "someRetentionType"))} else Nil
+
     List(
       FileMetadata("FileReference", "fileReference"),
       FileMetadata("Filename", "fileName"),
@@ -65,6 +69,6 @@ abstract class ExportSpec extends AnyFlatSpec with MockitoSugar with Matchers wi
       FileMetadata("RelatedMaterial", "relatedMaterial"),
       FileMetadata("RestrictionsOnUse", "restrictions on use"),
       FileMetadata("EvidenceProvidedBy", "evidence provided by test")
-    )
+    ) ++ retained
   }
 }

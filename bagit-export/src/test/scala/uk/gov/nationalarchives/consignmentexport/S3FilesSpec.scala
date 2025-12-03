@@ -83,7 +83,7 @@ class S3FilesSpec extends ExportSpec {
     pathCaptor.getValue.get.toString should equal(s"""root/$consignmentReference/a/path'with/quotes"""")
   }
 
-  "the downloadFiles method" should "call the library method for each file" in {
+  "the downloadFiles method" should "call the library method for each file which is not 'retained'" in {
     val s3Utils = mock[S3Utils]
     val bucketCaptor: ArgumentCaptor[String] = ArgumentCaptor.forClass(classOf[String])
     val keyCaptor: ArgumentCaptor[String] = ArgumentCaptor.forClass(classOf[String])
@@ -95,11 +95,14 @@ class S3FilesSpec extends ExportSpec {
     val consignmentReference = "Consignment-Reference"
     val fileId1 = UUID.randomUUID()
     val fileId2 = UUID.randomUUID()
+    val retainedFileId = UUID.randomUUID()
     val fileMetadata = createMetadata(LocalDateTime.now())
+    val retainedFileMetadata = createMetadata(LocalDateTime.now(), retentionType = Some("retained"))
     val metadata1 = File(fileId1, "File".some, "name1".some, None, None, None, fileMetadata, None, None)
     val metadata2 = File(fileId2, "File".some, "name2".some, None, None, None, fileMetadata, None, None)
+    val retainedMetadata = File(retainedFileId, "File".some, "name2".some, None, None, None, retainedFileMetadata, None, None)
 
-    val validatedMetadata = List(metadata1, metadata2)
+    val validatedMetadata = List(metadata1, metadata2, retainedMetadata)
 
     S3Files(s3Utils, config).downloadFiles(validatedMetadata, "testbucket", consignmentId, consignmentReference, "root").unsafeRunSync()
 
