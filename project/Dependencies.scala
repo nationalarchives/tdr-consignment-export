@@ -2,19 +2,19 @@ import sbt._
 
 object Dependencies {
   private val githubPureConfigVersion = "0.17.9"
-  private val keycloakVersion = "26.5.1"
+  private val keycloakVersion = "26.5.2"
   private val log4CatsVersion = "2.7.1"
   private val mockitoScalaVersion = "2.0.0"
   private val monovoreDeclineVersion = "2.5.0"
-  private val awsUtilsVersion = "0.1.315"
+  private val awsUtilsVersion = "0.1.316"
   private val doobieVersion = "1.0.0-RC11"
   private val testContainersVersion = "0.44.1"
 
-  lazy val authUtils = "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.267"
-  lazy val awsRds = "software.amazon.awssdk" % "rds" % "2.41.12"
+  lazy val authUtils = "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.268"
+  lazy val awsRds = "software.amazon.awssdk" % "rds" % "2.41.14"
   lazy val generatedGraphql = "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.447"
   lazy val s3Utils = "uk.gov.nationalarchives" %% "s3-utils" % awsUtilsVersion
-  lazy val stepFunctionUtils = "uk.gov.nationalarchives" %% "stepfunction-utils" % "0.1.315"
+  lazy val stepFunctionUtils = "uk.gov.nationalarchives" %% "stepfunction-utils" % "0.1.316"
   lazy val snsUtils = "uk.gov.nationalarchives" %% "sns-utils" % awsUtilsVersion
   lazy val bagit = "gov.loc" % "bagit" % "5.2.0"
   lazy val catsEffect = "org.typelevel" %% "cats-effect" % "3.6.3"
