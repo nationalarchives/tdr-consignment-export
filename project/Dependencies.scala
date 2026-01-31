@@ -12,7 +12,7 @@ object Dependencies {
 
   lazy val authUtils = "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.270"
   lazy val awsRds = "software.amazon.awssdk" % "rds" % "2.41.19"
-  lazy val generatedGraphql = "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.447"
+  lazy val generatedGraphql = "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.449"
   lazy val s3Utils = "uk.gov.nationalarchives" %% "s3-utils" % awsUtilsVersion
   lazy val stepFunctionUtils = "uk.gov.nationalarchives" %% "stepfunction-utils" % "0.1.317"
   lazy val snsUtils = "uk.gov.nationalarchives" %% "sns-utils" % awsUtilsVersion
