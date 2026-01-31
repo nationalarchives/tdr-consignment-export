@@ -40,5 +40,5 @@ object Dependencies {
   lazy val testContainersPostgres = "com.dimafeng" %% "testcontainers-scala-postgresql" % testContainersVersion
   lazy val wiremock = "org.wiremock" % "wiremock" % "3.13.2"
   lazy val jsonpath = "com.jayway.jsonpath" % "json-path-assert" % "2.10.0"
-  lazy val schemaConfig = "uk.gov.nationalarchives" %% "da-metadata-schema"% "0.0.106"
+  lazy val schemaConfig = "uk.gov.nationalarchives" %% "da-metadata-schema"% "0.0.107"
 }
