@@ -31,7 +31,7 @@ jobs:
           aws-region: eu-west-2
           role-session-name: ECRLogin
       - name: Login to ECR
-        uses: docker/login-action@5e57cd118135c172c3672efd75eb46360885c0ef # v3.6.0
+        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
         with:
           registry: ${{ secrets.MANAGEMENT_ACCOUNT }}.dkr.ecr.eu-west-2.amazonaws.com
       - name: Tag image
@@ -40,7 +40,7 @@ jobs:
           docker tag ${{ secrets.MANAGEMENT_ACCOUNT }}.dkr.ecr.eu-west-2.amazonaws.com/consignment-export:${{ github.event.inputs.to-deploy }} ${{ secrets.MANAGEMENT_ACCOUNT }}.dkr.ecr.eu-west-2.amazonaws.com/consignment-export:${{ github.event.inputs.environment }}
           docker push ${{ secrets.MANAGEMENT_ACCOUNT }}.dkr.ecr.eu-west-2.amazonaws.com/consignment-export:${{ github.event.inputs.environment }}
       - name: Send success message
-        uses: nationalarchives/tdr-github-actions/.github/actions/slack-send@f52edf22c81f568202369a3b31da0277541b0507 # v0.0.11
+        uses: nationalarchives/tdr-github-actions/.github/actions/slack-send@cd362ffa9386c007c816bfd15a25b6f0a3c3b3d6 # v0.0.14
         with:
           message: "*consignment-export* :whale: The '${{ github.event.inputs.to-deploy }}' image has been tagged with '${{ github.event.inputs.environment }}' in ECR"
           slack-url: ${{ secrets.SLACK_WEBHOOK }}
