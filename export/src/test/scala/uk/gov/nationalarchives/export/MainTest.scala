@@ -15,6 +15,36 @@ import scala.jdk.CollectionConverters.ListHasAsScala
 
 class MainTest extends TestUtils {
 
+  "run" should "skip export process when re-run for bagit only" in withContainers {
+    container: PostgreSQLContainer =>
+      val mappedPort = container.mappedPort(5432)
+      val (consignmentId, fileIds, _) = stubExternalServices(mappedPort)
+      Main.run(List("export", "--consignmentId", consignmentId.toString, "--taskToken", "taskToken", "--bagitRerun")).unsafeRunSync()
+
+      val serveEvents = s3Server.getAllServeEvents.asScala
+      val copyCount = serveEvents
+        .count(req => req.getRequest.getMethod == RequestMethod.PUT && req.getRequest.getHeader("x-amz-copy-source") == s"clean/$consignmentId/${fileIds.head}")
+      copyCount should equal(0)
+
+      val snsMessage = snsServer.getAllServeEvents.asScala.toArray.toList
+      snsMessage.isEmpty shouldBe true
+  }
+
+  "run" should "trigger export process when re-run for export process" in withContainers {
+    container: PostgreSQLContainer =>
+      val mappedPort = container.mappedPort(5432)
+      val (consignmentId, fileIds, _) = stubExternalServices(mappedPort)
+      Main.run(List("export", "--consignmentId", consignmentId.toString, "--taskToken", "taskToken", "--exportRerun")).unsafeRunSync()
+
+      val serveEvents = s3Server.getAllServeEvents.asScala
+      val copyCount = serveEvents
+        .count(req => req.getRequest.getMethod == RequestMethod.PUT && req.getRequest.getHeader("x-amz-copy-source") == s"clean/$consignmentId/${fileIds.head}")
+      copyCount should equal(1)
+
+      val snsMessage = snsServer.getAllServeEvents.asScala.toArray.toList
+      snsMessage.isEmpty shouldBe false
+  }
+
   "run" should "copy the files to the output bucket" in withContainers {
     container: PostgreSQLContainer =>
     val mappedPort = container.mappedPort(5432)
