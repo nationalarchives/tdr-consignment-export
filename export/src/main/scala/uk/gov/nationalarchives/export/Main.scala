@@ -27,7 +27,7 @@ object Main extends CommandIOApp("tdr-export", "Exports tdr files with a flat st
   implicit def logger: SelfAwareStructuredLogger[IO] = Slf4jLogger.getLogger[IO]
   implicit def hint[A]: ProductHint[A] = ProductHint[A](ConfigFieldMapping(CamelCase, CamelCase))
 
-  override def main: Opts[IO[ExitCode]] = exportOpts.map { case FileExport(consignmentId, taskToken, bagitRerun) =>
+  override def main: Opts[IO[ExitCode]] = exportOpts.map { case FileExport(consignmentId, taskToken, _, bagitRerun) =>
     def runHeartbeat(stepFunction: StepFunction): IO[Unit] = stepFunction.sendHeartbeat(taskToken) >> IO.sleep(30.seconds) >> runHeartbeat(stepFunction)
 
     val exitCode = if (bagitRerun) {

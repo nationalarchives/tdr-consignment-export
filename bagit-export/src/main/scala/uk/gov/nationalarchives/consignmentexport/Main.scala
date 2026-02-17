@@ -36,7 +36,7 @@ object Main extends CommandIOApp("tdr-consignment-export", "Exports tdr files in
 
   override def main: Opts[IO[ExitCode]] =
     exportOps.map {
-      case FileExport(consignmentId, taskToken, exportRerun) =>
+      case FileExport(consignmentId, taskToken, exportRerun, _) =>
         val exportId = UUID.randomUUID
         val exportFailedErrorMessage = s"Export for consignment $consignmentId failed"
         val stepFunction: StepFunction = StepFunction(StepFunctionUtils(sfnAsyncClient(stepFunctionPublishEndpoint)))

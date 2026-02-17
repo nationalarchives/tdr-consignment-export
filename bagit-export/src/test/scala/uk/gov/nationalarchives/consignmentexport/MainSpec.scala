@@ -37,6 +37,39 @@ class MainSpec extends ExternalServiceSpec {
 
   consignmentTypes.foreach {
     consignmentType =>
+      "the export job" should s"not run bagit export process when re-run for export only for a '${consignmentType.name}' consignment type" in {
+        setUpValidExternalServices(s"get_${consignmentType.nameForFile}consignment_for_export.json")
+
+        val consignmentId = UUID.fromString("50df01e6-2e5e-4269-97e7-531a755b417d")
+        val fileId = "7b19b272-d4d1-4d77-bf25-511dc6489d12"
+
+        putFile(s"$consignmentId/$fileId")
+
+        Main.run(List("export", "--consignmentId", consignmentId.toString, "--taskToken", taskTokenValue, "--exportRerun")).unsafeRunSync()
+        checkStepFunctionPublishNotCalled()
+        val objects = outputBucketObjects()
+
+        objects.size should equal(0)
+      }
+
+      "the export job" should s"run bagit export process when re-run for bagit only for a '${consignmentType.name}' consignment type" in {
+        setUpValidExternalServices(s"get_${consignmentType.nameForFile}consignment_for_export.json")
+
+        val consignmentId = UUID.fromString("50df01e6-2e5e-4269-97e7-531a755b417d")
+        val consignmentRef = "consignmentReference-1234"
+        val fileId = "7b19b272-d4d1-4d77-bf25-511dc6489d12"
+
+        putFile(s"$consignmentId/$fileId")
+
+        Main.run(List("export", "--consignmentId", consignmentId.toString, "--taskToken", taskTokenValue, "--bagitRerun")).unsafeRunSync()
+        checkStepFunctionSuccessCalled(consignmentType.expectedJsonPath)
+        val objects = outputBucketObjects()
+
+        objects.size should equal(2)
+        objects.head should equal(s"$consignmentRef.tar.gz.sha256")
+        objects.last should equal(s"$consignmentRef.tar.gz")
+      }
+
       "the export job" should s"export the correct tar and checksum file to the correct s3 bucket for a '${consignmentType.name}' consignment type" in {
         setUpValidExternalServices(s"get_${consignmentType.nameForFile}consignment_for_export.json")
 
@@ -273,6 +306,10 @@ class MainSpec extends ExternalServiceSpec {
     val expectedRequestBody: String = fromResource(s"json/$expectedJsonRequestFilePath.json").mkString.replaceAll("\n", "")
     val eventRequestBody = wiremockSfnServer.getAllServeEvents.get(0).getRequest.getBodyAsString
     eventRequestBody should equal(expectedRequestBody)
+  }
+
+  private def checkStepFunctionPublishNotCalled() = {
+    wiremockSfnServer.getAllServeEvents.isEmpty shouldBe true
   }
 }
 
