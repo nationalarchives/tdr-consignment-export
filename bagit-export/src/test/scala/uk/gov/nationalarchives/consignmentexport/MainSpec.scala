@@ -45,7 +45,7 @@ class MainSpec extends ExternalServiceSpec {
 
         putFile(s"$consignmentId/$fileId")
 
-        Main.run(List("export", "--consignmentId", consignmentId.toString, "--taskToken", taskTokenValue, "--exportRerun")).unsafeRunSync()
+        Main.run(List("export", "--consignmentId", consignmentId.toString, "--taskToken", taskTokenValue, "--exportRerunOnly", "true")).unsafeRunSync()
         checkStepFunctionPublishNotCalled()
         val objects = outputBucketObjects()
 
@@ -61,7 +61,7 @@ class MainSpec extends ExternalServiceSpec {
 
         putFile(s"$consignmentId/$fileId")
 
-        Main.run(List("export", "--consignmentId", consignmentId.toString, "--taskToken", taskTokenValue, "--bagitRerun")).unsafeRunSync()
+        Main.run(List("export", "--consignmentId", consignmentId.toString, "--taskToken", taskTokenValue, "--rerunBagitOnly", "true")).unsafeRunSync()
         checkStepFunctionSuccessCalled(consignmentType.expectedJsonPath)
         val objects = outputBucketObjects()
 
