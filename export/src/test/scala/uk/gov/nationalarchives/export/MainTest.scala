@@ -19,7 +19,7 @@ class MainTest extends TestUtils {
     container: PostgreSQLContainer =>
       val mappedPort = container.mappedPort(5432)
       val (consignmentId, fileIds, _) = stubExternalServices(mappedPort)
-      Main.run(List("export", "--consignmentId", consignmentId.toString, "--taskToken", "taskToken", "--bagitRerun")).unsafeRunSync()
+      Main.run(List("export", "--consignmentId", consignmentId.toString, "--taskToken", "taskToken", "--rerunBagitOnly", "true")).unsafeRunSync()
 
       val serveEvents = s3Server.getAllServeEvents.asScala
       val copyCount = serveEvents
@@ -34,7 +34,7 @@ class MainTest extends TestUtils {
     container: PostgreSQLContainer =>
       val mappedPort = container.mappedPort(5432)
       val (consignmentId, fileIds, _) = stubExternalServices(mappedPort)
-      Main.run(List("export", "--consignmentId", consignmentId.toString, "--taskToken", "taskToken", "--exportRerun")).unsafeRunSync()
+      Main.run(List("export", "--consignmentId", consignmentId.toString, "--taskToken", "taskToken", "--rerunExportOnly", "true")).unsafeRunSync()
 
       val serveEvents = s3Server.getAllServeEvents.asScala
       val copyCount = serveEvents
@@ -89,7 +89,6 @@ class MainTest extends TestUtils {
       JsonPath.read[String](jsonReturned, "$.[0].ConsignmentReference") shouldEqual consignmentReference
       JsonPath.read[String](jsonReturned, "$.[0].TransferringBody") shouldEqual "Test"
       JsonPath.read[String](jsonReturned, "$.[0].MetadataSchemaLibraryVersion") shouldEqual "Schema-Library-Version-v0.1"
-
   }
 
   "run" should "write the file metadata where it exists" in withContainers {
@@ -107,7 +106,6 @@ class MainTest extends TestUtils {
     JsonPath.read[String](metadataFileWriteBody, "$.[0].FFID[0].puid") shouldEqual "PUID"
     JsonPath.read[Boolean](metadataFileWriteBody, "$.[0].FFID[0].extensionMismatch") shouldEqual true
     JsonPath.read[String](metadataFileWriteBody, "$.[0].FFID[0].formatName") shouldEqual "FormatName"
-
   }
 
   "run" should "return empty values if there are no ffid matches" in withContainers {
@@ -125,7 +123,6 @@ class MainTest extends TestUtils {
     JsonPath.read[Option[String]](metadataFileWriteBody, "$.[0].FFID[0].puid") shouldEqual null
     JsonPath.read[Boolean](metadataFileWriteBody,"$.[0].FFID[0].extensionMismatch") shouldEqual true
     JsonPath.read[Option[String]](metadataFileWriteBody, "$.[0].FFID[0].formatName") shouldEqual null
-
   }
 
   "run" should "write the consignment metadata where it exists" in withContainers {
@@ -143,7 +140,6 @@ class MainTest extends TestUtils {
     JsonPath.read[String](metadataFileWriteBody, "$.[0].ConsignmentReference") shouldEqual consignmentReference
     JsonPath.read[String](metadataFileWriteBody, "$.[0].TransferringBody") shouldEqual "Test"
     JsonPath.read[String](metadataFileWriteBody, "$.[0].MetadataSchemaLibraryVersion") shouldEqual "Schema-Library-Version-v0.1"
-
   }
 
   "run" should "add an OriginalFileReference field if this is a redacted record" in withContainers {
