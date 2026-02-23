@@ -55,7 +55,7 @@ jobs:
         run: |
           gh release create --generate-notes ${{ steps.build.outputs.latest-tag}} bagit-export/target/universal/tdr-consignment-export.tgz export/target/universal/tdr-export.tgz
           gh pr create --fill --label 'Version bump'
-          docker build --pull --no-cache -t ${{ secrets.MANAGEMENT_ACCOUNT }}.dkr.ecr.eu-west-2.amazonaws.com/consignment-export:${{ steps.build.outputs.latest-tag}} .
+          docker buildx build --output=type=docker --provenance=false --sbom=false --pull --no-cache -t ${{ secrets.MANAGEMENT_ACCOUNT }}.dkr.ecr.eu-west-2.amazonaws.com/consignment-export:${{ steps.build.outputs.latest-tag}} .
         env:
           GITHUB_TOKEN: ${{ secrets.WORKFLOW_PAT }}
       - name: Wiz Docker Scan
