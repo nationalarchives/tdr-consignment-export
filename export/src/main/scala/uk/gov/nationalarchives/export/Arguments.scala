@@ -6,13 +6,8 @@ import com.monovore.decline.Opts
 import java.util.UUID
 
 object Arguments {
-  private def toBoolean(booleanString: String): Boolean = {
-    try {
-      booleanString.toBoolean
-    } catch {
-      case _: Throwable => false
-    }
-  }
+  private def toBoolean(booleanString: String): Boolean =
+    scala.util.Try(booleanString.toBoolean).getOrElse(false)
 
   case class FileExport(consignmentId: UUID, taskToken: String, rerunExportOnly: Boolean = false, rerunBagitOnly: Boolean = false)
 
