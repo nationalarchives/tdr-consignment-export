@@ -79,7 +79,6 @@ jobs:
       - name: Wiz image tag
         run: >-
           ./wizcli tag ${{ secrets.MANAGEMENT_ACCOUNT }}.dkr.ecr.eu-west-2.amazonaws.com/consignment-export:${{ steps.build.outputs.latest-tag}}
-          --project ${{ secrets.WIZ_PROJECT_TDR}}
       - name: Send success message
         uses: nationalarchives/tdr-github-actions/.github/actions/slack-send@b6ba669dcee7fd4ac089c2e9fb234c48ddd93ab5 # v0.0.15
         with:
