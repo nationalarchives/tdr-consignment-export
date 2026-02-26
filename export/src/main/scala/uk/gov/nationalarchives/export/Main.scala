@@ -31,8 +31,14 @@ object Main extends CommandIOApp("tdr-export", "Exports tdr files with a flat st
     def runHeartbeat(stepFunction: StepFunction): IO[Unit] = stepFunction.sendHeartbeat(taskToken) >> IO.sleep(30.seconds) >> runHeartbeat(stepFunction)
 
     val exitCode = if (rerunBagitOnly) {
-      logger.info("Skipping export as rerun for bagit export only")
-      IO(ExitCode.Success)
+      for {
+        config <- ConfigSource.default.loadF[IO, Config]
+        stepFunction = StepFunction(StepFunctionUtils(sfnAsyncClient(config.sfn.endpoint)))
+        heartBeat <- runHeartbeat(stepFunction).start
+        _ <- logger.info("Skipping export as rerun for bagit export only")
+        _ <- stepFunction.publishSuccess(taskToken)
+        _ <- heartBeat.cancel
+      } yield ExitCode.Success
     } else for {
       config <- ConfigSource.default.loadF[IO, Config]
       stepFunction = StepFunction(StepFunctionUtils(sfnAsyncClient(config.sfn.endpoint)))

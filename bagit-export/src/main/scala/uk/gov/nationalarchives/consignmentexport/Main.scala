@@ -18,7 +18,7 @@ import uk.gov.nationalarchives.consignmentexport.BuildInfo.version
 import uk.gov.nationalarchives.consignmentexport.Config.{Configuration, config}
 import uk.gov.nationalarchives.consignmentexport.ConsignmentStatus.{StatusType, StatusValue}
 import uk.gov.nationalarchives.consignmentexport.GraphQlApi.backend
-import uk.gov.nationalarchives.consignmentexport.StepFunction.ExportOutput
+import uk.gov.nationalarchives.consignmentexport.StepFunction.{ExportOutput, Rerun, RerunOutput}
 import uk.gov.nationalarchives.tdr.keycloak.TdrKeycloakDeployment
 
 import java.time.{ZoneOffset, ZonedDateTime}
@@ -41,6 +41,8 @@ object Main extends CommandIOApp("tdr-consignment-export", "Exports tdr files in
         val exportFailedErrorMessage = s"Export for consignment $consignmentId failed"
         val stepFunction: StepFunction = StepFunction(StepFunctionUtils(sfnAsyncClient(stepFunctionPublishEndpoint)))
 
+        StepFunction(StepFunctionUtils(sfnAsyncClient(stepFunctionPublishEndpoint)))
+
         def runHeartbeat(): IO[Unit] = stepFunction.sendHeartbeat(taskToken) >> IO.sleep(30 seconds) >> runHeartbeat()
 
         def configure(): IO[(Configuration, String)] = for {
@@ -50,8 +52,12 @@ object Main extends CommandIOApp("tdr-consignment-export", "Exports tdr files in
         } yield (config, basePath)
 
         val exitCode = if (rerunExportOnly) {
-          logger.info("Skipping bagit export as rerun for export only")
-          IO(ExitCode.Success)
+          for {
+            heartbeat <- runHeartbeat().start
+            _ <- logger.info("Skipping bagit export as rerun for export only")
+            _ <- stepFunction.publishRerun(taskToken, RerunOutput(exportOnly = true))
+            _ <- heartbeat.cancel
+          } yield ExitCode.Success
         } else for {
           heartbeat <- runHeartbeat().start
           configuration <- configure()

@@ -6,7 +6,7 @@ import io.circe.syntax._
 import org.typelevel.log4cats.SelfAwareStructuredLogger
 import software.amazon.awssdk.services.sfn.model.{SendTaskFailureResponse, SendTaskSuccessResponse}
 import uk.gov.nationalarchives.aws.utils.stepfunction.StepFunctionUtils
-import uk.gov.nationalarchives.consignmentexport.StepFunction.ExportOutput
+import uk.gov.nationalarchives.consignmentexport.StepFunction.{ExportOutput, RerunOutput}
 
 import java.util.UUID
 
@@ -14,6 +14,10 @@ class StepFunction(stepFunctionUtils: StepFunctionUtils)(implicit val logger: Se
 
   def publishSuccess(taskToken: String, exportOutput: ExportOutput): IO[SendTaskSuccessResponse] =
     stepFunctionUtils.sendTaskSuccessRequest(taskToken, exportOutput.asJson)
+
+  def publishRerun(taskToken: String, rerunOutput: RerunOutput): IO[SendTaskSuccessResponse] = {
+    stepFunctionUtils.sendTaskSuccessRequest(taskToken, rerunOutput.asJson)
+  }
 
   def publishFailure(taskToken: String, cause: String): IO[SendTaskFailureResponse] =
     stepFunctionUtils.sendTaskFailureRequest(taskToken, cause)
@@ -31,4 +35,5 @@ object StepFunction {
            (implicit logger: SelfAwareStructuredLogger[IO]): StepFunction = new StepFunction(stepFunctionUtils)(logger)
 
   case class ExportOutput(userId: UUID, consignmentReference: String, transferringBodyName: String, series: String, consignmentType: String, exportBucket: String)
+  case class RerunOutput(bagitOnly: Boolean = false, exportOnly: Boolean)
 }
