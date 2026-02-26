@@ -1,25 +1,20 @@
 package uk.gov.nationalarchives.consignmentexport
 
-import cats.implicits.catsSyntaxTuple4Semigroupal
+import cats.implicits.catsSyntaxTuple2Semigroupal
 import com.monovore.decline.Opts
 
 import java.util.UUID
 
 object Arguments {
-  private def toBoolean(booleanString: String): Boolean =
-    scala.util.Try(booleanString.toBoolean).getOrElse(false)
-
-  case class FileExport(consignmentId: UUID, taskToken: String, rerunExportOnly: Boolean, rerunBagitOnly: Boolean)
+  case class FileExport(consignmentId: UUID, taskToken: String)
 
   val consignmentId: Opts[UUID] = Opts.option[UUID]("consignmentId", "The id for the consignment")
   val taskToken: Opts[String] = Opts.option[String]("taskToken", "The task token passed to ECS task from the step function")
-  val rerunExportOnly: Opts[String] = Opts.option[String]("rerunExportOnly", "Whether an export rerun").withDefault("false")
-  val rerunBagitOnly: Opts[String] = Opts.option[String]("rerunBagitOnly", "Whether a bagit rerun").withDefault("false")
 
   val exportOps: Opts[FileExport] =
     Opts.subcommand("export", "Creates a bagit package") {
-      (consignmentId, taskToken, rerunExportOnly, rerunBagitOnly) mapN {
-        (ci, tt, rre, rrb) => FileExport(ci, tt, toBoolean(rre), toBoolean(rrb))
+      (consignmentId, taskToken) mapN {
+        (ci, tt) => FileExport(ci, tt)
       }
     }
 }

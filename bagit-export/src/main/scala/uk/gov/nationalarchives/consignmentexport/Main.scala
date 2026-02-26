@@ -36,7 +36,7 @@ object Main extends CommandIOApp("tdr-consignment-export", "Exports tdr files in
 
   override def main: Opts[IO[ExitCode]] =
     exportOps.map {
-      case FileExport(consignmentId, taskToken, rerunExportOnly, _) =>
+      case FileExport(consignmentId, taskToken) =>
         val exportId = UUID.randomUUID
         val exportFailedErrorMessage = s"Export for consignment $consignmentId failed"
         val stepFunction: StepFunction = StepFunction(StepFunctionUtils(sfnAsyncClient(stepFunctionPublishEndpoint)))
@@ -49,10 +49,7 @@ object Main extends CommandIOApp("tdr-consignment-export", "Exports tdr files in
           basePath = s"$rootLocation/$exportId"
         } yield (config, basePath)
 
-        val exitCode = if (rerunExportOnly) {
-          logger.info("Skipping bagit export as rerun for export only")
-          IO(ExitCode.Success)
-        } else for {
+        val exitCode = for {
           heartbeat <- runHeartbeat().start
           configuration <- configure()
           (config, basePath) = configuration
