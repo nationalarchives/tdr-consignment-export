@@ -27,13 +27,10 @@ object Main extends CommandIOApp("tdr-export", "Exports tdr files with a flat st
   implicit def logger: SelfAwareStructuredLogger[IO] = Slf4jLogger.getLogger[IO]
   implicit def hint[A]: ProductHint[A] = ProductHint[A](ConfigFieldMapping(CamelCase, CamelCase))
 
-  override def main: Opts[IO[ExitCode]] = exportOpts.map { case FileExport(consignmentId, taskToken, _, rerunBagitOnly) =>
+  override def main: Opts[IO[ExitCode]] = exportOpts.map { case FileExport(consignmentId, taskToken) =>
     def runHeartbeat(stepFunction: StepFunction): IO[Unit] = stepFunction.sendHeartbeat(taskToken) >> IO.sleep(30.seconds) >> runHeartbeat(stepFunction)
 
-    val exitCode = if (rerunBagitOnly) {
-      logger.info("Skipping export as rerun for bagit export only")
-      IO(ExitCode.Success)
-    } else for {
+    val exitCode = for {
       config <- ConfigSource.default.loadF[IO, Config]
       stepFunction = StepFunction(StepFunctionUtils(sfnAsyncClient(config.sfn.endpoint)))
       s3Utils = S3Utils(config, s3(config.s3.endpoint))
