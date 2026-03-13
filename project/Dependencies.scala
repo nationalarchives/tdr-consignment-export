@@ -6,7 +6,7 @@ object Dependencies {
   private val log4CatsVersion = "2.8.0"
   private val mockitoScalaVersion = "2.1.0"
   private val monovoreDeclineVersion = "2.6.0"
-  private val awsUtilsVersion = "0.1.318"
+  private val awsUtilsVersion = "0.1.319"
   private val doobieVersion = "1.0.0-RC12"
   private val testContainersVersion = "0.44.1"
 
