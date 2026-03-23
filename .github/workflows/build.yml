@@ -12,10 +12,13 @@ env:
 jobs:
   pre-deploy:
     runs-on: ubuntu-latest
+    env:
+      WIZ_CLIENT_ID: ${{ secrets.WIZ_CLIENT_ID }}
+      WIZ_CLIENT_SECRET: ${{ secrets.WIZ_CLIENT_SECRET }}
     if: ${{ github.base_ref == 'master' && github.event.pull_request.merged == true && !contains(github.event.pull_request.labels.*.name, 'Version bump') }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - uses: sbt/setup-sbt@ae54f7cfe46ec0d24ade661d77f007360ab48bda # v1.1.16
+      - uses: sbt/setup-sbt@1cad58d595b729a71ca2254cdf5b43dd6f42d4bb # v1.1.18
       - name: Import GPG key
         uses: crazy-max/ghaction-import-gpg@e89d40939c28e39f97cf32126055eeae86ba74ec # v6.3.0
         with:
@@ -33,7 +36,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.WORKFLOW_PAT }}
       - name: Configure AWS credentials from management account
-        uses: aws-actions/configure-aws-credentials@61815dcd50bd041e203e49132bacad1fd04d2708 # v5.1.1
+        uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
         with:
           role-to-assume: arn:aws:iam::${{ secrets.MANAGEMENT_ACCOUNT }}:role/TDRGithubActionsRoleMgmt
           aws-region: eu-west-2
@@ -44,34 +47,42 @@ jobs:
           registry: ${{ secrets.MANAGEMENT_ACCOUNT }}.dkr.ecr.eu-west-2.amazonaws.com
       - name: Download Wiz CLI
         run: |
-          curl -o wizcli https://wizcli.app.wiz.io/wizcli
+          curl -Lo wizcli https://downloads.wiz.io/v1/wizcli/latest/wizcli-linux-amd64
+          curl -Lo /tmp/wizcli-sha256 https://downloads.wiz.io/v1/wizcli/latest/wizcli-linux-amd64-sha256
+          curl -Lo /tmp/wizcli-sha256.sig https://downloads.wiz.io/v1/wizcli/latest/wizcli-linux-amd64-sha256.sig
           chmod +x wizcli
-      - name: Authenticate to Wiz API
+      - name: Verify Wiz CLI signature
         run: |
-          ./wizcli auth --id ${{ secrets.WIZ_CLIENT_ID }} --secret ${{ secrets.WIZ_CLIENT_SECRET }}
-      - name: Run wiz CLI IaC scan
-        run: ./wizcli iac scan --path . --name tdr-consignment-export-${{github.run_number}} --project ${{ secrets.WIZ_PROJECT_TDR}}
+          curl -Lo public_key.asc https://downloads.wiz.io/wizcli/public_key.asc
+          gpg --import public_key.asc
+          gpg --verify /tmp/wizcli-sha256.sig /tmp/wizcli-sha256
+          echo "$(cat /tmp/wizcli-sha256) wizcli" | sha256sum --check
+      - name: Run Wiz CLI directory scan
+        run: >-
+          ./wizcli scan dir .
+          --name tdr-consignment-export-${{github.run_number}} --project ${{ secrets.WIZ_PROJECT_TDR}}
       - name: Build image
         run: |
           gh release create --generate-notes ${{ steps.build.outputs.latest-tag}} bagit-export/target/universal/tdr-consignment-export.tgz export/target/universal/tdr-export.tgz
           gh pr create --fill --label 'Version bump'
-          docker build --pull --no-cache -t ${{ secrets.MANAGEMENT_ACCOUNT }}.dkr.ecr.eu-west-2.amazonaws.com/consignment-export:${{ steps.build.outputs.latest-tag}} .
+          docker buildx build --output=type=docker --provenance=false --sbom=false --pull --no-cache -t ${{ secrets.MANAGEMENT_ACCOUNT }}.dkr.ecr.eu-west-2.amazonaws.com/consignment-export:${{ steps.build.outputs.latest-tag}} .
         env:
           GITHUB_TOKEN: ${{ secrets.WORKFLOW_PAT }}
-      - name: Wiz Docker Scan
-        run: |
-          ./wizcli docker scan --image ${{ secrets.MANAGEMENT_ACCOUNT }}.dkr.ecr.eu-west-2.amazonaws.com/consignment-export:${{ steps.build.outputs.latest-tag }} --project ${{ secrets.WIZ_PROJECT_TDR}}
+      - name: Wiz Container Image Scan
+        run: >-
+          ./wizcli scan container-image ${{ secrets.MANAGEMENT_ACCOUNT }}.dkr.ecr.eu-west-2.amazonaws.com/consignment-export:${{ steps.build.outputs.latest-tag }}
+          --project ${{ secrets.WIZ_PROJECT_TDR}}
       - name: Push image to ECR
         run: |
           docker push ${{ secrets.MANAGEMENT_ACCOUNT }}.dkr.ecr.eu-west-2.amazonaws.com/consignment-export:${{ steps.build.outputs.latest-tag}}
           gh workflow run deploy.yml -f environment=intg -f to-deploy=${{ steps.build.outputs.latest-tag}}
         env:
           GITHUB_TOKEN: ${{ secrets.WORKFLOW_PAT }}
-      - name: Wiz Docker Tag
-        run: |
-          ./wizcli docker tag --image ${{ secrets.MANAGEMENT_ACCOUNT }}.dkr.ecr.eu-west-2.amazonaws.com/consignment-export:${{ steps.build.outputs.latest-tag}}
+      - name: Wiz image tag
+        run: >-
+          ./wizcli tag ${{ secrets.MANAGEMENT_ACCOUNT }}.dkr.ecr.eu-west-2.amazonaws.com/consignment-export:${{ steps.build.outputs.latest-tag}}
       - name: Send success message
-        uses: nationalarchives/tdr-github-actions/.github/actions/slack-send@cd362ffa9386c007c816bfd15a25b6f0a3c3b3d6 # v0.0.14
+        uses: nationalarchives/tdr-github-actions/.github/actions/slack-send@63eaeb7a4c65080f2a36ac88693fce04005c5a98 # v0.0.16
         with:
           message: "*Consignment Export* :whale: Pushed version ${{ steps.build.outputs.latest-tag}} to AWS ECR"
           slack-url: ${{ secrets.SLACK_WEBHOOK }}

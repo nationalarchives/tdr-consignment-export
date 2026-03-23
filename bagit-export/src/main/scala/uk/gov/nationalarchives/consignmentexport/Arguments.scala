@@ -1,9 +1,9 @@
 package uk.gov.nationalarchives.consignmentexport
 
-import java.util.UUID
-
 import cats.implicits.catsSyntaxTuple2Semigroupal
 import com.monovore.decline.Opts
+
+import java.util.UUID
 
 object Arguments {
   case class FileExport(consignmentId: UUID, taskToken: String)
