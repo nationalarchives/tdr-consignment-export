@@ -4,23 +4,26 @@ on:
   pull_request:
     types:
       - closed
-permissions:
-  id-token: write
-  contents: write
+permissions: {}
 env:
   BRANCH_NAME: version-bump-${{ github.run_id }}${{ github.run_attempt }}
 jobs:
   pre-deploy:
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: write
     env:
       WIZ_CLIENT_ID: ${{ secrets.WIZ_CLIENT_ID }}
       WIZ_CLIENT_SECRET: ${{ secrets.WIZ_CLIENT_SECRET }}
     if: ${{ github.base_ref == 'master' && github.event.pull_request.merged == true && !contains(github.event.pull_request.labels.*.name, 'Version bump') }}
     steps:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
-      - uses: sbt/setup-sbt@1cad58d595b729a71ca2254cdf5b43dd6f42d4bb # v1.1.18
+        with:
+          persist-credentials: false
+      - uses: sbt/setup-sbt@508b753e53cb6095967669e0911487d2b9bc9f41 # v1.1.22
       - name: Import GPG key
-        uses: crazy-max/ghaction-import-gpg@e89d40939c28e39f97cf32126055eeae86ba74ec # v6.3.0
+        uses: crazy-max/ghaction-import-gpg@2dc316deee8e90f13e1a351ab510b4d5bc0c82cd # v7.0.0
         with:
           git_user_signingkey: true
           git_commit_gpgsign: true
@@ -36,13 +39,13 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.WORKFLOW_PAT }}
       - name: Configure AWS credentials from management account
-        uses: aws-actions/configure-aws-credentials@8df5847569e6427dd6c4fb1cf565c83acfa8afa7 # v6.0.0
+        uses: aws-actions/configure-aws-credentials@ec61189d14ec14c8efccab744f656cffd0e33f37 # v6.1.0
         with:
           role-to-assume: arn:aws:iam::${{ secrets.MANAGEMENT_ACCOUNT }}:role/TDRGithubActionsRoleMgmt
           aws-region: eu-west-2
           role-session-name: ExportPushImages
       - name: Login to ECR
-        uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9 # v3.7.0
+        uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4.1.0
         with:
           registry: ${{ secrets.MANAGEMENT_ACCOUNT }}.dkr.ecr.eu-west-2.amazonaws.com
       - name: Download Wiz CLI
@@ -58,31 +61,44 @@ jobs:
           gpg --verify /tmp/wizcli-sha256.sig /tmp/wizcli-sha256
           echo "$(cat /tmp/wizcli-sha256) wizcli" | sha256sum --check
       - name: Run Wiz CLI directory scan
+        env:
+          WIZ_PROJECT: ${{ secrets.WIZ_PROJECT_TDR }}
         run: >-
           ./wizcli scan dir .
-          --name tdr-consignment-export-${{github.run_number}} --project ${{ secrets.WIZ_PROJECT_TDR}}
+          --name tdr-consignment-export-${{ github.run_number }} --project $WIZ_PROJECT
       - name: Build image
+        env:
+          GITHUB_TOKEN: ${{ secrets.WORKFLOW_PAT }}
+          LATEST_TAG: ${{ steps.build.outputs.latest-tag }}
+          MANAGEMENT_ACCOUNT: ${{ secrets.MANAGEMENT_ACCOUNT }}
         run: |
-          gh release create --generate-notes ${{ steps.build.outputs.latest-tag}} bagit-export/target/universal/tdr-consignment-export.tgz export/target/universal/tdr-export.tgz
+          gh release create --generate-notes $LATEST_TAG bagit-export/target/universal/tdr-consignment-export.tgz export/target/universal/tdr-export.tgz
           gh pr create --fill --label 'Version bump'
-          docker buildx build --output=type=docker --provenance=false --sbom=false --pull --no-cache -t ${{ secrets.MANAGEMENT_ACCOUNT }}.dkr.ecr.eu-west-2.amazonaws.com/consignment-export:${{ steps.build.outputs.latest-tag}} .
-        env:
-          GITHUB_TOKEN: ${{ secrets.WORKFLOW_PAT }}
+          docker buildx build --output=type=docker --provenance=false --sbom=false --pull --no-cache -t $MANAGEMENT_ACCOUNT.dkr.ecr.eu-west-2.amazonaws.com/consignment-export:$LATEST_TAG .
       - name: Wiz Container Image Scan
+        env:
+          LATEST_TAG: ${{ steps.build.outputs.latest-tag }}
+          MANAGEMENT_ACCOUNT: ${{ secrets.MANAGEMENT_ACCOUNT }}
+          WIZ_PROJECT: ${{ secrets.WIZ_PROJECT_TDR }}
         run: >-
-          ./wizcli scan container-image ${{ secrets.MANAGEMENT_ACCOUNT }}.dkr.ecr.eu-west-2.amazonaws.com/consignment-export:${{ steps.build.outputs.latest-tag }}
-          --project ${{ secrets.WIZ_PROJECT_TDR}}
+          ./wizcli scan container-image $MANAGEMENT_ACCOUNT.dkr.ecr.eu-west-2.amazonaws.com/consignment-export:$LATEST_TAG
+          --project $WIZ_PROJECT
       - name: Push image to ECR
-        run: |
-          docker push ${{ secrets.MANAGEMENT_ACCOUNT }}.dkr.ecr.eu-west-2.amazonaws.com/consignment-export:${{ steps.build.outputs.latest-tag}}
-          gh workflow run deploy.yml -f environment=intg -f to-deploy=${{ steps.build.outputs.latest-tag}}
         env:
           GITHUB_TOKEN: ${{ secrets.WORKFLOW_PAT }}
+          LATEST_TAG: ${{ steps.build.outputs.latest-tag }}
+          MANAGEMENT_ACCOUNT: ${{ secrets.MANAGEMENT_ACCOUNT }}
+        run: |
+          docker push $MANAGEMENT_ACCOUNT.dkr.ecr.eu-west-2.amazonaws.com/consignment-export:$LATEST_TAG
+          gh workflow run deploy.yml -f environment=intg -f to-deploy=$LATEST_TAG
       - name: Wiz image tag
+        env:
+          LATEST_TAG: ${{ steps.build.outputs.latest-tag }}
+          MANAGEMENT_ACCOUNT: ${{ secrets.MANAGEMENT_ACCOUNT }}
         run: >-
-          ./wizcli tag ${{ secrets.MANAGEMENT_ACCOUNT }}.dkr.ecr.eu-west-2.amazonaws.com/consignment-export:${{ steps.build.outputs.latest-tag}}
+          ./wizcli tag $MANAGEMENT_ACCOUNT.dkr.ecr.eu-west-2.amazonaws.com/consignment-export:$LATEST_TAG
       - name: Send success message
-        uses: nationalarchives/tdr-github-actions/.github/actions/slack-send@63eaeb7a4c65080f2a36ac88693fce04005c5a98 # v0.0.16
+        uses: nationalarchives/tdr-github-actions/.github/actions/slack-send@683912c0ebb8d5d6edd15a222677395e95d12ce0 # v0.0.24
         with:
           message: "*Consignment Export* :whale: Pushed version ${{ steps.build.outputs.latest-tag}} to AWS ECR"
           slack-url: ${{ secrets.SLACK_WEBHOOK }}
