@@ -61,29 +61,42 @@ jobs:
           gpg --verify /tmp/wizcli-sha256.sig /tmp/wizcli-sha256
           echo "$(cat /tmp/wizcli-sha256) wizcli" | sha256sum --check
       - name: Run Wiz CLI directory scan
+        env:
+          WIZ_PROJECT: ${{ secrets.WIZ_PROJECT_TDR }}
         run: >-
           ./wizcli scan dir .
-          --name tdr-consignment-export-${{github.run_number}} --project ${{ secrets.WIZ_PROJECT_TDR}}
+          --name tdr-consignment-export-${{ github.run_number }} --project $WIZ_PROJECT
       - name: Build image
+        env:
+          GITHUB_TOKEN: ${{ secrets.WORKFLOW_PAT }}
+          LATEST_TAG: ${{ steps.build.outputs.latest-tag }}
+          MANAGEMENT_ACCOUNT: ${{ secrets.MANAGEMENT_ACCOUNT }}
         run: |
-          gh release create --generate-notes ${{ steps.build.outputs.latest-tag}} bagit-export/target/universal/tdr-consignment-export.tgz export/target/universal/tdr-export.tgz
+          gh release create --generate-notes $LATEST_TAG bagit-export/target/universal/tdr-consignment-export.tgz export/target/universal/tdr-export.tgz
           gh pr create --fill --label 'Version bump'
-          docker buildx build --output=type=docker --provenance=false --sbom=false --pull --no-cache -t ${{ secrets.MANAGEMENT_ACCOUNT }}.dkr.ecr.eu-west-2.amazonaws.com/consignment-export:${{ steps.build.outputs.latest-tag}} .
-        env:
-          GITHUB_TOKEN: ${{ secrets.WORKFLOW_PAT }}
+          docker buildx build --output=type=docker --provenance=false --sbom=false --pull --no-cache -t $MANAGEMENT_ACCOUNT.dkr.ecr.eu-west-2.amazonaws.com/consignment-export:$LATEST_TAG .
       - name: Wiz Container Image Scan
+        env:
+          LATEST_TAG: ${{ steps.build.outputs.latest-tag }}
+          MANAGEMENT_ACCOUNT: ${{ secrets.MANAGEMENT_ACCOUNT }}
+          WIZ_PROJECT: ${{ secrets.WIZ_PROJECT_TDR }}
         run: >-
-          ./wizcli scan container-image ${{ secrets.MANAGEMENT_ACCOUNT }}.dkr.ecr.eu-west-2.amazonaws.com/consignment-export:${{ steps.build.outputs.latest-tag }}
-          --project ${{ secrets.WIZ_PROJECT_TDR}}
+          ./wizcli scan container-image $MANAGEMENT_ACCOUNT.dkr.ecr.eu-west-2.amazonaws.com/consignment-export:$LATEST_TAG
+          --project $WIZ_PROJECT
       - name: Push image to ECR
-        run: |
-          docker push ${{ secrets.MANAGEMENT_ACCOUNT }}.dkr.ecr.eu-west-2.amazonaws.com/consignment-export:${{ steps.build.outputs.latest-tag}}
-          gh workflow run deploy.yml -f environment=intg -f to-deploy=${{ steps.build.outputs.latest-tag}}
         env:
           GITHUB_TOKEN: ${{ secrets.WORKFLOW_PAT }}
+          LATEST_TAG: ${{ steps.build.outputs.latest-tag }}
+          MANAGEMENT_ACCOUNT: ${{ secrets.MANAGEMENT_ACCOUNT }}
+        run: |
+          docker push $MANAGEMENT_ACCOUNT.dkr.ecr.eu-west-2.amazonaws.com/consignment-export:$LATEST_TAG
+          gh workflow run deploy.yml -f environment=intg -f to-deploy=$LATEST_TAG
       - name: Wiz image tag
+        env:
+          LATEST_TAG: ${{ steps.build.outputs.latest-tag }}
+          MANAGEMENT_ACCOUNT: ${{ secrets.MANAGEMENT_ACCOUNT }}
         run: >-
-          ./wizcli tag ${{ secrets.MANAGEMENT_ACCOUNT }}.dkr.ecr.eu-west-2.amazonaws.com/consignment-export:${{ steps.build.outputs.latest-tag}}
+          ./wizcli tag $MANAGEMENT_ACCOUNT.dkr.ecr.eu-west-2.amazonaws.com/consignment-export:$LATEST_TAG
       - name: Send success message
         uses: nationalarchives/tdr-github-actions/.github/actions/slack-send@683912c0ebb8d5d6edd15a222677395e95d12ce0 # v0.0.24
         with:
