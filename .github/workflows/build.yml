@@ -98,7 +98,7 @@ jobs:
         run: >-
           ./wizcli tag $MANAGEMENT_ACCOUNT.dkr.ecr.eu-west-2.amazonaws.com/consignment-export:$LATEST_TAG
       - name: Send success message
-        uses: nationalarchives/tdr-github-actions/.github/actions/slack-send@683912c0ebb8d5d6edd15a222677395e95d12ce0 # v0.0.24
+        uses: nationalarchives/tdr-github-actions/.github/actions/slack-send@27efbc03aaaa9696eea85ab7a9363d6f92733471 # v0.0.34
         with:
           message: "*Consignment Export* :whale: Pushed version ${{ steps.build.outputs.latest-tag}} to AWS ECR"
           slack-url: ${{ secrets.SLACK_WEBHOOK }}
