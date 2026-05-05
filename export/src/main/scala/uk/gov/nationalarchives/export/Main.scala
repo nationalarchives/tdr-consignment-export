@@ -15,6 +15,7 @@ import uk.gov.nationalarchives.aws.utils.stepfunction.StepFunctionClients.sfnAsy
 import uk.gov.nationalarchives.aws.utils.stepfunction.StepFunctionUtils
 import uk.gov.nationalarchives.consignmentexport.BuildInfo.version
 
+import java.util.UUID
 import scala.concurrent.duration._
 
 object Main extends CommandIOApp("tdr-export", "Exports tdr files with a flat structure", version = version) {
@@ -39,8 +40,9 @@ object Main extends CommandIOApp("tdr-export", "Exports tdr files with a flat st
       metadataUtils <- MetadataUtils(config)
       consignmentType <- metadataUtils.getConsignmentType(consignmentId)
       consignmentMetadata <- metadataUtils.getConsignmentMetadata(consignmentId)
-      fileOutputs <- s3Utils.copyFiles(consignmentId, consignmentType, consignmentMetadata)
       fileMetadata <- metadataUtils.getFileMetadata(consignmentId)
+      fileToAssetId = Map[UUID, UUID]() //get mapping between asset id / file ids from fileMetadata
+      fileOutputs <- s3Utils.copyFiles(consignmentId, consignmentType, consignmentMetadata, fileToAssetId)
       _ <- IO.raiseWhen(fileMetadata.isEmpty)(new RuntimeException(s"Metadata for consignment $consignmentId is missing"))
       ffidMetadata <- metadataUtils.getFFIDMetadata(consignmentId)
       _ <- s3Utils.putMetadata(consignmentType, fileOutputs, fileMetadata, consignmentMetadata, ffidMetadata)

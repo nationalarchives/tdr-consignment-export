@@ -36,7 +36,7 @@ class S3Utils(config: Config, s3Client: S3Client) {
     }
   }
 
-  def copyFiles(consignmentId: UUID, consignmentType: ConsignmentType, consignmentMetadata: List[Metadata]): IO[List[FileOutput]] = IO.blocking {
+  def copyFiles(consignmentId: UUID, consignmentType: ConsignmentType, consignmentMetadata: List[Metadata], fileIdToAsset: Map[UUID, UUID]): IO[List[FileOutput]] = IO.blocking {
     val destinationBucket = consignmentType match {
       case Judgment => config.s3.outputBucketJudgment
       case Standard => config.s3.outputBucket
@@ -45,8 +45,8 @@ class S3Utils(config: Config, s3Client: S3Client) {
     getAllObjects(s"$consignmentId/")
       .map { s3Object =>
         val key = s3Object.key
-        val fileId = UUID.randomUUID()
-        val assetId = key.split("/").last
+        val fileId = UUID.fromString(key.split("/").last)
+        val assetId = fileIdToAsset(fileId)
         val destinationKey = s"$assetId/$fileId"
         val copyRequest = CopyObjectRequest
           .builder()
@@ -60,7 +60,7 @@ class S3Utils(config: Config, s3Client: S3Client) {
         s3Client.copyObject(copyRequest)
         val series = consignmentMetadata.find(_.propertyName == "Series").map(_.value)
         val body = consignmentMetadata.find(_.propertyName == "TransferringBody").map(_.value)
-        FileOutput(destinationBucket, UUID.fromString(assetId), fileId, body, series)
+        FileOutput(destinationBucket, assetId, fileId, body, series)
       }
   }
 
