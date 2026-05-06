@@ -6,7 +6,7 @@ import io.circe.syntax._
 import io.circe.{Json, JsonObject}
 import software.amazon.awssdk.core.sync.RequestBody
 import software.amazon.awssdk.services.s3.S3Client
-import software.amazon.awssdk.services.s3.model.{CopyObjectRequest, ListObjectsV2Request, PutObjectRequest, S3Object, Tagging, TaggingDirective}
+import software.amazon.awssdk.services.s3.model.{CopyObjectRequest, ListObjectsV2Request, PutObjectRequest, S3Object, Tag, Tagging, TaggingDirective}
 import uk.gov.nationalarchives.`export`.Main.Config
 import uk.gov.nationalarchives.`export`.MetadataUtils.{ConsignmentType, Judgment, Metadata, Standard}
 import uk.gov.nationalarchives.`export`.S3Utils.FileOutput
@@ -36,7 +36,21 @@ class S3Utils(config: Config, s3Client: S3Client) {
     }
   }
 
-  def copyFiles(consignmentId: UUID, consignmentType: ConsignmentType, consignmentMetadata: List[Metadata], fileIdToAsset: Map[UUID, UUID]): IO[List[FileOutput]] = IO.blocking {
+  private def contextTagging(userId: UUID, consignmentId: UUID) = {
+    val consignmentIdTag = Tag.builder
+      .key("ConsignmentId")
+      .value(consignmentId.toString)
+      .build
+    val userIdTag = Tag.builder
+      .key("UserId")
+      .value(userId.toString)
+      .build
+    Tagging.builder()
+      .tagSet(consignmentIdTag, userIdTag)
+      .build()
+  }
+
+  def copyFiles(userId: UUID, consignmentId: UUID, consignmentType: ConsignmentType, consignmentMetadata: List[Metadata], fileIdToAsset: Map[UUID, UUID]): IO[List[FileOutput]] = IO.blocking {
     val destinationBucket = consignmentType match {
       case Judgment => config.s3.outputBucketJudgment
       case Standard => config.s3.outputBucket
@@ -55,7 +69,7 @@ class S3Utils(config: Config, s3Client: S3Client) {
           .destinationKey(destinationKey)
           .destinationBucket(destinationBucket)
           .taggingDirective(TaggingDirective.REPLACE)
-          .tagging(Tagging.builder().build())
+          .tagging(contextTagging(userId, consignmentId))
           .build()
         s3Client.copyObject(copyRequest)
         val series = consignmentMetadata.find(_.propertyName == "Series").map(_.value)
@@ -65,6 +79,8 @@ class S3Utils(config: Config, s3Client: S3Client) {
   }
 
   def putMetadata(
+     userId: UUID,
+     consignmentId: UUID,
      consignmentType: ConsignmentType,
      fileOutputs: List[FileOutput],
      fileMetadata: List[Metadata],
@@ -93,7 +109,11 @@ class S3Utils(config: Config, s3Client: S3Client) {
         .toJson
 
       val body = RequestBody.fromString(Json.arr(allObjects).noSpaces)
-      val request = PutObjectRequest.builder.bucket(outputBucket).key(s"${fileOutput.assetId}.metadata").build
+      val request = PutObjectRequest.builder
+        .bucket(outputBucket)
+        .key(s"${fileOutput.assetId}.metadata")
+        .tagging(contextTagging(userId, consignmentId))
+        .build
       s3Client.putObject(request, body)
     }
   }

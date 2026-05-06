@@ -42,10 +42,11 @@ object Main extends CommandIOApp("tdr-export", "Exports tdr files with a flat st
       consignmentMetadata <- metadataUtils.getConsignmentMetadata(consignmentId)
       fileMetadata <- metadataUtils.getFileMetadata(consignmentId)
       fileToAssetId = Map[UUID, UUID]() //get mapping between asset id / file ids from fileMetadata
-      fileOutputs <- s3Utils.copyFiles(consignmentId, consignmentType, consignmentMetadata, fileToAssetId)
+      userId = UUID.fromString(consignmentMetadata.find(_.propertyName == "UserId").get.value)
+      fileOutputs <- s3Utils.copyFiles(userId, consignmentId, consignmentType, consignmentMetadata, fileToAssetId)
       _ <- IO.raiseWhen(fileMetadata.isEmpty)(new RuntimeException(s"Metadata for consignment $consignmentId is missing"))
       ffidMetadata <- metadataUtils.getFFIDMetadata(consignmentId)
-      _ <- s3Utils.putMetadata(consignmentType, fileOutputs, fileMetadata, consignmentMetadata, ffidMetadata)
+      _ <- s3Utils.putMetadata(userId, consignmentId, consignmentType, fileOutputs, fileMetadata, consignmentMetadata, ffidMetadata)
       _ <- publishUtils.publishMessages(fileOutputs)
       _ <- stepFunction.publishSuccess(taskToken)
       _ <- heartBeat.cancel

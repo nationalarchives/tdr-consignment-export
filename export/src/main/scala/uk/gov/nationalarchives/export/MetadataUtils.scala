@@ -93,13 +93,20 @@ class MetadataUtils(config: Config) {
         .query[Option[String]]
         .unique
         .transact(transactor)
+      userId <-
+        sql""" SELECT "UserId" FROM "Consignment"
+             WHERE "ConsignmentId" = CAST(${consignmentId.toString} AS UUID)"""
+          .query[Option[String]]
+          .unique
+          .transact(transactor)
     } yield {
       consignmentMetadata ++ List(
         Metadata(consignmentId, "TransferringBody", bodyRefAndSeries._1),
         Metadata(consignmentId, "ConsignmentReference", bodyRefAndSeries._2),
         Metadata(consignmentId, "Series", bodyRefAndSeries._3),
         Metadata(consignmentId, "TransferInitiatedDatetime", transferCompleteDate.getOrElse("")),
-        Metadata(consignmentId, "MetadataSchemaLibraryVersion", metadataSchemaLibraryVersion.getOrElse(""))
+        Metadata(consignmentId, "MetadataSchemaLibraryVersion", metadataSchemaLibraryVersion.getOrElse("")),
+        Metadata(consignmentId, "UserId", userId.getOrElse(""))
       )
     })
   }
