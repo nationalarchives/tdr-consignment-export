@@ -63,7 +63,9 @@ class ExternalServiceSpec extends AnyFlatSpec with BeforeAndAfterEach with Befor
 
   def putFile(key: String): Unit = {
     val body = Source.fromResource("testfiles/testfile").getLines().mkString
-    wiremockS3Server.stubFor(get(urlEqualTo(s"/$key?partNumber=1")).willReturn(ok(body)))
+    wiremockS3Server.stubFor(get(urlEqualTo(s"/$key?partNumber=1")).willReturn(ok(body)
+      .withHeader("Content-Length", "1")
+          ))
   }
 
   val wiremockGraphqlServer = new WireMockServer(9001)
@@ -153,10 +155,8 @@ class ExternalServiceSpec extends AnyFlatSpec with BeforeAndAfterEach with Befor
     wiremockGraphqlServer.resetAll()
     wiremockSfnServer.resetAll()
     graphqlUpdateExportData
-    wiremockS3Server.stubFor(put(urlMatching("/.*tar\\.gz.*")).willReturn(ok()
-      .withHeader("Content-Length", "1")))
-    wiremockS3Server.stubFor(get(urlMatching("/.*tar\\.gz.*")).willReturn(ok()
-      .withHeader("Content-Length", "1")))
+    wiremockS3Server.stubFor(put(urlMatching("/.*tar\\.gz.*")).willReturn(ok()))
+    wiremockS3Server.stubFor(get(urlMatching("/.*tar\\.gz.*")).willReturn(ok()))
   }
 
   override def afterAll(): Unit = {
