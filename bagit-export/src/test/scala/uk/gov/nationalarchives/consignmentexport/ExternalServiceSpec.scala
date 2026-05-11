@@ -153,8 +153,10 @@ class ExternalServiceSpec extends AnyFlatSpec with BeforeAndAfterEach with Befor
     wiremockGraphqlServer.resetAll()
     wiremockSfnServer.resetAll()
     graphqlUpdateExportData
-    wiremockS3Server.stubFor(put(urlMatching("/.*tar\\.gz.*")).willReturn(ok()))
-    wiremockS3Server.stubFor(get(urlMatching("/.*tar\\.gz.*")).willReturn(ok()))
+    wiremockS3Server.stubFor(put(urlMatching("/.*tar\\.gz.*")).willReturn(ok()
+      .withHeader("Content-Length", "1")))
+    wiremockS3Server.stubFor(get(urlMatching("/.*tar\\.gz.*")).willReturn(ok()
+      .withHeader("Content-Length", "1")))
   }
 
   override def afterAll(): Unit = {
