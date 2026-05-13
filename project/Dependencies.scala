@@ -25,7 +25,7 @@ object Dependencies {
   lazy val doobiePostgres = "org.tpolecat" %% "doobie-postgres"  % doobieVersion
   lazy val postgres = "org.postgresql" % "postgresql" % "42.7.11"
   lazy val graphqlClient = "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.284"
-  lazy val scalaTest = "org.scalatest" %% "scalatest" % "3.2.19"
+  lazy val scalaTest = "org.scalatest" %% "scalatest" % "3.2.20"
   lazy val scalaCsv = "com.github.tototoshi" %% "scala-csv" % "2.0.0"
   lazy val log4cats = "org.typelevel" %% "log4cats-core" % log4CatsVersion
   lazy val log4catsSlf4j = "org.typelevel" %% "log4cats-slf4j" % log4CatsVersion
