@@ -20,10 +20,11 @@ import scala.concurrent.duration._
 object Main extends CommandIOApp("tdr-export", "Exports tdr files with a flat structure", version = version) {
 
   case class Db(useIamAuth: Boolean, host: String, user: String, password: String, port: Int)
+  case class ExportConfiguration(blockMockSeriesIngest: Boolean)
   case class S3(endpoint: String, cleanBucket: String, outputBucket: String, outputBucketJudgment: String)
   case class SFN(endpoint: String)
   case class SNS(endpoint: String, topicArn: String, messageGroupSize: Int)
-  case class Config(db: Db, sfn: SFN, s3: S3, sns: SNS)
+  case class Config(db: Db, exportConfiguration: ExportConfiguration, sfn: SFN, s3: S3, sns: SNS)
   implicit def logger: SelfAwareStructuredLogger[IO] = Slf4jLogger.getLogger[IO]
   implicit def hint[A]: ProductHint[A] = ProductHint[A](ConfigFieldMapping(CamelCase, CamelCase))
 
@@ -39,12 +40,13 @@ object Main extends CommandIOApp("tdr-export", "Exports tdr files with a flat st
       metadataUtils <- MetadataUtils(config)
       consignmentType <- metadataUtils.getConsignmentType(consignmentId)
       consignmentMetadata <- metadataUtils.getConsignmentMetadata(consignmentId)
+      series = consignmentMetadata.filter(_.propertyName == "Series").head.value
       fileOutputs <- s3Utils.copyFiles(consignmentId, consignmentType, consignmentMetadata)
       fileMetadata <- metadataUtils.getFileMetadata(consignmentId)
       _ <- IO.raiseWhen(fileMetadata.isEmpty)(new RuntimeException(s"Metadata for consignment $consignmentId is missing"))
       ffidMetadata <- metadataUtils.getFFIDMetadata(consignmentId)
       _ <- s3Utils.putMetadata(consignmentType, fileOutputs, fileMetadata, consignmentMetadata, ffidMetadata)
-      _ <- publishUtils.publishMessages(fileOutputs)
+      _ <- if (config.exportConfiguration.blockMockSeriesIngest && series.toLowerCase.contains("mock")) { IO(Nil) } else publishUtils.publishMessages(fileOutputs)
       _ <- stepFunction.publishSuccess(taskToken)
       _ <- heartBeat.cancel
     } yield ExitCode.Success
