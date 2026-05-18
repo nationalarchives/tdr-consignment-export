@@ -38,6 +38,19 @@ class MainTest extends TestUtils {
     fileOutput.assetId should equal(fileIds.head)
   }
 
+  "run" should "not send a message to the SNS topic for a 'mock' series" in withContainers {
+    container: PostgreSQLContainer =>
+      val mappedPort = container.mappedPort(5432)
+      val (consignmentId, fileIds, _) = stubExternalServices(mappedPort, seriesName = "MOCK123")
+      Main.run(List("export", "--consignmentId", consignmentId.toString, "--taskToken", "taskToken")).unsafeRunSync()
+
+      val serveEventRequestBodies  = snsServer.getAllServeEvents.asScala.toList.map(_.getRequest.getBodyAsString)
+
+      fileIds.foreach(id => {
+        serveEventRequestBodies.contains(id) should be(false)
+      })
+  }
+
   "run" should "only write the body name, series name, metadata schema library version and consignment reference if there is no file or consignment metadata" in withContainers {
     container: PostgreSQLContainer =>
       val mappedPort = container.mappedPort(5432)

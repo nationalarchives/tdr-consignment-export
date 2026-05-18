@@ -7,7 +7,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers._
 import software.amazon.awssdk.http.SdkHttpFullResponse
 import software.amazon.awssdk.services.sns.model.PublishResponse
-import uk.gov.nationalarchives.`export`.Main.{Config, Db, S3, SFN, SNS}
+import uk.gov.nationalarchives.`export`.Main.{Config, Db, ExportConfiguration, S3, SFN, SNS}
 import uk.gov.nationalarchives.`export`.S3Utils.FileOutput
 import uk.gov.nationalarchives.aws.utils.sns.SNSUtils
 
@@ -16,7 +16,7 @@ import java.util.UUID
 class PublishUtilsTest extends AnyFlatSpec with MockitoSugar {
 
   "publishMessages" should "retry any failed messages" in {
-    val config: Config = Config(Db(useIamAuth = false, "", "", "", 5432), SFN(""), S3("", "", "", ""), SNS("", "testTopic", 500))
+    val config: Config = Config(Db(useIamAuth = false, "", "", "", 5432), ExportConfiguration(true), SFN(""), S3("", "", "", ""), SNS("", "testTopic", 500))
     val snsUtils = mock[SNSUtils]
     def response(statusCode: Int): PublishResponse = PublishResponse.builder.sdkHttpResponse(SdkHttpFullResponse.builder.statusCode(statusCode).build).build().asInstanceOf[PublishResponse]
 

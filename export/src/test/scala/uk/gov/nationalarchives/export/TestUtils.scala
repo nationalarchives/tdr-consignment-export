@@ -130,11 +130,11 @@ class TestUtils extends AnyFlatSpec with TestContainerForAll with BeforeAndAfter
     )
   }
 
-  def stubExternalServices(mappedPort: Int, numberOfFiles: Int = 1, shouldAddMetadata: Boolean = true): (UUID, List[UUID], String) = {
+  def stubExternalServices(mappedPort: Int, numberOfFiles: Int = 1, shouldAddMetadata: Boolean = true, seriesName: String = "Test"): (UUID, List[UUID], String) = {
     System.setProperty("db.port", mappedPort.toString)
     val consignmentId = UUID.randomUUID()
     val fileIds = (1 to numberOfFiles).map(_ => UUID.randomUUID()).toList.sorted
-    val consignmentReference = seedDatabase(mappedPort, consignmentId.toString, fileIds)
+    val consignmentReference = seedDatabase(mappedPort, consignmentId.toString, fileIds, seriesName = seriesName)
     stubS3Get(consignmentId, fileIds)
     stubCopyRequest(consignmentId, fileIds)
     stubPutRequest(fileIds)
@@ -217,7 +217,7 @@ class TestUtils extends AnyFlatSpec with TestContainerForAll with BeforeAndAfter
     } yield ()
   }.unsafeRunSync()
 
-  def seedDatabase(port: Int, consignmentId: String, fileIds: List[UUID]): String = {
+  def seedDatabase(port: Int, consignmentId: String, fileIds: List[UUID], seriesName: String): String = {
     val jdbcUrl = s"jdbc:postgresql://localhost:$port/consignmentapi"
     val bodyId: String = UUID.randomUUID().toString
     val seriesId: String = UUID.randomUUID().toString
@@ -233,7 +233,7 @@ class TestUtils extends AnyFlatSpec with TestContainerForAll with BeforeAndAfter
     (for {
       sequence <- sql"""select nextval('consignment_sequence_id')""".query[Int].unique.transact(transactor)
       _ <- sql""" INSERT INTO "Body" ("BodyId", "Name", "TdrCode") VALUES (CAST($bodyId AS UUID), 'Test', 'Test') """.update.run.transact(transactor)
-      _ <- sql"""INSERT INTO "Series" ("SeriesId", "BodyId", "Name", "Code") VALUES (CAST($seriesId AS UUID), CAST($bodyId AS UUID), 'Test', 'TST') """.update.run.transact(
+      _ <- sql"""INSERT INTO "Series" ("SeriesId", "BodyId", "Name", "Code") VALUES (CAST($seriesId AS UUID), CAST($bodyId AS UUID), $seriesName, 'TST') """.update.run.transact(
         transactor
       )
       _ <- sql""" INSERT INTO "Consignment" ("ConsignmentId", "UserId", "Datetime", "ConsignmentSequence", "ConsignmentReference", "ConsignmentType", "BodyId", "SeriesId", "TransferInitiatedDatetime", "MetadataSchemaLibraryVersion")
