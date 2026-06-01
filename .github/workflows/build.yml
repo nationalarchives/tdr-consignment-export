@@ -21,7 +21,7 @@ jobs:
       - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
           persist-credentials: false
-      - uses: sbt/setup-sbt@93e926cbdb4a428e41b4ef754124ec82925ffdc2 # v1.1.23
+      - uses: sbt/setup-sbt@4ed7b7ec4bfa2074fe48554c09e341267397247c # v1.2.0
       - name: Import GPG key
         uses: crazy-max/ghaction-import-gpg@2dc316deee8e90f13e1a351ab510b4d5bc0c82cd # v7.0.0
         with:
@@ -46,7 +46,7 @@ jobs:
           aws-region: eu-west-2
           role-session-name: ExportPushImages
       - name: Login to ECR
-        uses: docker/login-action@4907a6ddec9925e35a0a9e82d7399ccc52663121 # v4.1.0
+        uses: docker/login-action@650006c6eb7dba73a995cc03b0b2d7f5ca915bee # v4.2.0
         with:
           registry: ${{ secrets.MANAGEMENT_ACCOUNT }}.dkr.ecr.eu-west-2.amazonaws.com
       - name: Download Wiz CLI
@@ -99,7 +99,7 @@ jobs:
         run: >-
           ./wizcli tag $MANAGEMENT_ACCOUNT.dkr.ecr.eu-west-2.amazonaws.com/consignment-export:$LATEST_TAG
       - name: Send success message
-        uses: nationalarchives/tdr-github-actions/.github/actions/slack-send@c130d20af544843b70e2a0e1a44759d4fabf3a5d # v0.0.37
+        uses: nationalarchives/tdr-github-actions/.github/actions/slack-send@e7b57a3bdf7863c951cd203101c6d566986376e3 # v0.0.38
         with:
           message: "*Consignment Export* :whale: Pushed version ${{ steps.build.outputs.latest-tag}} to AWS ECR"
           slack-url: ${{ secrets.SLACK_WEBHOOK }}
