@@ -1,9 +1,9 @@
 package uk.gov.nationalarchives.`export`
 
 import cats.effect.IO
-import doobie.implicits._
-import doobie.util.transactor.Transactor.Aux
-import doobie.{Get, Transactor}
+import org.typelevel.doobie.implicits._
+import org.typelevel.doobie.util.transactor.Transactor.Aux
+import org.typelevel.doobie.{Get, Transactor}
 import software.amazon.awssdk.auth.credentials.DefaultCredentialsProvider
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.rds.RdsUtilities
