@@ -7,7 +7,7 @@ object Dependencies {
   private val mockitoScalaVersion = "2.2.1"
   private val monovoreDeclineVersion = "2.6.2"
   private val awsUtilsVersion = "0.1.332"
-  private val doobieVersion = "1.0.0-RC12"
+  private val doobieVersion = "1.0.0-RC13"
   private val testContainersVersion = "0.44.1"
 
   lazy val authUtils = "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.291"
@@ -21,7 +21,7 @@ object Dependencies {
   lazy val catsEffectTest = "org.typelevel" %% "cats-effect-testkit" % "3.7.0"
   lazy val decline = "com.monovore" %% "decline" % monovoreDeclineVersion
   lazy val declineEffect = "com.monovore" %% "decline-effect" % monovoreDeclineVersion
-  lazy val doobie = "org.tpolecat" %% "doobie-core" % doobieVersion
+  lazy val doobie = "org.typelevel" %% "doobie-core" % doobieVersion
   lazy val doobiePostgres = "org.tpolecat" %% "doobie-postgres"  % doobieVersion
   lazy val postgres = "org.postgresql" % "postgresql" % "42.7.11"
   lazy val graphqlClient = "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.302"
