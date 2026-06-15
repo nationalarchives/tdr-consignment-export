@@ -6,23 +6,23 @@ object Dependencies {
   private val log4CatsVersion = "2.8.0"
   private val mockitoScalaVersion = "2.2.1"
   private val monovoreDeclineVersion = "2.6.2"
-  private val awsUtilsVersion = "0.1.331"
-  private val doobieVersion = "1.0.0-RC12"
+  private val awsUtilsVersion = "0.1.334"
+  private val doobieVersion = "1.0.0-RC13"
   private val testContainersVersion = "0.44.1"
 
-  lazy val authUtils = "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.290"
-  lazy val awsRds = "software.amazon.awssdk" % "rds" % "2.46.5"
+  lazy val authUtils = "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.291"
+  lazy val awsRds = "software.amazon.awssdk" % "rds" % "2.46.10"
   lazy val generatedGraphql = "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.477"
   lazy val s3Utils = "uk.gov.nationalarchives" %% "s3-utils" % awsUtilsVersion
-  lazy val stepFunctionUtils = "uk.gov.nationalarchives" %% "stepfunction-utils" % "0.1.331"
+  lazy val stepFunctionUtils = "uk.gov.nationalarchives" %% "stepfunction-utils" % "0.1.334"
   lazy val snsUtils = "uk.gov.nationalarchives" %% "sns-utils" % awsUtilsVersion
   lazy val bagit = "gov.loc" % "bagit" % "5.2.0"
   lazy val catsEffect = "org.typelevel" %% "cats-effect" % "3.7.0"
   lazy val catsEffectTest = "org.typelevel" %% "cats-effect-testkit" % "3.7.0"
   lazy val decline = "com.monovore" %% "decline" % monovoreDeclineVersion
   lazy val declineEffect = "com.monovore" %% "decline-effect" % monovoreDeclineVersion
-  lazy val doobie = "org.tpolecat" %% "doobie-core" % doobieVersion
-  lazy val doobiePostgres = "org.tpolecat" %% "doobie-postgres"  % doobieVersion
+  lazy val doobie = "org.typelevel" %% "doobie-core" % doobieVersion
+  lazy val doobiePostgres = "org.typelevel" %% "doobie-postgres"  % doobieVersion
   lazy val postgres = "org.postgresql" % "postgresql" % "42.7.11"
   lazy val graphqlClient = "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.302"
   lazy val scalaTest = "org.scalatest" %% "scalatest" % "3.2.20"
@@ -40,5 +40,5 @@ object Dependencies {
   lazy val testContainersPostgres = "com.dimafeng" %% "testcontainers-scala-postgresql" % testContainersVersion
   lazy val wiremock = "org.wiremock" % "wiremock" % "3.13.2"
   lazy val jsonpath = "com.jayway.jsonpath" % "json-path-assert" % "3.0.0"
-  lazy val schemaConfig = "uk.gov.nationalarchives" %% "da-metadata-schema"% "0.0.131"
+  lazy val schemaConfig = "uk.gov.nationalarchives" %% "da-metadata-schema"% "0.0.133"
 }

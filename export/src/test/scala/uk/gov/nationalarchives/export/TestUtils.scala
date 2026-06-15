@@ -8,9 +8,9 @@ import com.dimafeng.testcontainers.{ContainerDef, PostgreSQLContainer}
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock._
 import com.github.tomakehurst.wiremock.stubbing.{ServeEvent, StubMapping}
-import doobie.Transactor
-import doobie.implicits._
-import doobie.util.transactor.Transactor.Aux
+import org.typelevel.doobie.Transactor
+import org.typelevel.doobie.implicits._
+import org.typelevel.doobie.util.transactor.Transactor.Aux
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.{BeforeAndAfterAll, EitherValues}
 import org.testcontainers.utility.DockerImageName
