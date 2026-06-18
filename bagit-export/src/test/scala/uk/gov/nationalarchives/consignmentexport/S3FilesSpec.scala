@@ -22,6 +22,19 @@ class S3FilesSpec extends ExportSpec {
     ConsignmentTypeOverride(List(), List())
   )
 
+  "generateDirectories" should "return paths for directories" in {
+    val s3Utils = mock[S3Utils]
+    val filePaths: Set[String] = Set(
+      "folderA", "folderA/folderB", "folderA/folderB/file1.txt", "folderA/folderB/file2.txt",
+      "folderA/file2.txt", "folderA/folderC", "folderA/FolderC/file3.txt"
+    )
+    val res = S3Files(s3Utils, config).generateDirectories(filePaths)
+    res.size shouldBe 3
+    res.contains("folderA") shouldBe true
+    res.contains("folderA/folderB") shouldBe true
+    res.contains("folderA/FolderC") shouldBe true
+  }
+
   "the downloadFiles method" should "call the library method with the correct arguments" in {
     val s3Utils = mock[S3Utils]
     val bucketCaptor: ArgumentCaptor[String] = ArgumentCaptor.forClass(classOf[String])

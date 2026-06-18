@@ -9,8 +9,9 @@ import uk.gov.nationalarchives.aws.utils.s3.S3Utils
 import uk.gov.nationalarchives.consignmentexport.Config.Configuration
 import uk.gov.nationalarchives.consignmentexport.Utils._
 
-import java.io.File
+import java.io.{File, File => JIOFile}
 import java.util.UUID
+import scala.annotation.tailrec
 import scala.concurrent.duration._
 import scala.language.postfixOps
 
@@ -19,12 +20,26 @@ class S3Files(s3Utils: S3Utils, config: Configuration)(implicit val logger: Self
 
   private val downloadDelay = config.s3.downloadBatchDelayMs
 
+  def generateDirectories(filePaths: Set[String]): Set[String] = {
+    def innerFunction(filePath: String, directoryPaths: Set[String]): Set[String] = {
+      val jioFile = new JIOFile(filePath)
+      val parentPath = Option(jioFile.getParent)
+      if (parentPath.isEmpty) {
+        directoryPaths
+      } else {
+        val directoryPath = parentPath.get
+        innerFunction(directoryPath, directoryPaths + directoryPath)
+      }
+    }
+    filePaths.flatMap(innerFunction(_, Set()))
+  }
+
   def createDownloadDirectories(files: List[Files], consignmentReference: String, rootLocation: String): IO[List[Boolean]] = {
     IO {
       new File(s"$rootLocation/$consignmentReference").mkdirs()
-      files.filter(_.isFolder).map(f =>
-        new File(s"$rootLocation/$consignmentReference/${f.getClientSideOriginalFilePath}").mkdirs()
-      )
+      generateDirectories(files.map(f => f.getClientSideOriginalFilePath).toSet).map(d =>
+        new File(s"$rootLocation/$consignmentReference/$d").mkdirs()
+      ).toList
     }
   }
 
