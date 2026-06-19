@@ -24,13 +24,13 @@ lazy val root = (project in file("."))
       tagRelease,
       pushChanges,
       releaseStepTask(bagitExport / Universal / packageZipTarball),
-      releaseStepTask(export / Universal / packageZipTarball),
+      releaseStepTask(tdrExport / Universal / packageZipTarball),
       setNextVersion,
       commitNextVersion,
       pushChanges
     )
   )
-  .aggregate(bagitExport, export)
+  .aggregate(bagitExport, tdrExport)
 
 
 val commonSettings = Seq(
@@ -57,7 +57,7 @@ val commonSettings = Seq(
   buildInfoPackage := "uk.gov.nationalarchives.consignmentexport",
 )
 
-lazy val export = (project in file("export"))
+lazy val tdrExport = (project in file("export"))
   .settings(commonSettings)
   .settings(
     libraryDependencies ++= Seq(
