@@ -15,7 +15,7 @@ class ChecksumValidator() {
     validatedFileMetadata
       .filter(!_.isFolder)
       .filterNot(fm => bagitGeneratedChecksums.contains(fm.getSha256ClientSideChecksum))
-      .map(_.fileId)Ò
+      .map(_.fileId)
   }
 }
 
