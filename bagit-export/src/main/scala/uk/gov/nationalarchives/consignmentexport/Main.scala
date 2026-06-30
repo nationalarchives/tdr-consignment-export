@@ -111,6 +111,7 @@ object Main extends CommandIOApp("tdr-consignment-export", "Exports tdr files in
 
         exitCode.handleErrorWith {e =>
           for {
+            _ <- logger.error(e)(s"$exportFailedErrorMessage: ${e.getMessage}")
             _ <- stepFunction.publishFailure(taskToken, s"$exportFailedErrorMessage: ${e.getMessage}")
             configuration <- configure()
             (config, basePath) = configuration
