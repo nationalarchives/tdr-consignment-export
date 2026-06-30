@@ -20,7 +20,7 @@ class S3Files(s3Utils: S3Utils, config: Configuration)(implicit val logger: Self
   private val downloadDelay = config.s3.downloadBatchDelayMs
 
   def createDownloadDirectories(files: List[Files], consignmentReference: String, rootLocation: String): IO[List[Boolean]] = {
-   IO.blocking {
+    IO.blocking {
       new File(s"$rootLocation/$consignmentReference").mkdirs()
       files.filter(_.isFolder).map(f =>
         new File(s"$rootLocation/$consignmentReference/${f.getClientSideOriginalFilePath}").mkdirs()
