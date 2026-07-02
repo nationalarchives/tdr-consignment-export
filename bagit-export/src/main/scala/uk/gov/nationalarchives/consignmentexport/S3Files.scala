@@ -20,7 +20,7 @@ class S3Files(s3Utils: S3Utils, config: Configuration)(implicit val logger: Self
   private val downloadDelay = config.s3.downloadBatchDelayMs
 
   def createDownloadDirectories(files: List[Files], consignmentReference: String, rootLocation: String): IO[List[Boolean]] = {
-    IO {
+    IO.blocking {
       new File(s"$rootLocation/$consignmentReference").mkdirs()
       files.filter(_.isFolder).map(f =>
         new File(s"$rootLocation/$consignmentReference/${f.getClientSideOriginalFilePath}").mkdirs()
@@ -68,7 +68,7 @@ class S3Files(s3Utils: S3Utils, config: Configuration)(implicit val logger: Self
 
     for {
       _ <- logger.info(s"Deleting directory $rootLocation from EFS")
-      _ <- IO(deleteRecursively(file)).onError(e => logger.error(e.getMessage))
+      _ <- IO.blocking(deleteRecursively(file)).onError(e => logger.error(e.getMessage))
     } yield ()
   }
 }

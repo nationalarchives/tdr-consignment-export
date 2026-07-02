@@ -63,7 +63,9 @@ class ExternalServiceSpec extends AnyFlatSpec with BeforeAndAfterEach with Befor
 
   def putFile(key: String): Unit = {
     val body = Source.fromResource("testfiles/testfile").getLines().mkString
-    wiremockS3Server.stubFor(get(urlEqualTo(s"/$key")).willReturn(ok(body)))
+    wiremockS3Server.stubFor(get(urlEqualTo(s"/$key?partNumber=1")).willReturn(ok(body)
+      .withHeader("Content-Length", "1")
+          ))
   }
 
   val wiremockGraphqlServer = new WireMockServer(9001)
