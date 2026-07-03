@@ -38,17 +38,21 @@ class S3Utils(config: Config, s3Client: S3Client) {
   }
 
   private def contextTagging(userId: UUID, consignmentId: UUID) = {
-    val consignmentIdTag = Tag.builder
-      .key("ConsignmentId")
-      .value(consignmentId.toString)
-      .build
-    val userIdTag = Tag.builder
-      .key("UserId")
-      .value(userId.toString)
-      .build
-    Tagging.builder()
-      .tagSet(consignmentIdTag, userIdTag)
-      .build()
+    if (config.exportConfiguration.blockAddContextTagging) {
+      Tagging.builder().build()
+    } else {
+      val consignmentIdTag = Tag.builder
+        .key("ConsignmentId")
+        .value(consignmentId.toString)
+        .build
+      val userIdTag = Tag.builder
+        .key("UserId")
+        .value(userId.toString)
+        .build
+      Tagging.builder()
+        .tagSet(consignmentIdTag, userIdTag)
+        .build()
+    }
   }
 
   def copyFiles(userId: UUID, consignmentId: UUID, consignmentType: ConsignmentType, consignmentMetadata: List[Metadata],

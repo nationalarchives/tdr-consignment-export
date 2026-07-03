@@ -13,7 +13,7 @@ object RecordIdHandler {
       val fileMetadata = gm._2
       val noPersistedAssetId = !fileMetadata.exists(_.propertyName == assetIdName)
 
-      //Keep current behaviour until all legacy consignments without asset id persisted have been processed
+      //Keep current behaviour until all legacy consignments without asset ids persisted have been processed
       //Current behaviour use fileId as assetId and generate random UUID for the fileId
       if (noPersistedAssetId) {
         fileId -> RecordIds(fileId, UUID.randomUUID())
