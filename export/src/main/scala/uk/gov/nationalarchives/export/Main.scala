@@ -42,12 +42,11 @@ object Main extends CommandIOApp("tdr-export", "Exports tdr files with a flat st
       consignmentType <- metadataUtils.getConsignmentType(consignmentId)
       consignmentMetadata <- metadataUtils.getConsignmentMetadata(consignmentId)
       series = consignmentMetadata.filter(_.propertyName == "Series").head.value
-      fileOutputs <- s3Utils.copyFiles(consignmentId, consignmentType, consignmentMetadata)
       fileMetadata <- metadataUtils.getFileMetadata(consignmentId)
-      fileToAssetId = Map[UUID, UUID]() //get mapping between asset id / file ids from fileMetadata
-      userId = UUID.fromString(consignmentMetadata.find(_.propertyName == "UserId").get.value)
-      fileOutputs <- s3Utils.copyFiles(userId, consignmentId, consignmentType, consignmentMetadata, fileToAssetId)
       _ <- IO.raiseWhen(fileMetadata.isEmpty)(new RuntimeException(s"Metadata for consignment $consignmentId is missing"))
+      recordIds = RecordIdHandler.getRecordIds(fileMetadata)
+      userId = UUID.fromString(consignmentMetadata.find(_.propertyName == "UserId").get.value)
+      fileOutputs <- s3Utils.copyFiles(userId, consignmentId, consignmentType, consignmentMetadata, recordIds)
       ffidMetadata <- metadataUtils.getFFIDMetadata(consignmentId)
       _ <- s3Utils.putMetadata(userId, consignmentId, consignmentType, fileOutputs, fileMetadata, consignmentMetadata, ffidMetadata)
       _ <- if (config.exportConfiguration.blockMockSeriesIngest && series.toLowerCase.contains("mock")) { IO(Nil) } else publishUtils.publishMessages(fileOutputs)
