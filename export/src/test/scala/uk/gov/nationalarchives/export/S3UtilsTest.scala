@@ -25,7 +25,7 @@ class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with T
     SFN(""), S3("", "testCleanBucket", "outputBucket", "outputBucketJudgment"), SNS("", "testTopic", 500)
   )
 
-  "copyfile" should "not add context tagging when feature blocked" in {
+  "copyFiles" should "not add context tagging when feature blocked" in {
     val client = mock[S3Client]
     val utils = new S3Utils(config(true), client)
     val userId = UUID.randomUUID()
