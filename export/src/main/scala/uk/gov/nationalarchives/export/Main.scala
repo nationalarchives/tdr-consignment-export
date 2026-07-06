@@ -10,6 +10,7 @@ import pureconfig.generic.auto._
 import pureconfig.module.catseffect.syntax._
 import pureconfig.{CamelCase, ConfigFieldMapping, ConfigSource}
 import uk.gov.nationalarchives.`export`.Arguments._
+import uk.gov.nationalarchives.`export`.MetadataUtils.{Series, UserId}
 import uk.gov.nationalarchives.aws.utils.s3.S3Clients.s3
 import uk.gov.nationalarchives.aws.utils.stepfunction.StepFunctionClients.sfnAsyncClient
 import uk.gov.nationalarchives.aws.utils.stepfunction.StepFunctionUtils
@@ -41,11 +42,11 @@ object Main extends CommandIOApp("tdr-export", "Exports tdr files with a flat st
       metadataUtils <- MetadataUtils(config)
       consignmentType <- metadataUtils.getConsignmentType(consignmentId)
       consignmentMetadata <- metadataUtils.getConsignmentMetadata(consignmentId)
-      series = consignmentMetadata.filter(_.propertyName == "Series").head.value
+      series = consignmentMetadata.filter(_.propertyName == Series.id).head.value
       fileMetadata <- metadataUtils.getFileMetadata(consignmentId)
       _ <- IO.raiseWhen(fileMetadata.isEmpty)(new RuntimeException(s"Metadata for consignment $consignmentId is missing"))
       recordIds = RecordIdHandler.getRecordIds(fileMetadata)
-      userId = UUID.fromString(consignmentMetadata.find(_.propertyName == "UserId").get.value)
+      userId = UUID.fromString(consignmentMetadata.find(_.propertyName == UserId.id).get.value)
       fileOutputs <- s3Utils.copyFiles(userId, consignmentId, consignmentType, consignmentMetadata, recordIds)
       ffidMetadata <- metadataUtils.getFFIDMetadata(consignmentId)
       _ <- s3Utils.putMetadata(userId, consignmentId, consignmentType, fileOutputs, fileMetadata, consignmentMetadata, ffidMetadata)

@@ -2,18 +2,19 @@ package uk.gov.nationalarchives.`export`
 
 import org.mockito.scalatest.MockitoSugar
 import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.must.Matchers.not
 import org.scalatest.matchers.should.Matchers.convertToAnyShouldWrapper
 import uk.gov.nationalarchives.`export`.MetadataUtils.Metadata
 
 import java.util.UUID
 
-class RecordIdHandlerSpec  extends AnyFlatSpec with MockitoSugar {
+class RecordIdHandlerSpec extends AnyFlatSpec with MockitoSugar {
   private val fileOneId = UUID.randomUUID()
   private val fileOneAssetId = UUID.randomUUID()
   private val fileTwoId = UUID.randomUUID()
   private val fileTwoAssetId = UUID.randomUUID()
 
-  "getRecordIds" should "return the asset and file ids for each record where the asset id is present" in {
+  "getRecordIds" should "return the asset and file ids for each record where the asset id is persisted" in {
     val fileOneMetadata = List(
       Metadata(fileOneId, "ClientSideOriginalFilepath", "a/file/path"),
       Metadata(fileOneId, "AssetId", fileOneAssetId.toString)
@@ -36,7 +37,7 @@ class RecordIdHandlerSpec  extends AnyFlatSpec with MockitoSugar {
     fileTwoIds.fileId shouldEqual fileTwoId
   }
 
-  "getRecordIds" should "return the file id as the asset id and generate a new file id where no asset id present" in {
+  "getRecordIds" should "return the file id as the asset id and generate a new file id where asset id is not persisted" in {
     val fileWithoutAssetIdMetadata = List(
       Metadata(fileOneId, "ClientSideOriginalFilepath", "a/file/path")
     )
@@ -51,6 +52,7 @@ class RecordIdHandlerSpec  extends AnyFlatSpec with MockitoSugar {
 
     val fileWithoutAssetId = result(fileOneId)
     fileWithoutAssetId.assetId shouldEqual fileOneId
+    fileWithoutAssetId.fileId should not equal fileOneId
 
     val fileTwoIds = result(fileTwoId)
     fileTwoIds.assetId shouldEqual fileTwoAssetId

@@ -14,7 +14,8 @@ import org.typelevel.doobie.util.transactor.Transactor.Aux
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.{BeforeAndAfterAll, EitherValues}
 import org.testcontainers.utility.DockerImageName
-import MetadataUtils.Metadata
+import MetadataUtils.{AssetId, Metadata}
+import uk.gov.nationalarchives.`export`.RecordIdHandler.RecordIds
 
 import java.util.UUID
 import scala.jdk.CollectionConverters.{ListHasAsScala, MapHasAsJava}
@@ -32,7 +33,7 @@ class TestUtils extends AnyFlatSpec with TestContainerForAll with BeforeAndAfter
 
   override def afterContainersStart(containers: PostgreSQLContainer): Unit = {
     val transactor = createTransactor(containers.mappedPort(5432))
-    List("PropertyName","OriginalFilepath","ClientSideOriginalFilepath","FileReference").map { propertyName =>
+    List("PropertyName","OriginalFilepath","ClientSideOriginalFilepath","FileReference","AssetId").map { propertyName =>
       sql""" INSERT INTO "FileProperty" ("Name") VALUES ($propertyName) """.update.run.transact(transactor)
     }.sequence.unsafeRunSync()
 
@@ -62,20 +63,20 @@ class TestUtils extends AnyFlatSpec with TestContainerForAll with BeforeAndAfter
     )
   }
 
-  def stubPutRequest(fileIds: List[UUID]): Unit = {
-    fileIds.map { fileId =>
+  def stubPutRequest(recordIds: List[RecordIds]): Unit = {
+    recordIds.map { ids =>
       s3Server.stubFor(
-        put(urlEqualTo(s"/$fileId.metadata"))
+        put(urlEqualTo(s"/${ids.assetId}.metadata"))
           .withHost(equalTo("output.localhost"))
           .willReturn(ok())
       )
     }
   }
 
-  def stubCopyRequest(consignmentId: UUID, fileIds: List[UUID]): Unit = {
-    fileIds.map { fileId =>
-      val sourceName = s"/$consignmentId/$fileId"
-      val destinationName = s"/$fileId"
+  def stubCopyRequest(consignmentId: UUID, recordIds: List[RecordIds]): Unit = {
+    recordIds.map { ids =>
+      val sourceName = s"/$consignmentId/${ids.fileId}"
+      val destinationName = s"/${ids.assetId}"
       val response =
         <CopyObjectResult>
           <LastModified>2023-08-29T17:50:30.000Z</LastModified>
@@ -98,12 +99,12 @@ class TestUtils extends AnyFlatSpec with TestContainerForAll with BeforeAndAfter
     }
   }
 
-  def stubS3Get(consignmentId: UUID, fileIds: List[UUID]): StubMapping = {
+  def stubS3Get(consignmentId: UUID, recordIds: List[RecordIds]): StubMapping = {
     val params = Map("list-type" -> equalTo("2"), "prefix" -> equalTo(s"$consignmentId/")).asJava
     val response = <ListBucketResult xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
-      {fileIds.map(fileId =>
+      {recordIds.map(ids =>
         <Contents>
-          <Key>{consignmentId}/{fileId}</Key>
+          <Key>{consignmentId}/{ids.fileId}</Key>
           <LastModified>2009-10-12T17:50:30.000Z</LastModified>
           <ETag>"fba9dede5f27731c9771645a39863328"</ETag>
           <Size>1</Size>
@@ -130,18 +131,24 @@ class TestUtils extends AnyFlatSpec with TestContainerForAll with BeforeAndAfter
     )
   }
 
-  def stubExternalServices(mappedPort: Int, numberOfFiles: Int = 1, shouldAddMetadata: Boolean = true, seriesName: String = "Test"): (UUID, List[UUID], String) = {
+  def stubExternalServices(mappedPort: Int, numberOfRecords: Int = 1, shouldAddMetadata: Boolean = true, seriesName: String = UUID.randomUUID().toString): (UUID, List[RecordIds], String) = {
     System.setProperty("db.port", mappedPort.toString)
     val consignmentId = UUID.randomUUID()
-    val fileIds = (1 to numberOfFiles).map(_ => UUID.randomUUID()).toList.sorted
-    val consignmentReference = seedDatabase(mappedPort, consignmentId.toString, fileIds, seriesName = seriesName)
-    stubS3Get(consignmentId, fileIds)
-    stubCopyRequest(consignmentId, fileIds)
-    stubPutRequest(fileIds)
+    val fileIds = (1 to numberOfRecords).map(_ => UUID.randomUUID()).toList.sorted
+    val recordIds = fileIds.map(id => RecordIds(UUID.randomUUID(), id))
+    val consignmentReference = seedDatabase(mappedPort, consignmentId.toString, recordIds, seriesName = seriesName)
+    stubS3Get(consignmentId, recordIds)
+    stubCopyRequest(consignmentId, recordIds)
+    stubPutRequest(recordIds)
     if(shouldAddMetadata) {
-      addFileMetadata(fileIds.map(id => Metadata(id, "PropertyName", "Value")), mappedPort)
+      addFileMetadata(recordIds.flatMap(ids =>
+        List(
+          Metadata(ids.fileId, AssetId.id, ids.assetId.toString),
+          Metadata(ids.fileId, "PropertyName", "Value")
+        )
+      ), mappedPort)
     }
-    (consignmentId, fileIds, consignmentReference)
+    (consignmentId, recordIds, consignmentReference)
   }
 
   def getRequestBody(predicate: ServeEvent => Boolean): String =
@@ -217,10 +224,11 @@ class TestUtils extends AnyFlatSpec with TestContainerForAll with BeforeAndAfter
     } yield ()
   }.unsafeRunSync()
 
-  def seedDatabase(port: Int, consignmentId: String, fileIds: List[UUID], seriesName: String): String = {
+  def seedDatabase(port: Int, consignmentId: String, recordIds: List[RecordIds], seriesName: String): String = {
     val jdbcUrl = s"jdbc:postgresql://localhost:$port/consignmentapi"
     val bodyId: String = UUID.randomUUID().toString
     val seriesId: String = UUID.randomUUID().toString
+    val bodyCode = UUID.randomUUID().toString
     val consignmentRef = UUID.randomUUID().toString.replaceAll("-", "")
     val metadataSchemaLibraryVersion = "Schema-Library-Version-v0.1"
     val transactor = Transactor.fromDriverManager[IO](
@@ -232,16 +240,19 @@ class TestUtils extends AnyFlatSpec with TestContainerForAll with BeforeAndAfter
     )
     (for {
       sequence <- sql"""select nextval('consignment_sequence_id')""".query[Int].unique.transact(transactor)
-      _ <- sql""" INSERT INTO "Body" ("BodyId", "Name", "TdrCode") VALUES (CAST($bodyId AS UUID), 'Test', 'Test') """.update.run.transact(transactor)
-      _ <- sql"""INSERT INTO "Series" ("SeriesId", "BodyId", "Name", "Code") VALUES (CAST($seriesId AS UUID), CAST($bodyId AS UUID), $seriesName, 'TST') """.update.run.transact(
+      _ <- sql""" INSERT INTO "Body" ("BodyId", "Name", "TdrCode") VALUES (CAST($bodyId AS UUID), 'Test', $bodyCode) """.update.run.transact(transactor)
+      _ <- sql"""INSERT INTO "Series" ("SeriesId", "BodyId", "Name", "Code") VALUES (CAST($seriesId AS UUID), CAST($bodyId AS UUID), $seriesName, $seriesName) """.update.run.transact(
         transactor
       )
       _ <- sql""" INSERT INTO "Consignment" ("ConsignmentId", "UserId", "Datetime", "ConsignmentSequence", "ConsignmentReference", "ConsignmentType", "BodyId", "SeriesId", "TransferInitiatedDatetime", "MetadataSchemaLibraryVersion")
          VALUES (CAST($consignmentId AS UUID), CAST($userId AS UUID), CAST($dateTime AS TIMESTAMP), $sequence, $consignmentRef, 'standard', CAST($bodyId AS UUID), CAST($seriesId AS UUID), '2024-08-29 00:00:00', $metadataSchemaLibraryVersion)""".update.run
         .transact(transactor)
-      _ <- fileIds.map { fileId =>
-        sql""" INSERT INTO "File" ("FileId", "ConsignmentId", "UserId", "Datetime")
-             VALUES (CAST(${fileId.toString} AS UUID), CAST($consignmentId AS UUID), CAST($userId AS UUID), CAST($dateTime AS TIMESTAMP)) """.update.run
+      _ <- recordIds.map { ids =>
+        val assetId = ids.assetId.toString
+        val fileId = ids.fileId.toString
+
+        sql""" INSERT INTO "File" ("FileId", "ConsignmentId", "UserId", "Datetime", "AssetId")
+             VALUES (CAST($fileId AS UUID), CAST($consignmentId AS UUID), CAST($userId AS UUID), CAST($dateTime AS TIMESTAMP), CAST($assetId AS UUID)) """.update.run
           .transact(transactor)
       }.sequence
     } yield consignmentRef).unsafeRunSync()

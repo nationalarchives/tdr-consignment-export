@@ -9,7 +9,7 @@ import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.rds.RdsUtilities
 import software.amazon.awssdk.services.rds.model.GenerateAuthenticationTokenRequest
 import Main.Config
-import MetadataUtils._
+import MetadataUtils.{MetadataPropertyName, _}
 
 import java.util.UUID
 
@@ -101,12 +101,12 @@ class MetadataUtils(config: Config) {
           .transact(transactor)
     } yield {
       consignmentMetadata ++ List(
-        Metadata(consignmentId, "TransferringBody", bodyRefAndSeries._1),
-        Metadata(consignmentId, "ConsignmentReference", bodyRefAndSeries._2),
-        Metadata(consignmentId, "Series", bodyRefAndSeries._3),
-        Metadata(consignmentId, "TransferInitiatedDatetime", transferCompleteDate.getOrElse("")),
-        Metadata(consignmentId, "MetadataSchemaLibraryVersion", metadataSchemaLibraryVersion.getOrElse("")),
-        Metadata(consignmentId, "UserId", userId.getOrElse(""))
+        Metadata(consignmentId, TransferringBody.id, bodyRefAndSeries._1),
+        Metadata(consignmentId, ConsignmentReference.id, bodyRefAndSeries._2),
+        Metadata(consignmentId, Series.id, bodyRefAndSeries._3),
+        Metadata(consignmentId, TransferInitiatedDatetime.id, transferCompleteDate.getOrElse("")),
+        Metadata(consignmentId, MetadataSchemaLibraryVersion.id, metadataSchemaLibraryVersion.getOrElse("")),
+        Metadata(consignmentId, UserId.id, userId.getOrElse(""))
       )
     })
   }
@@ -162,13 +162,13 @@ class MetadataUtils(config: Config) {
     } yield processRedactions(fileMetadata) ++ avMetadata
 
   private def processRedactions(fileMetadata: List[Metadata]): List[Metadata] =
-    fileMetadata ++ fileMetadata.find(_.propertyName == "OriginalFilepath").flatMap { originalFilePathRow =>
+    fileMetadata ++ fileMetadata.find(_.propertyName == OriginalFilepath.id).flatMap { originalFilePathRow =>
       val originalId = fileMetadata
-        .find(fm => fm.propertyName == "ClientSideOriginalFilepath" && fm.value == originalFilePathRow.value)
+        .find(fm => fm.propertyName == ClientSideOriginalFilepath.id && fm.value == originalFilePathRow.value)
         .map(_.id)
       fileMetadata
-        .find(fm => originalId.contains(fm.id) && fm.propertyName == "FileReference")
-        .map(fm => Metadata(originalFilePathRow.id, "OriginalFileReference", fm.value))
+        .find(fm => originalId.contains(fm.id) && fm.propertyName == FileReference.id)
+        .map(fm => Metadata(originalFilePathRow.id, OriginalFileReference.id, fm.value))
     }
 }
 
@@ -179,6 +179,58 @@ object MetadataUtils {
   case object Judgment extends ConsignmentType
   case object Standard extends ConsignmentType
   case class FFID(extension: Option[String], identificationBasis: String, puid: Option[String], extensionMismatch: Boolean, formatName: Option[String])
+
+  sealed trait MetadataPropertyName {
+    val id: String
+  }
+
+  case object AssetId extends MetadataPropertyName {
+    val id: String = "AssetId"
+  }
+
+  case object ClientSideOriginalFilepath extends MetadataPropertyName {
+    val id: String = "ClientSideOriginalFilepath"
+  }
+
+  case object ConsignmentId extends MetadataPropertyName {
+    val id: String = "ConsignmentId"
+  }
+
+  case object ConsignmentReference extends MetadataPropertyName {
+    val id: String = "ConsignmentReference"
+  }
+
+  case object FileReference extends MetadataPropertyName {
+    val id: String = "FileReference"
+  }
+
+  case object MetadataSchemaLibraryVersion extends MetadataPropertyName {
+    val id: String = "MetadataSchemaLibraryVersion"
+  }
+
+  case object OriginalFilepath extends MetadataPropertyName {
+    val id: String = "OriginalFilepath"
+  }
+
+  case object OriginalFileReference extends MetadataPropertyName {
+    val id: String = "OriginalFileReference"
+  }
+
+  case object Series extends MetadataPropertyName {
+    val id: String = "Series"
+  }
+
+  case object TransferInitiatedDatetime extends MetadataPropertyName {
+    val id: String = "TransferInitiatedDatetime"
+  }
+
+  case object TransferringBody extends MetadataPropertyName {
+    val id: String = "TransferringBody"
+  }
+
+  case object UserId extends MetadataPropertyName {
+    val id: String = "UserId"
+  }
 
   def apply(config: Config): IO[MetadataUtils] = IO(new MetadataUtils(config))
 }

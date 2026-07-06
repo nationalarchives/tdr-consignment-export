@@ -7,7 +7,7 @@ import com.jayway.jsonpath.JsonPath
 import io.circe.generic.auto._
 import io.circe.parser.decode
 import org.scalatest.matchers.should.Matchers._
-import uk.gov.nationalarchives.`export`.MetadataUtils.Metadata
+import uk.gov.nationalarchives.`export`.MetadataUtils.{AssetId, Metadata}
 import uk.gov.nationalarchives.`export`.S3Utils.FileOutput
 
 import java.util.UUID
@@ -17,56 +17,57 @@ class MainTest extends TestUtils {
   "run" should "copy the files to the output bucket" in withContainers {
     container: PostgreSQLContainer =>
     val mappedPort = container.mappedPort(5432)
-    val (consignmentId, fileIds, _) = stubExternalServices(mappedPort)
+    val (consignmentId, recordIds, _) = stubExternalServices(mappedPort)
     Main.run(List("export", "--consignmentId", consignmentId.toString, "--taskToken", "taskToken")).unsafeRunSync()
 
     val serveEvents = s3Server.getAllServeEvents.asScala
     val copyCount = serveEvents
-      .count(req => req.getRequest.getMethod == RequestMethod.PUT && req.getRequest.getHeader("x-amz-copy-source") == s"clean/$consignmentId/${fileIds.head}")
+      .count(req => req.getRequest.getMethod == RequestMethod.PUT && req.getRequest.getHeader("x-amz-copy-source") == s"clean/$consignmentId/${recordIds.head.fileId}")
     copyCount should equal(1)
   }
 
   "run" should "send a message to the SNS topic with the id of the file and the bucket name" in withContainers {
     container: PostgreSQLContainer =>
     val mappedPort = container.mappedPort(5432)
-    val (consignmentId, fileIds, _) = stubExternalServices(mappedPort)
+    val (consignmentId, recordIds, _) = stubExternalServices(mappedPort)
     Main.run(List("export", "--consignmentId", consignmentId.toString, "--taskToken", "taskToken")).unsafeRunSync()
 
     val snsMessage = snsServer.getAllServeEvents.asScala.head.getRequest.getFormParameters.get("Message").values().get(0)
     val fileOutput = decode[FileOutput](snsMessage).value
     fileOutput.bucket should equal("output")
-    fileOutput.assetId should equal(fileIds.head)
+    fileOutput.assetId should equal(recordIds.head.assetId)
   }
 
   "run" should "not send a message to the SNS topic for a 'mock' series" in withContainers {
     container: PostgreSQLContainer =>
       val mappedPort = container.mappedPort(5432)
-      val (consignmentId, fileIds, _) = stubExternalServices(mappedPort, seriesName = "MOCK123")
+      val (consignmentId, recordIds, _) = stubExternalServices(mappedPort, seriesName = "MOCK123")
       Main.run(List("export", "--consignmentId", consignmentId.toString, "--taskToken", "taskToken")).unsafeRunSync()
 
       val serveEventRequestBodies  = snsServer.getAllServeEvents.asScala.toList.map(_.getRequest.getBodyAsString)
 
-      fileIds.foreach(id => {
-        serveEventRequestBodies.contains(id) should be(false)
+      recordIds.foreach(id => {
+        serveEventRequestBodies.contains(id.assetId) should be(false)
       })
   }
 
   "run" should "only write the body name, series name, metadata schema library version and consignment reference if there is no file or consignment metadata" in withContainers {
     container: PostgreSQLContainer =>
       val mappedPort = container.mappedPort(5432)
-      val (consignmentId, fileIds, consignmentReference) = stubExternalServices(mappedPort)
+      val seriesName: String = UUID.randomUUID().toString
+      val (consignmentId, recordIds, consignmentReference) = stubExternalServices(mappedPort, seriesName = seriesName)
       Main.run(List("export", "--consignmentId", consignmentId.toString, "--taskToken", "taskToken")).unsafeRunSync()
 
       val serveEvents = s3Server.getAllServeEvents.asScala
       val metadataFileWriteBody = serveEvents
-        .find(req => req.getRequest.getUrl == s"/${fileIds.head}.metadata" && req.getRequest.getMethod == RequestMethod.PUT)
+        .find(req => req.getRequest.getUrl == s"/${recordIds.head.assetId}.metadata" && req.getRequest.getMethod == RequestMethod.PUT)
         .map(_.getRequest.getBodyAsString)
         .getOrElse("")
       val jsonReturned = metadataFileWriteBody.split("\n").tail.head.trim
 
-      JsonPath.read[Int](jsonReturned, "$.[0].size()")  shouldEqual 9
+      JsonPath.read[Int](jsonReturned, "$.[0].size()") shouldEqual 8
       JsonPath.read[String](jsonReturned, "$.[0].PropertyName") shouldEqual "Value"
-      JsonPath.read[String](jsonReturned, "$.[0].Series") shouldEqual "Test"
+      JsonPath.read[String](jsonReturned, "$.[0].Series") shouldEqual seriesName
       JsonPath.read[String](jsonReturned, "$.[0].TransferInitiatedDatetime") shouldEqual "2024-08-29 00:00:00"
       JsonPath.read[String](jsonReturned, "$.[0].ConsignmentReference") shouldEqual consignmentReference
       JsonPath.read[String](jsonReturned, "$.[0].TransferringBody") shouldEqual "Test"
@@ -76,11 +77,11 @@ class MainTest extends TestUtils {
   "run" should "write the file metadata where it exists" in withContainers {
     container: PostgreSQLContainer =>
     val mappedPort = container.mappedPort(5432)
-    val (consignmentId, fileIds, _) = stubExternalServices(mappedPort)
-    fileIds.foreach(fileId => addFFIDMetadata(fileId, mappedPort))
+    val (consignmentId, recordIds, _) = stubExternalServices(mappedPort)
+    recordIds.foreach(recordIds => addFFIDMetadata(recordIds.fileId, mappedPort))
     Main.run(List("export", "--consignmentId", consignmentId.toString, "--taskToken", "taskToken")).unsafeRunSync()
 
-    val metadataFileWriteBody = getRequestBody(req => req.getRequest.getUrl == s"/${fileIds.head}.metadata" && req.getRequest.getMethod == RequestMethod.PUT)
+    val metadataFileWriteBody = getRequestBody(req => req.getRequest.getUrl == s"/${recordIds.head.assetId}.metadata" && req.getRequest.getMethod == RequestMethod.PUT)
 
     JsonPath.read[Int](metadataFileWriteBody, "$.[0].FFID[0].size()")  shouldEqual 5
     JsonPath.read[String](metadataFileWriteBody, "$.[0].FFID[0].extension") shouldEqual "Extension"
@@ -93,11 +94,11 @@ class MainTest extends TestUtils {
   "run" should "return empty values if there are no ffid matches" in withContainers {
     container: PostgreSQLContainer =>
     val mappedPort = container.mappedPort(5432)
-    val (consignmentId, fileIds, _) = stubExternalServices(mappedPort)
-    fileIds.foreach(fileId => addFFIDMetadata(fileId, mappedPort, hasNullMatchValues = true))
+    val (consignmentId, recordIds, _) = stubExternalServices(mappedPort)
+    recordIds.foreach(recordIds => addFFIDMetadata(recordIds.fileId, mappedPort, hasNullMatchValues = true))
     Main.run(List("export", "--consignmentId", consignmentId.toString, "--taskToken", "taskToken")).unsafeRunSync()
 
-    val metadataFileWriteBody = getRequestBody(req => req.getRequest.getUrl == s"/${fileIds.head}.metadata" && req.getRequest.getMethod == RequestMethod.PUT)
+    val metadataFileWriteBody = getRequestBody(req => req.getRequest.getUrl == s"/${recordIds.head}.metadata" && req.getRequest.getMethod == RequestMethod.PUT)
 
     JsonPath.read[Int](metadataFileWriteBody, "$.[0].FFID[0].size()")  shouldEqual 5
     JsonPath.read[Option[String]](metadataFileWriteBody, "$.[0].FFID[0].extension") shouldEqual null
@@ -110,14 +111,15 @@ class MainTest extends TestUtils {
   "run" should "write the consignment metadata where it exists" in withContainers {
     container: PostgreSQLContainer =>
     val mappedPort = container.mappedPort(5432)
-    val (consignmentId, fileIds, consignmentReference) = stubExternalServices(mappedPort)
+    val seriesName: String = UUID.randomUUID().toString
+    val (consignmentId, recordIds, consignmentReference) = stubExternalServices(mappedPort, seriesName = seriesName)
     addConsignmentMetadata(consignmentId, mappedPort)
     Main.run(List("export", "--consignmentId", consignmentId.toString, "--taskToken", "taskToken")).unsafeRunSync()
 
-    val metadataFileWriteBody = getRequestBody(req => req.getRequest.getUrl == s"/${fileIds.head}.metadata" && req.getRequest.getMethod == RequestMethod.PUT)
+    val metadataFileWriteBody = getRequestBody(req => req.getRequest.getUrl == s"/${recordIds.head.assetId}.metadata" && req.getRequest.getMethod == RequestMethod.PUT)
     JsonPath.read[java.util.List[Any]](metadataFileWriteBody, "$.[0].FFID").asScala.toArray shouldEqual Array.empty[Any]
     JsonPath.read[String](metadataFileWriteBody, "$.[0].PropertyName") shouldEqual "Value"
-    JsonPath.read[String](metadataFileWriteBody, "$.[0].Series") shouldEqual "Test"
+    JsonPath.read[String](metadataFileWriteBody, "$.[0].Series") shouldEqual seriesName
     JsonPath.read[String](metadataFileWriteBody, "$.[0].TransferInitiatedDatetime") shouldEqual "2024-08-29 00:00:00"
     JsonPath.read[String](metadataFileWriteBody, "$.[0].ConsignmentReference") shouldEqual consignmentReference
     JsonPath.read[String](metadataFileWriteBody, "$.[0].TransferringBody") shouldEqual "Test"
@@ -127,16 +129,18 @@ class MainTest extends TestUtils {
   "run" should "add an OriginalFileReference field if this is a redacted record" in withContainers {
     container: PostgreSQLContainer =>
     val mappedPort = container.mappedPort(5432)
-    val (consignmentId, fileIds, _) = stubExternalServices(mappedPort, 2)
+    val (consignmentId, recordIds, _) = stubExternalServices(mappedPort, 2)
     val redactedMetadata = List(
-      Metadata(fileIds.head, "OriginalFilepath", "/a/test/path"),
-      Metadata(fileIds.last, "ClientSideOriginalFilepath", "/a/test/path"),
-      Metadata(fileIds.last, "FileReference", "Z12345")
+      Metadata(recordIds.head.fileId, "OriginalFilepath", "/a/test/path"),
+      Metadata(recordIds.last.fileId, "ClientSideOriginalFilepath", "/a/test/path"),
+      Metadata(recordIds.last.fileId, "FileReference", "Z12345"),
+      Metadata(recordIds.head.fileId, AssetId.id, recordIds.head.assetId.toString),
+      Metadata(recordIds.last.fileId, AssetId.id, recordIds.last.assetId.toString)
     )
     addFileMetadata(redactedMetadata, mappedPort, includeFFIDMetadata = false)
     Main.run(List("export", "--consignmentId", consignmentId.toString, "--taskToken", "taskToken")).unsafeRunSync()
 
-    val metadataFileWriteBody = getRequestBody(req => req.getRequest.getUrl == s"/${fileIds.head}.metadata" && req.getRequest.getMethod == RequestMethod.PUT)
+    val metadataFileWriteBody = getRequestBody(req => req.getRequest.getUrl == s"/${recordIds.head}.metadata" && req.getRequest.getMethod == RequestMethod.PUT)
 
     JsonPath.read[java.util.List[Any]](metadataFileWriteBody, "$.[0].FFID").asScala.toArray shouldEqual Array.empty[Any]
     JsonPath.read[String](metadataFileWriteBody, "$.[0].OriginalFilepath") shouldEqual "/a/test/path"

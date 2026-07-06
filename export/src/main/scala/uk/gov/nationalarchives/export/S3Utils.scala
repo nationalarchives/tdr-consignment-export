@@ -8,7 +8,7 @@ import software.amazon.awssdk.core.sync.RequestBody
 import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.s3.model.{CopyObjectRequest, ListObjectsV2Request, PutObjectRequest, S3Object, Tag, Tagging, TaggingDirective}
 import uk.gov.nationalarchives.`export`.Main.Config
-import uk.gov.nationalarchives.`export`.MetadataUtils.{ConsignmentType, Judgment, Metadata, Standard}
+import uk.gov.nationalarchives.`export`.MetadataUtils.{ConsignmentId, ConsignmentType, Judgment, Metadata, Series, Standard, TransferringBody, UserId}
 import uk.gov.nationalarchives.`export`.RecordIdHandler.RecordIds
 import uk.gov.nationalarchives.`export`.S3Utils.FileOutput
 
@@ -42,11 +42,11 @@ class S3Utils(config: Config, s3Client: S3Client) {
       Tagging.builder().build()
     } else {
       val consignmentIdTag = Tag.builder
-        .key("ConsignmentId")
+        .key(ConsignmentId.id)
         .value(consignmentId.toString)
         .build
       val userIdTag = Tag.builder
-        .key("UserId")
+        .key(UserId.id)
         .value(userId.toString)
         .build
       Tagging.builder()
@@ -78,8 +78,8 @@ class S3Utils(config: Config, s3Client: S3Client) {
           .tagging(contextTagging(userId, consignmentId))
           .build()
         s3Client.copyObject(copyRequest)
-        val series = consignmentMetadata.find(_.propertyName == "Series").map(_.value)
-        val body = consignmentMetadata.find(_.propertyName == "TransferringBody").map(_.value)
+        val series = consignmentMetadata.find(_.propertyName == Series.id).map(_.value)
+        val body = consignmentMetadata.find(_.propertyName == TransferringBody.id).map(_.value)
         FileOutput(destinationBucket, ids.assetId, ids.fileId, body, series)
       }
   }
