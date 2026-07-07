@@ -32,7 +32,7 @@ class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with T
     val consignmentId = UUID.randomUUID()
     val assetIdOne = UUID.randomUUID()
     val fileIdOne = UUID.randomUUID()
-    val fileIds = Map(
+    val objectKeyIds = Map(
       fileIdOne -> ObjectKeyIds(assetIdOne, fileIdOne)
     )
     val listObjectsCaptor: ArgumentCaptor[ListObjectsV2Request] = ArgumentCaptor.forClass(classOf[ListObjectsV2Request])
@@ -46,7 +46,7 @@ class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with T
 
     val consignmentMetadata = List(Metadata(UUID.randomUUID, "Series", "series"), Metadata(UUID.randomUUID, "TransferringBody", "body"))
 
-    utils.copyFiles(userId, consignmentId, Standard, consignmentMetadata, fileIds).unsafeRunSync()
+    utils.copyFiles(userId, consignmentId, Standard, consignmentMetadata, objectKeyIds).unsafeRunSync()
 
     val listObjectsResponse = listObjectsCaptor.getValue
     listObjectsResponse.bucket() should equal("testCleanBucket")
@@ -65,7 +65,7 @@ class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with T
     val assetIdTwo = UUID.randomUUID()
     val fileIdOne = UUID.randomUUID()
     val fileIdTwo = UUID.randomUUID()
-    val fileIds = Map(
+    val objectKeyIds = Map(
       fileIdOne -> ObjectKeyIds(assetIdOne, fileIdOne),
       fileIdTwo -> ObjectKeyIds(assetIdTwo, fileIdTwo)
     )
@@ -81,7 +81,7 @@ class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with T
 
     val consignmentMetadata = List(Metadata(UUID.randomUUID, "Series", "series"), Metadata(UUID.randomUUID, "TransferringBody", "body"))
 
-    utils.copyFiles(userId, consignmentId, Standard, consignmentMetadata, fileIds).unsafeRunSync()
+    utils.copyFiles(userId, consignmentId, Standard, consignmentMetadata, objectKeyIds).unsafeRunSync()
 
     val listObjectsResponse = listObjectsCaptor.getValue
     listObjectsResponse.bucket() should equal("testCleanBucket")
@@ -106,7 +106,7 @@ class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with T
     val assetIdTwo = UUID.randomUUID()
     val fileIdOne = UUID.randomUUID()
     val fileIdTwo = UUID.randomUUID()
-    val fileIds = Map(
+    val objectKeyIds = Map(
       fileIdOne -> ObjectKeyIds(assetIdOne, fileIdOne),
       fileIdTwo -> ObjectKeyIds(assetIdTwo, fileIdTwo)
     )
@@ -122,7 +122,7 @@ class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with T
 
     val consignmentMetadata = List(Metadata(UUID.randomUUID, "Series", "series"), Metadata(UUID.randomUUID, "TransferringBody", "body"))
 
-    utils.copyFiles(userId, consignmentId, Standard, consignmentMetadata, fileIds).unsafeRunSync()
+    utils.copyFiles(userId, consignmentId, Standard, consignmentMetadata, objectKeyIds).unsafeRunSync()
 
     val listObjectsResponses = listObjectsCaptor.getAllValues.asScala
 
@@ -160,7 +160,7 @@ class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with T
     val consignmentId = UUID.randomUUID()
     val assetIdOne = UUID.randomUUID()
     val fileIdOne = UUID.randomUUID()
-    val fileIds = Map(fileIdOne -> ObjectKeyIds(assetIdOne, fileIdOne))
+    val objectKeyIds = Map(fileIdOne -> ObjectKeyIds(assetIdOne, fileIdOne))
     val s3Object = S3Object.builder.key(s"$consignmentId/$fileIdOne").build
     val listObjectsV2Response = ListObjectsV2Response.builder.contents(s3Object).build
 
@@ -168,7 +168,7 @@ class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with T
 
     when(client.copyObject(any[CopyObjectRequest])).thenThrow(new Exception("Error copying object"))
 
-    val response = utils.copyFiles(userId, consignmentId, Standard, Nil, fileIds).attempt.unsafeRunSync()
+    val response = utils.copyFiles(userId, consignmentId, Standard, Nil, objectKeyIds).attempt.unsafeRunSync()
 
     response.isLeft should equal(true)
     response.left.value.getMessage should equal("Error copying object")
@@ -203,7 +203,7 @@ class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with T
       val consignmentId = UUID.randomUUID()
       val assetId = UUID.randomUUID()
       val fileId = UUID.randomUUID()
-      val fileIds = Map(fileId -> ObjectKeyIds(assetId, fileId))
+      val objectKeyIds = Map(fileId -> ObjectKeyIds(assetId, fileId))
       val copyObjectCaptor: ArgumentCaptor[CopyObjectRequest] = ArgumentCaptor.forClass(classOf[CopyObjectRequest])
 
       val s3Object = S3Object.builder.key(s"$consignmentId/$fileId").build
@@ -213,7 +213,7 @@ class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with T
       when(client.listObjectsV2(any[ListObjectsV2Request])).thenReturn(response)
       when(client.copyObject(copyObjectCaptor.capture)).thenReturn(CopyObjectResponse.builder.build)
 
-      utils.copyFiles(userId, consignmentId, consignmentType, consignmentMetadata, fileIds).unsafeRunSync()
+      utils.copyFiles(userId, consignmentId, consignmentType, consignmentMetadata, objectKeyIds).unsafeRunSync()
 
       copyObjectCaptor.getValue.destinationBucket() should equal(bucket)
       copyObjectCaptor.getValue.tagging() should equal(s"ConsignmentId=$consignmentId&UserId=$userId")

@@ -14,7 +14,7 @@ class ObjectKeyIdHandlerSpec extends AnyFlatSpec with MockitoSugar {
   private val fileTwoId = UUID.randomUUID()
   private val fileTwoAssetId = UUID.randomUUID()
 
-  "getRecordIds" should "return the asset and file ids for each record where the asset id is persisted" in {
+  "getObjectKeyIds" should "return the asset and file ids for each record where the asset id is persisted" in {
     val fileOneMetadata = List(
       Metadata(fileOneId, "ClientSideOriginalFilepath", "a/file/path"),
       Metadata(fileOneId, "AssetId", fileOneAssetId.toString)
@@ -37,7 +37,7 @@ class ObjectKeyIdHandlerSpec extends AnyFlatSpec with MockitoSugar {
     fileTwoIds.digitalObjectKeyId shouldEqual fileTwoId
   }
 
-  "getRecordIds" should "return the file id as the asset id and generate a new digital object key id where asset id is not persisted" in {
+  "getObjectKeyIds" should "return the file id as the asset id and generate a new digital object key id where asset id is not persisted" in {
     val fileWithoutAssetIdMetadata = List(
       Metadata(fileOneId, "ClientSideOriginalFilepath", "a/file/path")
     )

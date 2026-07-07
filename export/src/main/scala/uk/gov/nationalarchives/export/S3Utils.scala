@@ -56,7 +56,7 @@ class S3Utils(config: Config, s3Client: S3Client) {
   }
 
   def copyFiles(userId: UUID, consignmentId: UUID, consignmentType: ConsignmentType, consignmentMetadata: List[Metadata],
-                recordsIds: Map[UUID, ObjectKeyIds]): IO[List[FileOutput]] = IO.blocking {
+                objectKeyIds: Map[UUID, ObjectKeyIds]): IO[List[FileOutput]] = IO.blocking {
     val destinationBucket = consignmentType match {
       case Judgment => config.s3.outputBucketJudgment
       case Standard => config.s3.outputBucket
@@ -66,7 +66,7 @@ class S3Utils(config: Config, s3Client: S3Client) {
       .map { s3Object =>
         val key = s3Object.key
         val fileId = UUID.fromString(key.split("/").last)
-        val ids = recordsIds(fileId)
+        val ids = objectKeyIds(fileId)
         val destinationKey = s"${ids.assetId}/${ids.digitalObjectKeyId}"
         val copyRequest = CopyObjectRequest
           .builder()

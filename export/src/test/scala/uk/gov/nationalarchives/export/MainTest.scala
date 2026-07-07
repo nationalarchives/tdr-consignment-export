@@ -56,13 +56,13 @@ class MainTest extends TestUtils {
   "run" should "send a message to the SNS topic with the id of the file and the bucket name" in withContainers {
     container: PostgreSQLContainer =>
     val mappedPort = container.mappedPort(5432)
-    val (consignmentId, recordIds, _) = stubExternalServices(mappedPort)
+    val (consignmentId, testRecordIds, _) = stubExternalServices(mappedPort)
     Main.run(List("export", "--consignmentId", consignmentId.toString, "--taskToken", "taskToken")).unsafeRunSync()
 
     val snsMessage = snsServer.getAllServeEvents.asScala.head.getRequest.getFormParameters.get("Message").values().get(0)
     val fileOutput = decode[FileOutput](snsMessage).value
     fileOutput.bucket should equal("output")
-    fileOutput.assetId should equal(recordIds.head.assetId)
+    fileOutput.assetId should equal(testRecordIds.head.assetId)
   }
 
   "run" should "not send a message to the SNS topic for a 'mock' series" in withContainers {
