@@ -12,7 +12,7 @@ import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.s3.model._
 import Main._
 import MetadataUtils._
-import uk.gov.nationalarchives.`export`.RecordIdHandler.RecordIds
+import uk.gov.nationalarchives.`export`.ObjectKeyIdHandler.ObjectKeyIds
 import uk.gov.nationalarchives.`export`.S3Utils.FileOutput
 
 import java.util.UUID
@@ -33,7 +33,7 @@ class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with T
     val assetIdOne = UUID.randomUUID()
     val fileIdOne = UUID.randomUUID()
     val fileIds = Map(
-      fileIdOne -> RecordIds(assetIdOne, fileIdOne)
+      fileIdOne -> ObjectKeyIds(assetIdOne, fileIdOne)
     )
     val listObjectsCaptor: ArgumentCaptor[ListObjectsV2Request] = ArgumentCaptor.forClass(classOf[ListObjectsV2Request])
     val copyObjectCaptor: ArgumentCaptor[CopyObjectRequest] = ArgumentCaptor.forClass(classOf[CopyObjectRequest])
@@ -66,8 +66,8 @@ class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with T
     val fileIdOne = UUID.randomUUID()
     val fileIdTwo = UUID.randomUUID()
     val fileIds = Map(
-      fileIdOne -> RecordIds(assetIdOne, fileIdOne),
-      fileIdTwo -> RecordIds(assetIdTwo, fileIdTwo)
+      fileIdOne -> ObjectKeyIds(assetIdOne, fileIdOne),
+      fileIdTwo -> ObjectKeyIds(assetIdTwo, fileIdTwo)
     )
     val listObjectsCaptor: ArgumentCaptor[ListObjectsV2Request] = ArgumentCaptor.forClass(classOf[ListObjectsV2Request])
     val copyObjectCaptor: ArgumentCaptor[CopyObjectRequest] = ArgumentCaptor.forClass(classOf[CopyObjectRequest])
@@ -107,8 +107,8 @@ class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with T
     val fileIdOne = UUID.randomUUID()
     val fileIdTwo = UUID.randomUUID()
     val fileIds = Map(
-      fileIdOne -> RecordIds(assetIdOne, fileIdOne),
-      fileIdTwo -> RecordIds(assetIdTwo, fileIdTwo)
+      fileIdOne -> ObjectKeyIds(assetIdOne, fileIdOne),
+      fileIdTwo -> ObjectKeyIds(assetIdTwo, fileIdTwo)
     )
     val listObjectsCaptor: ArgumentCaptor[ListObjectsV2Request] = ArgumentCaptor.forClass(classOf[ListObjectsV2Request])
 
@@ -160,7 +160,7 @@ class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with T
     val consignmentId = UUID.randomUUID()
     val assetIdOne = UUID.randomUUID()
     val fileIdOne = UUID.randomUUID()
-    val fileIds = Map(fileIdOne -> RecordIds(assetIdOne, fileIdOne))
+    val fileIds = Map(fileIdOne -> ObjectKeyIds(assetIdOne, fileIdOne))
     val s3Object = S3Object.builder.key(s"$consignmentId/$fileIdOne").build
     val listObjectsV2Response = ListObjectsV2Response.builder.contents(s3Object).build
 
@@ -203,7 +203,7 @@ class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with T
       val consignmentId = UUID.randomUUID()
       val assetId = UUID.randomUUID()
       val fileId = UUID.randomUUID()
-      val fileIds = Map(fileId -> RecordIds(assetId, fileId))
+      val fileIds = Map(fileId -> ObjectKeyIds(assetId, fileId))
       val copyObjectCaptor: ArgumentCaptor[CopyObjectRequest] = ArgumentCaptor.forClass(classOf[CopyObjectRequest])
 
       val s3Object = S3Object.builder.key(s"$consignmentId/$fileId").build
@@ -244,6 +244,7 @@ class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with T
 
     val utils = S3Utils(config(), client)
     val assetId = UUID.randomUUID()
+    val fileId = UUID.randomUUID()
     val bodyCaptor: ArgumentCaptor[RequestBody] = ArgumentCaptor.forClass(classOf[RequestBody])
 
     when(client.putObject(any[PutObjectRequest], bodyCaptor.capture())).thenReturn(PutObjectResponse.builder.build)
@@ -253,8 +254,8 @@ class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with T
         UUID.randomUUID(),
         UUID.randomUUID(),
         Standard,
-        List(FileOutput("", assetId, UUID.randomUUID, None, None)),
-        List(Metadata(assetId, "TestFile", "TestFileValue")),
+        List(FileOutput("", assetId, fileId, None, None)),
+        List(Metadata(fileId, "TestFile", "TestFileValue")),
         List(Metadata(UUID.randomUUID(), "TestConsignment", "TestConsignmentValue")),
         Map.empty
       )
@@ -269,6 +270,7 @@ class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with T
 
     val utils = S3Utils(config(), client)
     val assetId = UUID.randomUUID()
+    val fileId = UUID.randomUUID()
     val bodyCaptor: ArgumentCaptor[RequestBody] = ArgumentCaptor.forClass(classOf[RequestBody])
 
     when(client.putObject(any[PutObjectRequest], bodyCaptor.capture())).thenReturn(PutObjectResponse.builder.build)
@@ -278,8 +280,8 @@ class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with T
         UUID.randomUUID(),
         UUID.randomUUID(),
         Standard,
-        List(FileOutput("", assetId, UUID.randomUUID, None, None)),
-        List(Metadata(assetId, "TestFile1", "TestFileValue1"), Metadata(UUID.randomUUID(), "TestFile2", "TestFileValue2")),
+        List(FileOutput("", assetId, fileId, None, None)),
+        List(Metadata(fileId, "TestFile1", "TestFileValue1"), Metadata(UUID.randomUUID(), "TestFile2", "TestFileValue2")),
         Nil,
         Map.empty
       )

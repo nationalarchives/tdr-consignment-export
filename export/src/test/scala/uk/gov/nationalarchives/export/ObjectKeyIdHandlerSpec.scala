@@ -8,7 +8,7 @@ import uk.gov.nationalarchives.`export`.MetadataUtils.Metadata
 
 import java.util.UUID
 
-class RecordIdHandlerSpec extends AnyFlatSpec with MockitoSugar {
+class ObjectKeyIdHandlerSpec extends AnyFlatSpec with MockitoSugar {
   private val fileOneId = UUID.randomUUID()
   private val fileOneAssetId = UUID.randomUUID()
   private val fileTwoId = UUID.randomUUID()
@@ -25,19 +25,19 @@ class RecordIdHandlerSpec extends AnyFlatSpec with MockitoSugar {
       Metadata(fileTwoId, "AssetId", fileTwoAssetId.toString)
     )
 
-    val result = RecordIdHandler.getRecordIds(List(fileTwoMetadata, fileOneMetadata).flatten)
+    val result = ObjectKeyIdHandler.getObjectKeyIds(List(fileTwoMetadata, fileOneMetadata).flatten)
     result.size shouldBe 2
 
     val fileOneIds = result(fileOneId)
     fileOneIds.assetId shouldEqual fileOneAssetId
-    fileOneIds.fileId shouldEqual fileOneId
+    fileOneIds.digitalObjectKeyId shouldEqual fileOneId
 
     val fileTwoIds = result(fileTwoId)
     fileTwoIds.assetId shouldEqual fileTwoAssetId
-    fileTwoIds.fileId shouldEqual fileTwoId
+    fileTwoIds.digitalObjectKeyId shouldEqual fileTwoId
   }
 
-  "getRecordIds" should "return the file id as the asset id and generate a new file id where asset id is not persisted" in {
+  "getRecordIds" should "return the file id as the asset id and generate a new digital object key id where asset id is not persisted" in {
     val fileWithoutAssetIdMetadata = List(
       Metadata(fileOneId, "ClientSideOriginalFilepath", "a/file/path")
     )
@@ -47,15 +47,15 @@ class RecordIdHandlerSpec extends AnyFlatSpec with MockitoSugar {
       Metadata(fileTwoId, "AssetId", fileTwoAssetId.toString)
     )
 
-    val result = RecordIdHandler.getRecordIds(List(fileTwoMetadata, fileWithoutAssetIdMetadata).flatten)
+    val result = ObjectKeyIdHandler.getObjectKeyIds(List(fileTwoMetadata, fileWithoutAssetIdMetadata).flatten)
     result.size shouldBe 2
 
     val fileWithoutAssetId = result(fileOneId)
     fileWithoutAssetId.assetId shouldEqual fileOneId
-    fileWithoutAssetId.fileId should not equal fileOneId
+    fileWithoutAssetId.digitalObjectKeyId should not equal fileOneId
 
     val fileTwoIds = result(fileTwoId)
     fileTwoIds.assetId shouldEqual fileTwoAssetId
-    fileTwoIds.fileId shouldEqual fileTwoId
+    fileTwoIds.digitalObjectKeyId shouldEqual fileTwoId
   }
 }

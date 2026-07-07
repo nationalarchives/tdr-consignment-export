@@ -45,7 +45,7 @@ object Main extends CommandIOApp("tdr-export", "Exports tdr files with a flat st
       series = consignmentMetadata.filter(_.propertyName == Series.id).head.value
       fileMetadata <- metadataUtils.getFileMetadata(consignmentId)
       _ <- IO.raiseWhen(fileMetadata.isEmpty)(new RuntimeException(s"Metadata for consignment $consignmentId is missing"))
-      recordIds = RecordIdHandler.getRecordIds(fileMetadata)
+      recordIds = ObjectKeyIdHandler.getObjectKeyIds(fileMetadata)
       userId = UUID.fromString(consignmentMetadata.find(_.propertyName == UserId.id).get.value)
       fileOutputs <- s3Utils.copyFiles(userId, consignmentId, consignmentType, consignmentMetadata, recordIds)
       ffidMetadata <- metadataUtils.getFFIDMetadata(consignmentId)

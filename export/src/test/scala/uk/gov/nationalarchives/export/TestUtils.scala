@@ -15,12 +15,14 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.{BeforeAndAfterAll, EitherValues}
 import org.testcontainers.utility.DockerImageName
 import MetadataUtils.{AssetId, Metadata}
-import uk.gov.nationalarchives.`export`.RecordIdHandler.RecordIds
+import uk.gov.nationalarchives.`export`.ObjectKeyIdHandler.ObjectKeyIds
 
 import java.util.UUID
 import scala.jdk.CollectionConverters.{ListHasAsScala, MapHasAsJava}
 
 class TestUtils extends AnyFlatSpec with TestContainerForAll with BeforeAndAfterAll with EitherValues {
+
+  case class TestRecordsIds(assetId: UUID, fileId: UUID)
 
   override val containerDef: PostgreSQLContainer.Def = PostgreSQLContainer.Def(
     dockerImageName = DockerImageName
@@ -63,20 +65,26 @@ class TestUtils extends AnyFlatSpec with TestContainerForAll with BeforeAndAfter
     )
   }
 
-  def stubPutRequest(recordIds: List[RecordIds]): Unit = {
+  private def handleAssetId(persistedAssetIds: Boolean, recordIds: TestRecordsIds): UUID = {
+    if (!persistedAssetIds) { recordIds.fileId } else recordIds.assetId
+  }
+
+  def stubPutRequest(recordIds: List[TestRecordsIds], persistedAssetIds: Boolean): Unit = {
     recordIds.map { ids =>
+      val urlId = handleAssetId(persistedAssetIds, ids)
       s3Server.stubFor(
-        put(urlEqualTo(s"/${ids.assetId}.metadata"))
+        put(urlEqualTo(s"/$urlId.metadata"))
           .withHost(equalTo("output.localhost"))
           .willReturn(ok())
       )
     }
   }
 
-  def stubCopyRequest(consignmentId: UUID, recordIds: List[RecordIds]): Unit = {
+  def stubCopyRequest(consignmentId: UUID, recordIds: List[TestRecordsIds], persistedAssetIds: Boolean): Unit = {
     recordIds.map { ids =>
       val sourceName = s"/$consignmentId/${ids.fileId}"
-      val destinationName = s"/${ids.assetId}"
+      val destinationId = handleAssetId(persistedAssetIds, ids)
+      val destinationName = s"/$destinationId"
       val response =
         <CopyObjectResult>
           <LastModified>2023-08-29T17:50:30.000Z</LastModified>
@@ -99,7 +107,7 @@ class TestUtils extends AnyFlatSpec with TestContainerForAll with BeforeAndAfter
     }
   }
 
-  def stubS3Get(consignmentId: UUID, recordIds: List[RecordIds]): StubMapping = {
+  def stubS3Get(consignmentId: UUID, recordIds: List[TestRecordsIds]): StubMapping = {
     val params = Map("list-type" -> equalTo("2"), "prefix" -> equalTo(s"$consignmentId/")).asJava
     val response = <ListBucketResult xmlns="http://s3.amazonaws.com/doc/2006-03-01/">
       {recordIds.map(ids =>
@@ -131,21 +139,23 @@ class TestUtils extends AnyFlatSpec with TestContainerForAll with BeforeAndAfter
     )
   }
 
-  def stubExternalServices(mappedPort: Int, numberOfRecords: Int = 1, shouldAddMetadata: Boolean = true, seriesName: String = UUID.randomUUID().toString): (UUID, List[RecordIds], String) = {
+  def stubExternalServices(mappedPort: Int, numberOfRecords: Int = 1, shouldAddMetadata: Boolean = true,
+                           seriesName: String = UUID.randomUUID().toString, persistedAssetIds: Boolean = true): (UUID, List[TestRecordsIds], String) = {
     System.setProperty("db.port", mappedPort.toString)
     val consignmentId = UUID.randomUUID()
     val fileIds = (1 to numberOfRecords).map(_ => UUID.randomUUID()).toList.sorted
-    val recordIds = fileIds.map(id => RecordIds(UUID.randomUUID(), id))
-    val consignmentReference = seedDatabase(mappedPort, consignmentId.toString, recordIds, seriesName = seriesName)
+    val recordIds = fileIds.map(id => TestRecordsIds(UUID.randomUUID(), id))
+    val consignmentReference = seedDatabase(mappedPort, consignmentId.toString, recordIds, seriesName = seriesName, persistedAssetIds = persistedAssetIds)
     stubS3Get(consignmentId, recordIds)
-    stubCopyRequest(consignmentId, recordIds)
-    stubPutRequest(recordIds)
+    stubCopyRequest(consignmentId, recordIds, persistedAssetIds)
+    stubPutRequest(recordIds, persistedAssetIds)
     if(shouldAddMetadata) {
-      addFileMetadata(recordIds.flatMap(ids =>
-        List(
-          Metadata(ids.fileId, AssetId.id, ids.assetId.toString),
-          Metadata(ids.fileId, "PropertyName", "Value")
-        )
+      addFileMetadata(recordIds.flatMap(ids => {
+        val metadata = List(Metadata(ids.fileId, "PropertyName", "Value"))
+        val assetIdMetadata = if (!persistedAssetIds) { Nil } else List(Metadata(ids.fileId, AssetId.id, ids.assetId.toString))
+        metadata ++ assetIdMetadata
+      }
+
       ), mappedPort)
     }
     (consignmentId, recordIds, consignmentReference)
@@ -224,7 +234,7 @@ class TestUtils extends AnyFlatSpec with TestContainerForAll with BeforeAndAfter
     } yield ()
   }.unsafeRunSync()
 
-  def seedDatabase(port: Int, consignmentId: String, recordIds: List[RecordIds], seriesName: String): String = {
+  def seedDatabase(port: Int, consignmentId: String, recordIds: List[TestRecordsIds], seriesName: String, persistedAssetIds: Boolean): String = {
     val jdbcUrl = s"jdbc:postgresql://localhost:$port/consignmentapi"
     val bodyId: String = UUID.randomUUID().toString
     val seriesId: String = UUID.randomUUID().toString
@@ -248,7 +258,7 @@ class TestUtils extends AnyFlatSpec with TestContainerForAll with BeforeAndAfter
          VALUES (CAST($consignmentId AS UUID), CAST($userId AS UUID), CAST($dateTime AS TIMESTAMP), $sequence, $consignmentRef, 'standard', CAST($bodyId AS UUID), CAST($seriesId AS UUID), '2024-08-29 00:00:00', $metadataSchemaLibraryVersion)""".update.run
         .transact(transactor)
       _ <- recordIds.map { ids =>
-        val assetId = ids.assetId.toString
+        val assetId = if(!persistedAssetIds) { None } else Some(ids.assetId.toString)
         val fileId = ids.fileId.toString
 
         sql""" INSERT INTO "File" ("FileId", "ConsignmentId", "UserId", "Datetime", "AssetId")
