@@ -31,10 +31,12 @@ class ObjectKeyIdHandlerSpec extends AnyFlatSpec with MockitoSugar {
     val fileOneIds = result(fileOneId)
     fileOneIds.assetId shouldEqual fileOneAssetId
     fileOneIds.digitalObjectKeyId shouldEqual fileOneId
+    fileOneIds.tdrFileId shouldEqual fileOneId
 
     val fileTwoIds = result(fileTwoId)
     fileTwoIds.assetId shouldEqual fileTwoAssetId
     fileTwoIds.digitalObjectKeyId shouldEqual fileTwoId
+    fileTwoIds.tdrFileId shouldEqual fileTwoId
   }
 
   "getObjectKeyIds" should "return the file id as the asset id and generate a new digital object key id where asset id is not persisted" in {
@@ -53,9 +55,12 @@ class ObjectKeyIdHandlerSpec extends AnyFlatSpec with MockitoSugar {
     val fileWithoutAssetId = result(fileOneId)
     fileWithoutAssetId.assetId shouldEqual fileOneId
     fileWithoutAssetId.digitalObjectKeyId should not equal fileOneId
+    fileWithoutAssetId.digitalObjectKeyId should not equal fileOneAssetId
+    fileWithoutAssetId.tdrFileId shouldEqual fileOneId
 
     val fileTwoIds = result(fileTwoId)
     fileTwoIds.assetId shouldEqual fileTwoAssetId
     fileTwoIds.digitalObjectKeyId shouldEqual fileTwoId
+    fileTwoIds.tdrFileId shouldEqual fileTwoId
   }
 }

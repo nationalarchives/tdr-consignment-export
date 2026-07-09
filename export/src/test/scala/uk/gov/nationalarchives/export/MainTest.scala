@@ -15,16 +15,17 @@ import scala.jdk.CollectionConverters.ListHasAsScala
 
 class MainTest extends TestUtils {
 
-  "run" should "use file id as asset id where no asset id persisted" in withContainers {
+  "run" should "use the tdr file id as asset id where no asset id persisted" in withContainers {
     container: PostgreSQLContainer =>
       val mappedPort = container.mappedPort(5432)
       val seriesName: String = UUID.randomUUID().toString
       val (consignmentId, testRecordIds, consignmentReference) = stubExternalServices(mappedPort, seriesName = seriesName, persistedAssetIds = false)
       Main.run(List("export", "--consignmentId", consignmentId.toString, "--taskToken", "taskToken")).unsafeRunSync()
 
+      val metadataKeyId = testRecordIds.head.fileId
       val serveEvents = s3Server.getAllServeEvents.asScala
       val metadataFileWriteBody = serveEvents
-        .find(req => req.getRequest.getUrl == s"/${testRecordIds.head.fileId}.metadata" && req.getRequest.getMethod == RequestMethod.PUT)
+        .find(req => req.getRequest.getUrl == s"/$metadataKeyId.metadata" && req.getRequest.getMethod == RequestMethod.PUT)
         .map(_.getRequest.getBodyAsString)
         .getOrElse("")
       val jsonReturned = metadataFileWriteBody.split("\n").tail.head.trim
@@ -33,7 +34,7 @@ class MainTest extends TestUtils {
       JsonPath.read[java.util.List[Any]](jsonReturned, "$.[0].FFID").asScala.toArray shouldEqual Array.empty[Any]
       JsonPath.read[String](jsonReturned, "$.[0].PropertyName") shouldEqual "Value"
       JsonPath.read[String](jsonReturned, "$.[0].UserId") shouldEqual userId
-      JsonPath.read[String](jsonReturned, "$.[0].fileId") shouldEqual testRecordIds.head.fileId.toString
+      JsonPath.read[String](jsonReturned, "$.[0].fileId") should not equal testRecordIds.head.fileId.toString
       JsonPath.read[String](jsonReturned, "$.[0].Series") shouldEqual seriesName
       JsonPath.read[String](jsonReturned, "$.[0].TransferInitiatedDatetime") shouldEqual "2024-08-29 00:00:00"
       JsonPath.read[String](jsonReturned, "$.[0].ConsignmentReference") shouldEqual consignmentReference
@@ -63,6 +64,21 @@ class MainTest extends TestUtils {
     val fileOutput = decode[FileOutput](snsMessage).value
     fileOutput.bucket should equal("output")
     fileOutput.assetId should equal(testRecordIds.head.assetId)
+    fileOutput.fileId should equal(testRecordIds.head.fileId)
+  }
+
+  "run" should "send a message to the SNS topic with the id of the file being a random id when no asset id persisted" in withContainers {
+    container: PostgreSQLContainer =>
+      val mappedPort = container.mappedPort(5432)
+      val (consignmentId, testRecordIds, _) = stubExternalServices(mappedPort, persistedAssetIds = false)
+      Main.run(List("export", "--consignmentId", consignmentId.toString, "--taskToken", "taskToken")).unsafeRunSync()
+
+      val snsMessage = snsServer.getAllServeEvents.asScala.head.getRequest.getFormParameters.get("Message").values().get(0)
+      val fileOutput = decode[FileOutput](snsMessage).value
+      fileOutput.bucket should equal("output")
+      fileOutput.assetId should equal(testRecordIds.head.fileId)
+      fileOutput.fileId should not equal testRecordIds.head.fileId
+      fileOutput.fileId should not equal testRecordIds.head.assetId
   }
 
   "run" should "not send a message to the SNS topic for a 'mock' series" in withContainers {
