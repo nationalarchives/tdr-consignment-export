@@ -47,10 +47,10 @@ object Main extends CommandIOApp("tdr-export", "Exports tdr files with a flat st
       _ <- IO.raiseWhen(fileMetadata.isEmpty)(new RuntimeException(s"Metadata for consignment $consignmentId is missing"))
       objectKeyIds = ObjectKeyIdHandler.getObjectKeyIds(fileMetadata)
       userId = UUID.fromString(consignmentMetadata.find(_.propertyName == UserId.id).get.value)
-      fileOutputs <- s3Utils.copyFiles(userId, consignmentId, consignmentType, consignmentMetadata, objectKeyIds)
+      fileDetails <- s3Utils.copyFiles(userId, consignmentId, consignmentType, consignmentMetadata, objectKeyIds)
       ffidMetadata <- metadataUtils.getFFIDMetadata(consignmentId)
-      _ <- s3Utils.putMetadata(userId, consignmentId, consignmentType, fileOutputs, fileMetadata, consignmentMetadata, ffidMetadata)
-      _ <- if (config.exportConfiguration.blockMockSeriesIngest && series.toLowerCase.contains("mock")) { IO(Nil) } else publishUtils.publishMessages(fileOutputs)
+      _ <- s3Utils.putMetadata(userId, consignmentId, consignmentType, fileDetails, fileMetadata, consignmentMetadata, ffidMetadata)
+      _ <- if (config.exportConfiguration.blockMockSeriesIngest && series.toLowerCase.contains("mock")) { IO(Nil) } else publishUtils.publishMessages(fileDetails.map(_.output))
       _ <- stepFunction.publishSuccess(taskToken)
       _ <- heartBeat.cancel
     } yield ExitCode.Success
