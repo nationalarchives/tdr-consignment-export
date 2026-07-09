@@ -103,10 +103,3 @@ lazy val bagitExport = (project in file("bagit-export"))
     dependencyOverrides += "org.scala-lang.modules" %% "scala-java8-compat" % "1.0.2",
     (Test / javaOptions) += s"-Dconfig.file=${sourceDirectory.value}/test/resources/application.conf"
   ).enablePlugins(JavaAppPackaging, UniversalPlugin, BuildInfoPlugin)
-
-ThisBuild / dependencyOverrides ++= Seq(
-  "org.bouncycastle" % "bcprov-jdk18on" % "1.84",
-  "org.bouncycastle" % "bcpkix-jdk18on" % "1.84",
-  "org.bouncycastle" % "bcutil-jdk18on" % "1.84",
-  "org.bouncycastle" % "bcpg-jdk18on"   % "1.84"
-)
