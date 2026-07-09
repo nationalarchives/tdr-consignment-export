@@ -13,7 +13,7 @@ import software.amazon.awssdk.services.s3.model._
 import Main._
 import MetadataUtils._
 import uk.gov.nationalarchives.`export`.ObjectKeyIdHandler.ObjectKeyIds
-import uk.gov.nationalarchives.`export`.S3Utils.FileOutput
+import uk.gov.nationalarchives.`export`.S3Utils.{FileDetails, FileOutput}
 
 import java.util.UUID
 import scala.jdk.CollectionConverters.ListHasAsScala
@@ -33,7 +33,7 @@ class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with T
     val assetIdOne = UUID.randomUUID()
     val fileIdOne = UUID.randomUUID()
     val objectKeyIds = Map(
-      fileIdOne -> ObjectKeyIds(assetIdOne, fileIdOne)
+      fileIdOne -> ObjectKeyIds(assetIdOne, fileIdOne, UUID.randomUUID())
     )
     val listObjectsCaptor: ArgumentCaptor[ListObjectsV2Request] = ArgumentCaptor.forClass(classOf[ListObjectsV2Request])
     val copyObjectCaptor: ArgumentCaptor[CopyObjectRequest] = ArgumentCaptor.forClass(classOf[CopyObjectRequest])
@@ -66,8 +66,8 @@ class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with T
     val fileIdOne = UUID.randomUUID()
     val fileIdTwo = UUID.randomUUID()
     val objectKeyIds = Map(
-      fileIdOne -> ObjectKeyIds(assetIdOne, fileIdOne),
-      fileIdTwo -> ObjectKeyIds(assetIdTwo, fileIdTwo)
+      fileIdOne -> ObjectKeyIds(assetIdOne, fileIdOne, UUID.randomUUID()),
+      fileIdTwo -> ObjectKeyIds(assetIdTwo, fileIdTwo, UUID.randomUUID())
     )
     val listObjectsCaptor: ArgumentCaptor[ListObjectsV2Request] = ArgumentCaptor.forClass(classOf[ListObjectsV2Request])
     val copyObjectCaptor: ArgumentCaptor[CopyObjectRequest] = ArgumentCaptor.forClass(classOf[CopyObjectRequest])
@@ -107,8 +107,8 @@ class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with T
     val fileIdOne = UUID.randomUUID()
     val fileIdTwo = UUID.randomUUID()
     val objectKeyIds = Map(
-      fileIdOne -> ObjectKeyIds(assetIdOne, fileIdOne),
-      fileIdTwo -> ObjectKeyIds(assetIdTwo, fileIdTwo)
+      fileIdOne -> ObjectKeyIds(assetIdOne, fileIdOne, UUID.randomUUID()),
+      fileIdTwo -> ObjectKeyIds(assetIdTwo, fileIdTwo, UUID.randomUUID())
     )
     val listObjectsCaptor: ArgumentCaptor[ListObjectsV2Request] = ArgumentCaptor.forClass(classOf[ListObjectsV2Request])
 
@@ -160,7 +160,7 @@ class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with T
     val consignmentId = UUID.randomUUID()
     val assetIdOne = UUID.randomUUID()
     val fileIdOne = UUID.randomUUID()
-    val objectKeyIds = Map(fileIdOne -> ObjectKeyIds(assetIdOne, fileIdOne))
+    val objectKeyIds = Map(fileIdOne -> ObjectKeyIds(assetIdOne, fileIdOne, UUID.randomUUID()))
     val s3Object = S3Object.builder.key(s"$consignmentId/$fileIdOne").build
     val listObjectsV2Response = ListObjectsV2Response.builder.contents(s3Object).build
 
@@ -203,7 +203,7 @@ class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with T
       val consignmentId = UUID.randomUUID()
       val assetId = UUID.randomUUID()
       val fileId = UUID.randomUUID()
-      val objectKeyIds = Map(fileId -> ObjectKeyIds(assetId, fileId))
+      val objectKeyIds = Map(fileId -> ObjectKeyIds(assetId, fileId, UUID.randomUUID()))
       val copyObjectCaptor: ArgumentCaptor[CopyObjectRequest] = ArgumentCaptor.forClass(classOf[CopyObjectRequest])
 
       val s3Object = S3Object.builder.key(s"$consignmentId/$fileId").build
@@ -231,7 +231,10 @@ class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with T
 
       when(client.putObject(putObjectRequestCaptor.capture(), any[RequestBody])).thenReturn(PutObjectResponse.builder.build)
 
-      utils.putMetadata(userId, consignmentId, consignmentType, List(FileOutput("", assetId, UUID.randomUUID, None, None)), Nil, List(Metadata(UUID.randomUUID(), "Test", "TestValue")), Map.empty).unsafeRunSync()
+      val objectKeyIds = ObjectKeyIds(assetId, UUID.randomUUID(), UUID.randomUUID())
+      val fileOutput = FileOutput("", assetId, UUID.randomUUID, None, None)
+
+      utils.putMetadata(userId, consignmentId, consignmentType, List(FileDetails(fileOutput, objectKeyIds)), Nil, List(Metadata(UUID.randomUUID(), "Test", "TestValue")), Map.empty).unsafeRunSync()
 
       putObjectRequestCaptor.getValue.bucket() should equal(bucket)
       putObjectRequestCaptor.getValue.tagging() should equal(s"ConsignmentId=$consignmentId&UserId=$userId")
@@ -249,12 +252,15 @@ class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with T
 
     when(client.putObject(any[PutObjectRequest], bodyCaptor.capture())).thenReturn(PutObjectResponse.builder.build)
 
+    val objectKeyIds = ObjectKeyIds(assetId, UUID.randomUUID(), fileId)
+    val fileOutput = FileOutput("", assetId, UUID.randomUUID, None, None)
+
     utils
       .putMetadata(
         UUID.randomUUID(),
         UUID.randomUUID(),
         Standard,
-        List(FileOutput("", assetId, fileId, None, None)),
+        List(FileDetails(fileOutput, objectKeyIds)),
         List(Metadata(fileId, "TestFile", "TestFileValue")),
         List(Metadata(UUID.randomUUID(), "TestConsignment", "TestConsignmentValue")),
         Map.empty
@@ -275,12 +281,15 @@ class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with T
 
     when(client.putObject(any[PutObjectRequest], bodyCaptor.capture())).thenReturn(PutObjectResponse.builder.build)
 
+    val objectKeyIds = ObjectKeyIds(assetId, UUID.randomUUID(), fileId)
+    val fileOutput = FileOutput("", assetId, UUID.randomUUID, None, None)
+
     utils
       .putMetadata(
         UUID.randomUUID(),
         UUID.randomUUID(),
         Standard,
-        List(FileOutput("", assetId, fileId, None, None)),
+        List(FileDetails(fileOutput, objectKeyIds)),
         List(Metadata(fileId, "TestFile1", "TestFileValue1"), Metadata(UUID.randomUUID(), "TestFile2", "TestFileValue2")),
         Nil,
         Map.empty
@@ -298,12 +307,15 @@ class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with T
 
     when(client.putObject(any[PutObjectRequest], any[RequestBody])).thenThrow(new Exception("Error writing to S3"))
 
+    val objectKeyIds = ObjectKeyIds(assetId, UUID.randomUUID(), UUID.randomUUID())
+    val fileOutput = FileOutput("", assetId, UUID.randomUUID, None, None)
+
     val response = utils
       .putMetadata(
         UUID.randomUUID(),
         UUID.randomUUID(),
         Standard,
-        List(FileOutput("", assetId, UUID.randomUUID, None, None)),
+        List(FileDetails(fileOutput, objectKeyIds)),
         List(Metadata(assetId, "TestFile1", "TestFileValue1")),
         Nil,
         Map.empty

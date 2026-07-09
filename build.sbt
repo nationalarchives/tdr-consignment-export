@@ -30,12 +30,6 @@ lazy val root = (project in file("."))
       setNextVersion,
       commitNextVersion,
       pushChanges
-    ),
-    dependencyOverrides ++= Seq(
-      "org.bouncycastle" % "bcprov-jdk18on" % "1.84",
-      "org.bouncycastle" % "bcpkix-jdk18on" % "1.84",
-      "org.bouncycastle" % "bcutil-jdk18on" % "1.84",
-      "org.bouncycastle" % "bcpg-jdk18on"   % "1.84"
     )
   )
   .aggregate(bagitExport, export)
