@@ -80,7 +80,8 @@ class S3Utils(config: Config, s3Client: S3Client) {
         s3Client.copyObject(copyRequest)
         val series = consignmentMetadata.find(_.propertyName == Series.id).map(_.value)
         val body = consignmentMetadata.find(_.propertyName == TransferringBody.id).map(_.value)
-        val output = FileOutput(destinationBucket, ids.assetId, ids.digitalObjectKeyId, body, series)
+        val metadataLocation = s"${ids.assetId}.metadata"
+        val output = FileOutput(destinationBucket, ids.assetId, ids.digitalObjectKeyId, metadataLocation, body, series)
         FileDetails(output, ids)
       }
   }
@@ -119,7 +120,7 @@ class S3Utils(config: Config, s3Client: S3Client) {
       val body = RequestBody.fromString(Json.arr(allObjects).noSpaces)
       val request = PutObjectRequest.builder
         .bucket(outputBucket)
-        .key(s"${ids.assetId}.metadata")
+        .key(fileDetails.output.metadataLocation)
         .tagging(contextTagging(userId, consignmentId))
         .build
       s3Client.putObject(request, body)
@@ -130,5 +131,6 @@ class S3Utils(config: Config, s3Client: S3Client) {
 object S3Utils {
   def apply(config: Config, s3Client: S3Client) = new S3Utils(config, s3Client)
   case class FileDetails(output: FileOutput, objectKeyIds: ObjectKeyIds)
-  case class FileOutput(bucket: String, assetId: UUID, fileId: UUID, transferringBody: Option[String], series: Option[String])
+  case class FileOutput(bucket: String, assetId: UUID, fileId: UUID, metadataLocation: String,
+                        transferringBody: Option[String], series: Option[String])
 }
