@@ -8,7 +8,9 @@ import gov.loc.repository.bagit.domain.Metadata
 import graphql.codegen.GetConsignmentExport.{getConsignmentForExport => gce}
 import org.typelevel.log4cats.SelfAwareStructuredLogger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
-import uk.gov.nationalarchives.aws.utils.s3.S3Clients.s3Async
+import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient
+import software.amazon.awssdk.regions.Region
+import software.amazon.awssdk.services.s3.S3AsyncClient
 import uk.gov.nationalarchives.aws.utils.s3.S3Utils
 import uk.gov.nationalarchives.aws.utils.stepfunction.StepFunctionClients.sfnAsyncClient
 import uk.gov.nationalarchives.aws.utils.stepfunction.StepFunctionUtils
@@ -21,7 +23,8 @@ import uk.gov.nationalarchives.consignmentexport.GraphQlApi.backend
 import uk.gov.nationalarchives.consignmentexport.StepFunction.ExportOutput
 import uk.gov.nationalarchives.tdr.keycloak.TdrKeycloakDeployment
 
-import java.time.{ZoneOffset, ZonedDateTime}
+import java.net.URI
+import java.time.{Duration => JDuration, ZoneOffset, ZonedDateTime}
 import java.util.UUID
 import scala.concurrent.duration._
 import scala.language.{implicitConversions, postfixOps}
@@ -33,6 +36,19 @@ object Main extends CommandIOApp("tdr-consignment-export", "Exports tdr files in
 
   implicit val tdrKeycloakDeployment: TdrKeycloakDeployment = TdrKeycloakDeployment(configuration.getString("auth.url"), "tdr", 3600)
   private val stepFunctionPublishEndpoint = configuration.getString("stepFunction.endpoint")
+
+  private def buildS3AsyncClient(endpoint: String): S3AsyncClient = {
+    val httpClient = NettyNioAsyncHttpClient.builder
+      .maxConcurrency(500)
+      .connectionAcquisitionTimeout(JDuration.ofSeconds(60))
+      .build
+    S3AsyncClient.builder
+      .multipartEnabled(true)
+      .region(Region.EU_WEST_2)
+      .endpointOverride(URI.create(endpoint))
+      .httpClient(httpClient)
+      .build
+  }
 
   override def main: Opts[IO[ExitCode]] =
     exportOps.map {
@@ -55,7 +71,7 @@ object Main extends CommandIOApp("tdr-consignment-export", "Exports tdr files in
           (config, basePath) = configuration
           bashCommands = BashCommands()
           graphQlApi = GraphQlApi(config, consignmentId)
-          s3Files = S3Files(S3Utils(s3Async(config.s3.endpoint)), config)
+          s3Files = S3Files(S3Utils(buildS3AsyncClient(config.s3.endpoint)), config)
           validator = Validator(consignmentId)
           //Export datetime generated as value needed in bag metadata and DB table
           //Cannot use the value from DB table in bag metadata, as bag metadata created before bagging
@@ -95,10 +111,11 @@ object Main extends CommandIOApp("tdr-consignment-export", "Exports tdr files in
 
         exitCode.handleErrorWith {e =>
           for {
+            _ <- logger.error(e)(s"$exportFailedErrorMessage: ${e.getMessage}")
             _ <- stepFunction.publishFailure(taskToken, s"$exportFailedErrorMessage: ${e.getMessage}")
             configuration <- configure()
             (config, basePath) = configuration
-            s3Files = S3Files(S3Utils(s3Async(config.s3.endpoint)), config)
+            s3Files = S3Files(S3Utils(buildS3AsyncClient(config.s3.endpoint)), config)
             _ <- s3Files.deleteDownloadDirectories(basePath)
             _ <- IO.raiseError(e)
           } yield ExitCode.Error

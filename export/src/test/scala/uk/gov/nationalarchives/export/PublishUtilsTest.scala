@@ -16,13 +16,13 @@ import java.util.UUID
 class PublishUtilsTest extends AnyFlatSpec with MockitoSugar {
 
   "publishMessages" should "retry any failed messages" in {
-    val config: Config = Config(Db(useIamAuth = false, "", "", "", 5432), ExportConfiguration(true), SFN(""), S3("", "", "", ""), SNS("", "testTopic", 500))
+    val config: Config = Config(Db(useIamAuth = false, "", "", "", 5432), ExportConfiguration(true, true), SFN(""), S3("", "", "", ""), SNS("", "testTopic", 500))
     val snsUtils = mock[SNSUtils]
     def response(statusCode: Int): PublishResponse = PublishResponse.builder.sdkHttpResponse(SdkHttpFullResponse.builder.statusCode(statusCode).build).build().asInstanceOf[PublishResponse]
 
     when(snsUtils.publish(any[String], any[String]))
       .thenReturn(response(400), List.fill(10)(response(400)) ++ List(response(200)):_*)
-    val outputs = (1 to 600).map(_ => FileOutput("", UUID.randomUUID, UUID.randomUUID, None, None)).toList
+    val outputs = (1 to 600).map(_ => FileOutput("", UUID.randomUUID(), UUID.randomUUID(), None, None)).toList
 
     val fileOutputs = TestControl.executeEmbed(new PublishUtils(snsUtils, config).publishMessages(outputs))
 
