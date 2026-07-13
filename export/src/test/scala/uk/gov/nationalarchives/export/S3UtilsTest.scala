@@ -232,7 +232,7 @@ class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with T
       when(client.putObject(putObjectRequestCaptor.capture(), any[RequestBody])).thenReturn(PutObjectResponse.builder.build)
 
       val objectKeyIds = ObjectKeyIds(assetId, UUID.randomUUID(), UUID.randomUUID())
-      val fileOutput = FileOutput("", assetId, UUID.randomUUID, None, None)
+      val fileOutput = FileOutput("", assetId, UUID.randomUUID, "metadataLocation", None, None)
 
       utils.putMetadata(userId, consignmentId, consignmentType, List(FileDetails(fileOutput, objectKeyIds)), Nil, List(Metadata(UUID.randomUUID(), "Test", "TestValue")), Map.empty).unsafeRunSync()
 
@@ -253,7 +253,7 @@ class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with T
     when(client.putObject(any[PutObjectRequest], bodyCaptor.capture())).thenReturn(PutObjectResponse.builder.build)
 
     val objectKeyIds = ObjectKeyIds(assetId, UUID.randomUUID(), fileId)
-    val fileOutput = FileOutput("", assetId, UUID.randomUUID, None, None)
+    val fileOutput = FileOutput("", assetId, UUID.randomUUID, "metadataLocation", None, None)
 
     utils
       .putMetadata(
@@ -282,7 +282,7 @@ class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with T
     when(client.putObject(any[PutObjectRequest], bodyCaptor.capture())).thenReturn(PutObjectResponse.builder.build)
 
     val objectKeyIds = ObjectKeyIds(assetId, UUID.randomUUID(), fileId)
-    val fileOutput = FileOutput("", assetId, UUID.randomUUID, None, None)
+    val fileOutput = FileOutput("", assetId, UUID.randomUUID, "metadataLocation", None, None)
 
     utils
       .putMetadata(
@@ -308,7 +308,7 @@ class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with T
     when(client.putObject(any[PutObjectRequest], any[RequestBody])).thenThrow(new Exception("Error writing to S3"))
 
     val objectKeyIds = ObjectKeyIds(assetId, UUID.randomUUID(), UUID.randomUUID())
-    val fileOutput = FileOutput("", assetId, UUID.randomUUID, None, None)
+    val fileOutput = FileOutput("", assetId, UUID.randomUUID, "metadataLocation", None, None)
 
     val response = utils
       .putMetadata(
