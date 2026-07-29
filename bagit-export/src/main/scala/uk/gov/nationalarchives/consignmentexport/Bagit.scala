@@ -24,7 +24,7 @@ class Bagit(bagInPlace: (Path, util.Collection[SupportedAlgorithm], Boolean, Met
 
 
   def createBag(consignmentReference: String, rootLocation: String, metadata: Metadata): IO[Bag] = for {
-    bag <- IO(bagInPlace(
+    bag <- IO.blocking(bagInPlace(
       s"$rootLocation/$consignmentReference".toPath,
       List(StandardSupportedAlgorithms.SHA256: SupportedAlgorithm).asJavaCollection,
       true,
@@ -33,7 +33,7 @@ class Bagit(bagInPlace: (Path, util.Collection[SupportedAlgorithm], Boolean, Met
     _ <- logger.info(s"Bagit export complete for consignment $consignmentReference")
   } yield bag
 
-  def writeTagManifestRows(bag: Bag, checksumFiles: List[ChecksumFile]): IO[Unit] = IO {
+  def writeTagManifestRows(bag: Bag, checksumFiles: List[ChecksumFile]): IO[Unit] = IO.blocking {
     val fileToChecksumMap: util.Map[Path, String] = checksumFiles.map(f => f.file.toPath -> f.checksum).toMap.asJava
     bag.getTagManifests.asScala.head.getFileToChecksumMap.putAll(fileToChecksumMap)
     writeTagManifests.apply(bag.getTagManifests, bag.getRootDir, bag.getRootDir, bag.getFileEncoding)
@@ -44,8 +44,8 @@ object Bagit {
   //Passing the method value to the class to make unit testing possible as there's no easy way to mock the file writing
   def apply()(implicit logger: SelfAwareStructuredLogger[IO]): Bagit = {
     def verifier(bag: Bag, ignoreHidden: Boolean): IO[Unit] =
-      Resource.make(IO(new BagVerifier()))(verifier => IO(verifier.close()))
-        .use(verifier => IO(verifier.isComplete(bag, ignoreHidden)))
+      Resource.make(IO.blocking(new BagVerifier()))(verifier => IO.blocking(verifier.close()))
+        .use(verifier => IO.blocking(verifier.isComplete(bag, ignoreHidden)))
 
     new Bagit(BagCreator.bagInPlace, verifier, ManifestWriter.writeTagManifests)
   }

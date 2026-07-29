@@ -20,10 +20,10 @@ class ChecksumCalculator {
 
     for {
       _ <- {
-        Resource.fromAutoCloseable(IO(new FileInputStream(file)))
+         Resource.fromAutoCloseable(IO.blocking(new FileInputStream(file)))
           .use(inStream => {
             val bytes = new Array[Byte](chunkSizeInBytes)
-            IO(Iterator.continually(inStream.read(bytes)).takeWhile(_ != -1).foreach(messageDigester.update(bytes, 0, _)))
+            IO.blocking(Iterator.continually(inStream.read(bytes)).takeWhile(_ != -1).foreach(messageDigester.update(bytes, 0, _)))
           })
       }
       checksum <- IO(messageDigester.digest)

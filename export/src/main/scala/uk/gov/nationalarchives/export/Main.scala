@@ -10,17 +10,19 @@ import pureconfig.generic.auto._
 import pureconfig.module.catseffect.syntax._
 import pureconfig.{CamelCase, ConfigFieldMapping, ConfigSource}
 import uk.gov.nationalarchives.`export`.Arguments._
+import uk.gov.nationalarchives.`export`.MetadataUtils.{Series, UserId}
 import uk.gov.nationalarchives.aws.utils.s3.S3Clients.s3
 import uk.gov.nationalarchives.aws.utils.stepfunction.StepFunctionClients.sfnAsyncClient
 import uk.gov.nationalarchives.aws.utils.stepfunction.StepFunctionUtils
 import uk.gov.nationalarchives.consignmentexport.BuildInfo.version
 
+import java.util.UUID
 import scala.concurrent.duration._
 
 object Main extends CommandIOApp("tdr-export", "Exports tdr files with a flat structure", version = version) {
 
   case class Db(useIamAuth: Boolean, host: String, user: String, password: String, port: Int)
-  case class ExportConfiguration(blockMockSeriesIngest: Boolean)
+  case class ExportConfiguration(blockAddContextTagging: Boolean, blockMockSeriesIngest: Boolean)
   case class S3(endpoint: String, cleanBucket: String, outputBucket: String, outputBucketJudgment: String)
   case class SFN(endpoint: String)
   case class SNS(endpoint: String, topicArn: String, messageGroupSize: Int)
@@ -40,13 +42,15 @@ object Main extends CommandIOApp("tdr-export", "Exports tdr files with a flat st
       metadataUtils <- MetadataUtils(config)
       consignmentType <- metadataUtils.getConsignmentType(consignmentId)
       consignmentMetadata <- metadataUtils.getConsignmentMetadata(consignmentId)
-      series = consignmentMetadata.filter(_.propertyName == "Series").head.value
-      fileOutputs <- s3Utils.copyFiles(consignmentId, consignmentType, consignmentMetadata)
+      series = consignmentMetadata.filter(_.propertyName == Series.id).head.value
       fileMetadata <- metadataUtils.getFileMetadata(consignmentId)
       _ <- IO.raiseWhen(fileMetadata.isEmpty)(new RuntimeException(s"Metadata for consignment $consignmentId is missing"))
+      objectKeyIds = ObjectKeyIdHandler.getObjectKeyIds(fileMetadata)
+      userId = UUID.fromString(consignmentMetadata.find(_.propertyName == UserId.id).get.value)
+      fileDetails <- s3Utils.copyFiles(userId, consignmentId, consignmentType, consignmentMetadata, objectKeyIds)
       ffidMetadata <- metadataUtils.getFFIDMetadata(consignmentId)
-      _ <- s3Utils.putMetadata(consignmentType, fileOutputs, fileMetadata, consignmentMetadata, ffidMetadata)
-      _ <- if (config.exportConfiguration.blockMockSeriesIngest && series.toLowerCase.contains("mock")) { IO(Nil) } else publishUtils.publishMessages(fileOutputs)
+      _ <- s3Utils.putMetadata(userId, consignmentId, consignmentType, fileDetails, fileMetadata, consignmentMetadata, ffidMetadata)
+      _ <- if (config.exportConfiguration.blockMockSeriesIngest && series.toLowerCase.contains("mock")) { IO(Nil) } else publishUtils.publishMessages(fileDetails.map(_.output))
       _ <- stepFunction.publishSuccess(taskToken)
       _ <- heartBeat.cancel
     } yield ExitCode.Success

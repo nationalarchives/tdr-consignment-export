@@ -24,9 +24,9 @@ The bagit-export module does the following:
 
 ### Export Module
 The export module does the following:
-* Copies the files for a given consignment from the clean bucket to the export bucket
-* For each file, it reads the metadata from the FileMetadata and ConsignmentMetadata tables. 
-* It then reads the transferring body name and consignment reference.
+* Copies the files for a given consignment from the clean bucket to the export bucket;
+* For each file, it reads the metadata from the FileMetadata and ConsignmentMetadata tables;
+* It then reads the transferring body name and consignment reference;
 * The metadata, body name and reference are written to a json object in a file name <uuid>.metadata in the same bucket.
 
 The code for the authoriser is in the [tdr-consignment-export-authoriser](https://github.com/nationalarchives/tdr-consignment-export-authoriser) project
