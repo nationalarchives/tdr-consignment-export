@@ -22,12 +22,13 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       id-token: write
-      contents: read
+      contents: write
     environment: ${{ github.event.inputs.environment }}
     steps:
       - name: Checkout
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
+          ref: refs/tags/v${{ github.event.inputs.to-deploy }}
           persist-credentials: false
       - name: Configure AWS credentials for ECR
         uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c # v6.2.3
@@ -53,6 +54,14 @@ jobs:
         with:
           message: "*consignment-export* :whale: The '${{ github.event.inputs.to-deploy }}' image has been tagged with '${{ github.event.inputs.environment }}' in ECR"
           slack-url: ${{ secrets.SLACK_WEBHOOK }}
+      - name: Update release branch
+        env:
+          ENVIRONMENT: ${{ github.event.inputs.environment }}
+          GITHUB_TOKEN: ${{ secrets.WORKFLOW_PAT }}
+        run: |
+          git remote set-url origin "https://x-access-token:${GITHUB_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
+          git branch -f "release-${ENVIRONMENT}" HEAD
+          git push -f origin "release-${ENVIRONMENT}"
       - name: Run E2E tests
         if: inputs.environment != 'prod'
         uses: octokit/request-action@b91aabaa861c777dcdb14e2387e30eddf04619ae # v3.0.0
