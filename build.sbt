@@ -109,8 +109,8 @@ ThisBuild / dependencyOverrides ++= Seq(
   "io.netty" % "netty-transport" % "4.2.18.Final",
   "io.netty" % "netty-transport-classes-epoll" % "4.2.18.Final",
   "io.netty" % "netty-transport-native-unix-common" % "4.2.18.Final",
-  "org.bouncycastle" % "bcprov-jdk18on" % "1.84",
-  "org.bouncycastle" % "bcpkix-jdk18on" % "1.84",
-  "org.bouncycastle" % "bcutil-jdk18on" % "1.84",
-  "org.bouncycastle" % "bcpg-jdk18on"   % "1.84"
+  "org.bouncycastle" % "bcprov-jdk18on" % "1.86",
+  "org.bouncycastle" % "bcpkix-jdk18on" % "1.86",
+  "org.bouncycastle" % "bcutil-jdk18on" % "1.86",
+  "org.bouncycastle" % "bcpg-jdk18on"   % "1.86"
 )
