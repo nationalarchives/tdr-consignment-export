@@ -99,6 +99,16 @@ lazy val bagitExport = (project in file("bagit-export"))
   ).enablePlugins(JavaAppPackaging, UniversalPlugin, BuildInfoPlugin)
 
 ThisBuild / dependencyOverrides ++= Seq(
+  "io.netty" % "netty-buffer" % "4.1.137.Final",
+  "io.netty" % "netty-codec" % "4.1.137.Final",
+  "io.netty" % "netty-codec-http" % "4.1.137.Final",
+  "io.netty" % "netty-codec-http2" % "4.1.137.Final",
+  "io.netty" % "netty-common" % "4.1.137.Final",
+  "io.netty" % "netty-handler" % "4.1.137.Final",
+  "io.netty" % "netty-resolver" % "4.1.137.Final",
+  "io.netty" % "netty-transport" % "4.1.137.Final",
+  "io.netty" % "netty-transport-classes-epoll" % "4.1.137.Final",
+  "io.netty" % "netty-transport-native-unix-common" % "4.1.137.Final",
   "org.bouncycastle" % "bcprov-jdk18on" % "1.84",
   "org.bouncycastle" % "bcpkix-jdk18on" % "1.84",
   "org.bouncycastle" % "bcutil-jdk18on" % "1.84",
