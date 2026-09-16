@@ -31,7 +31,7 @@ jobs:
           ref: refs/tags/v${{ github.event.inputs.to-deploy }}
           persist-credentials: false
       - name: Configure AWS credentials for ECR
-        uses: aws-actions/configure-aws-credentials@e6de054238d6b7531b4efff3b6587d9aade6a06c # v6.2.3
+        uses: aws-actions/configure-aws-credentials@cbe3b392738ccf3f987d68400dafcf4b0624a56c # v6.2.4
         with:
           role-to-assume: arn:aws:iam::${{ secrets.MANAGEMENT_ACCOUNT }}:role/TDRGithubActionsRoleMgmt
           aws-region: eu-west-2
@@ -50,7 +50,7 @@ jobs:
           docker tag $MANAGEMENT_ACCOUNT.dkr.ecr.eu-west-2.amazonaws.com/consignment-export:$TO_DEPLOY $MANAGEMENT_ACCOUNT.dkr.ecr.eu-west-2.amazonaws.com/consignment-export:$ENVIRONMENT
           docker push $MANAGEMENT_ACCOUNT.dkr.ecr.eu-west-2.amazonaws.com/consignment-export:$ENVIRONMENT
       - name: Send success message
-        uses: nationalarchives/tdr-github-actions/.github/actions/slack-send@f4d7086babd2c5156dd483d445e4500a603d8dc4 # v0.0.42
+        uses: nationalarchives/tdr-github-actions/.github/actions/slack-send@b98899c2acfaf872e0053671743a5b1284b0dab0 # v0.0.43
         with:
           message: "*consignment-export* :whale: The '${{ github.event.inputs.to-deploy }}' image has been tagged with '${{ github.event.inputs.environment }}' in ECR"
           slack-url: ${{ secrets.SLACK_WEBHOOK }}
