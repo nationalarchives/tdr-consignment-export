@@ -9,8 +9,10 @@ class ChecksumCalculatorSpec extends ExportSpec {
   private def withTempFileFromResource[T](resourcePath: String)(test: File => T): T = {
     val tempFile = Files.createTempFile("checksum-calculator-spec", ".tmp")
     try {
-      Using.resource(getClass.getResourceAsStream(resourcePath)) { inputStream =>
-        Files.copy(inputStream, tempFile, StandardCopyOption.REPLACE_EXISTING)
+      val inputStream = Option(getClass.getResourceAsStream(resourcePath))
+        .getOrElse(throw new RuntimeException(s"Missing test resource $resourcePath"))
+      Using.resource(inputStream) { stream =>
+        Files.copy(stream, tempFile, StandardCopyOption.REPLACE_EXISTING)
       }
       test(tempFile.toFile)
     } finally {

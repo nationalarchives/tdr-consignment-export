@@ -25,6 +25,8 @@ class BagAdditionalFilesSpec extends ExportSpec {
     }
   }
 
+  private def csvLines(file: File): List[String] = Using.resource(Source.fromFile(file))(_.getLines().toList)
+
   "orderedExportProperties" should "return correctly ordered properties to be included in export for a Standard transfer" in {
     val expectedPropertiesOrder: List[String] = List(
       "file_reference","file_name","file_type","file_size","file_path","rights_copyright","legal_status","held_by",
@@ -118,16 +120,13 @@ class BagAdditionalFilesSpec extends ExportSpec {
         "description", "descriptionClosed", "descriptionAlternate", "language", "2021-02-03T10:33:30", "fileNameTranslation", "data/nonRedactedFilepath",
         "parentReference", "formerReferenceDepartment", "uuid", "restrictions on use", "relatedMaterial", "evidence provided by test", "my note", "my copyright details" )
 
-      val source = Source.fromFile(file)
-      val csvLines = source.getLines().toList
-      val header = csvLines.head
-      val rest = csvLines.tail
+      val fileCsvLines = csvLines(file)
+      val header = fileCsvLines.head
+      val rest = fileCsvLines.tail
       header.split(",").toList should equal(expectedOrderedHeaders)
       rest.length should equal(2)
       rest.head.split(",").toList should equal(expectedOrderedFilePropertyValues)
       rest.last should equal("folderReference,folderName,Folder,,data/folder,,,,,,,,,,,,,,,,,,,,,,,,,,")
-      source.close()
-      new File(file.getAbsolutePath).delete()
     }
   }
 
@@ -164,15 +163,12 @@ class BagAdditionalFilesSpec extends ExportSpec {
         "judgmentUpdateDetails", "judgmentNeutralCitation", "judgmentNoNeutralCitation", "judgmentReference", "evidence provided by test","my note", "my copyright details"
       )
 
-      val source = Source.fromFile(file)
-      val csvLines = source.getLines().toList
-      val header = csvLines.head
-      val rest = csvLines.tail
+      val fileCsvLines = csvLines(file)
+      val header = fileCsvLines.head
+      val rest = fileCsvLines.tail
       header.split(",").toList should equal(expectedOrderedHeaders)
       rest.length should equal(1)
       rest.head.split(",").toList should equal(expectedOrderedFilePropertyValues)
-      source.close()
-      new File(file.getAbsolutePath).delete()
     }
   }
 
@@ -182,15 +178,12 @@ class BagAdditionalFilesSpec extends ExportSpec {
 
       val file = bagAdditionalFiles.createFfidMetadataCsv(List(metadata)).unsafeRunSync()
 
-      val source = Source.fromFile(file)
-      val csvLines = source.getLines().toList
-      val header = csvLines.head
-      val rest = csvLines.tail
+      val fileCsvLines = csvLines(file)
+      val header = fileCsvLines.head
+      val rest = fileCsvLines.tail
       header should equal("Filepath,Extension,PUID,FormatName,ExtensionMismatch,FFID-Software,FFID-SoftwareVersion,FFID-BinarySignatureFileVersion,FFID-ContainerSignatureFileVersion")
       rest.length should equal(1)
       rest.head should equal("data/path,extension,puid,formatName,false,software,softwareVersion,binarySignatureFileVersion,containerSignatureFileVersion")
-      source.close()
-      new File(file.getAbsolutePath).delete()
     }
   }
 
@@ -199,16 +192,13 @@ class BagAdditionalFilesSpec extends ExportSpec {
       val validatedAvMetadata = ValidatedAntivirusMetadata("filePath", "software", "softwareVersion")
       val file = bagAdditionalFiles.createAntivirusMetadataCsv(List(validatedAvMetadata)).unsafeRunSync()
 
-      val source = Source.fromFile(file)
-      val csvLines = source.getLines().toList
-      val header = csvLines.head
-      val rest = csvLines.tail
+      val fileCsvLines = csvLines(file)
+      val header = fileCsvLines.head
+      val rest = fileCsvLines.tail
 
       header should equal("Filepath,AV-Software,AV-SoftwareVersion")
       rest.length should equal(1)
       rest.head should equal("data/filePath,software,softwareVersion")
-      source.close()
-      new File(file.getAbsolutePath).delete()
     }
   }
 }
