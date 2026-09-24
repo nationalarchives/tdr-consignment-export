@@ -94,6 +94,7 @@ lazy val bagitExport = (project in file("bagit-export"))
       schemaConfig
     ),
     (Universal / packageName) := "tdr-consignment-export",
+    (Test / parallelExecution) := false,
     dependencyOverrides += "org.scala-lang.modules" %% "scala-java8-compat" % "1.0.2",
     (Test / javaOptions) += s"-Dconfig.file=${sourceDirectory.value}/test/resources/application.conf"
   ).enablePlugins(JavaAppPackaging, UniversalPlugin, BuildInfoPlugin)

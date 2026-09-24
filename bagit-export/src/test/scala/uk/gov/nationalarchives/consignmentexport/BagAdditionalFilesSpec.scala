@@ -6,11 +6,14 @@ import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignme
 import uk.gov.nationalarchives.consignmentexport.Utils.PathUtils
 import uk.gov.nationalarchives.consignmentexport.Validator.{ValidatedAntivirusMetadata, ValidatedFFIDMetadata}
 import java.io.File
+import java.nio.file.Files
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import scala.io.Source
 
 class BagAdditionalFilesSpec extends ExportSpec {
+  private def createBagAdditionalFiles(): BagAdditionalFiles = BagAdditionalFiles(Files.createTempDirectory("bag-additional-files-spec"))
+
   "orderedExportProperties" should "return correctly ordered properties to be included in export for a Standard transfer" in {
     val expectedPropertiesOrder: List[String] = List(
       "file_reference","file_name","file_type","file_size","file_path","rights_copyright","legal_status","held_by",
@@ -19,7 +22,7 @@ class BagAdditionalFilesSpec extends ExportSpec {
       "file_name_translation","original_identifier","parent_reference","former_reference_department","UUID","restrictions_on_use",
       "related_material", "evidence_provided_by", "note", "copyright_details")
 
-    val orderedProperties = BagAdditionalFiles(getClass.getResource(".").getPath.toPath).orderedExportProperties(Standard)
+    val orderedProperties = createBagAdditionalFiles().orderedExportProperties(Standard)
     orderedProperties.size shouldBe expectedPropertiesOrder.size
     val propertiesOrder = orderedProperties.map(_.key)
     propertiesOrder should equal(expectedPropertiesOrder)
@@ -35,20 +38,20 @@ class BagAdditionalFilesSpec extends ExportSpec {
       "judgment_neutral_citation","judgment_no_neutral_citation", "judgment_reference", "evidence_provided_by", "note", "copyright_details"
     )
 
-    val orderedProperties = BagAdditionalFiles(getClass.getResource(".").getPath.toPath).orderedExportProperties(Judgment)
+    val orderedProperties = createBagAdditionalFiles().orderedExportProperties(Judgment)
     orderedProperties.size shouldBe expectedPropertiesOrder.size
     val propertiesOrder = orderedProperties.map(_.key)
     propertiesOrder should equal(expectedPropertiesOrder)
   }
 
   "exportValue" should "return empty value when no metadata present for property" in {
-    val bagAdditionalFiles = BagAdditionalFiles(getClass.getResource(".").getPath.toPath)
+    val bagAdditionalFiles = createBagAdditionalFiles()
     val value = bagAdditionalFiles.exportValue("key", None)
     value should equal("")
   }
 
   "exportValue" should "return 'data' path value for designated property keys" in {
-    val bagAdditionalFiles = BagAdditionalFiles(getClass.getResource(".").getPath.toPath)
+    val bagAdditionalFiles = createBagAdditionalFiles()
     val value1 = bagAdditionalFiles.exportValue("file_path", Some("filePathValue"))
     value1 should equal("data/filePathValue")
 
@@ -57,20 +60,20 @@ class BagAdditionalFilesSpec extends ExportSpec {
   }
 
   "exportValue" should "return correctly formatted dates for 'date' type properties" in {
-    val bagAdditionalFiles = BagAdditionalFiles(getClass.getResource(".").getPath.toPath)
+    val bagAdditionalFiles = createBagAdditionalFiles()
     val dateTimeZeroSeconds = LocalDateTime.parse("2021-02-03T10:33:00.0").format(DateTimeFormatter.ISO_DATE_TIME)
     val value = bagAdditionalFiles.exportValue("date_last_modified", Some(dateTimeZeroSeconds))
     value should equal("2021-02-03T10:33:00")
   }
 
   "exportValue" should "return the metadata value if property is not a special case" in {
-    val bagAdditionalFiles = BagAdditionalFiles(getClass.getResource(".").getPath.toPath)
+    val bagAdditionalFiles = createBagAdditionalFiles()
     val value = bagAdditionalFiles.exportValue("file_name", Some("value"))
     value should equal("value")
   }
 
   "fileMetadataCsv" should "produce a file with the correct rows for a Standard consignment" in {
-    val bagAdditionalFiles = BagAdditionalFiles(getClass.getResource(".").getPath.toPath)
+    val bagAdditionalFiles = createBagAdditionalFiles()
     val lastModified = LocalDateTime.parse("2021-02-03T10:33:30.414")
     val originalFilePath = "originalFilePath"
     val fileMetadata = createMetadata(lastModified, originalFilePath)
@@ -105,11 +108,11 @@ class BagAdditionalFilesSpec extends ExportSpec {
     rest.head.split(",").toList should equal(expectedOrderedFilePropertyValues)
     rest.last should equal("folderReference,folderName,Folder,,data/folder,,,,,,,,,,,,,,,,,,,,,,,,,,")
     source.close()
-    new File("exporter/src/test/resources/file-metadata.csv").delete()
+    new File(file.getAbsolutePath).delete()
   }
 
   "fileMetadataCsv" should "produce a file with the correct rows for a Judgment consignment" in {
-    val bagAdditionalFiles = BagAdditionalFiles(getClass.getResource(".").getPath.toPath)
+    val bagAdditionalFiles = createBagAdditionalFiles()
     val lastModified = LocalDateTime.parse("2021-02-03T10:33:30.414")
     val originalFilePath = "originalFilePath"
     val fileMetadata = createMetadata(lastModified, originalFilePath)
@@ -149,11 +152,11 @@ class BagAdditionalFilesSpec extends ExportSpec {
     rest.length should equal(1)
     rest.head.split(",").toList should equal(expectedOrderedFilePropertyValues)
     source.close()
-    new File("exporter/src/test/resources/file-metadata.csv").delete()
+    new File(file.getAbsolutePath).delete()
   }
 
   "createFfidMetadataCsv" should "produce a file with the correct rows" in {
-    val bagAdditionalFiles = BagAdditionalFiles(getClass.getResource(".").getPath.toPath)
+    val bagAdditionalFiles = createBagAdditionalFiles()
     val metadata = ValidatedFFIDMetadata("path", "extension", "puid", "formatName", "false", "software", "softwareVersion", "binarySignatureFileVersion", "containerSignatureFileVersion")
 
     val file = bagAdditionalFiles.createFfidMetadataCsv(List(metadata)).unsafeRunSync()
@@ -166,11 +169,11 @@ class BagAdditionalFilesSpec extends ExportSpec {
     rest.length should equal(1)
     rest.head should equal("data/path,extension,puid,formatName,false,software,softwareVersion,binarySignatureFileVersion,containerSignatureFileVersion")
     source.close()
-    new File("exporter/src/test/resources/file-metadata.csv").delete()
+    new File(file.getAbsolutePath).delete()
   }
 
   "createAntivirusMetadataCsv" should "produce a file with the correct rows" in {
-    val bagAdditionalFiles = BagAdditionalFiles(getClass.getResource(".").getPath.toPath)
+    val bagAdditionalFiles = createBagAdditionalFiles()
     val validatedAvMetadata = ValidatedAntivirusMetadata("filePath", "software", "softwareVersion")
     val file = bagAdditionalFiles.createAntivirusMetadataCsv(List(validatedAvMetadata)).unsafeRunSync()
 
