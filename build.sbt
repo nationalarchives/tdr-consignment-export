@@ -18,7 +18,6 @@ setLatestTagOutput := {
 
 lazy val root = (project in file("."))
   .settings(
-    bagitExport / Test / parallelExecution := false,
     releaseProcess := Seq[ReleaseStep](
       inquireVersions,
       setReleaseVersion,
@@ -81,6 +80,7 @@ lazy val tdrExport = (project in file("export"))
 
 lazy val bagitExport = (project in file("bagit-export"))
   .settings(commonSettings)
+  .settings((Test / parallelExecution) := false)
   .settings(
     name := "tdr-consignment-export",
     libraryDependencies ++= Seq(
