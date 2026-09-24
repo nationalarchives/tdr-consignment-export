@@ -26,13 +26,13 @@ lazy val root = (project in file("."))
       tagRelease,
       pushChanges,
       releaseStepTask(bagitExport / Universal / packageZipTarball),
-      releaseStepTask(export / Universal / packageZipTarball),
+      releaseStepTask(tdrExport / Universal / packageZipTarball),
       setNextVersion,
       commitNextVersion,
       pushChanges
     )
   )
-  .aggregate(bagitExport, export)
+  .aggregate(bagitExport, tdrExport)
 
 
 val commonSettings = Seq(
@@ -59,7 +59,7 @@ val commonSettings = Seq(
   buildInfoPackage := "uk.gov.nationalarchives.consignmentexport",
 )
 
-lazy val export = (project in file("export"))
+lazy val tdrExport = (project in file("export"))
   .settings(commonSettings)
   .settings(
     libraryDependencies ++= Seq(
@@ -80,6 +80,7 @@ lazy val export = (project in file("export"))
 
 lazy val bagitExport = (project in file("bagit-export"))
   .settings(commonSettings)
+  .settings((Test / parallelExecution) := false)
   .settings(
     name := "tdr-consignment-export",
     libraryDependencies ++= Seq(
@@ -99,8 +100,8 @@ lazy val bagitExport = (project in file("bagit-export"))
   ).enablePlugins(JavaAppPackaging, UniversalPlugin, BuildInfoPlugin)
 
 ThisBuild / dependencyOverrides ++= Seq(
-  "org.bouncycastle" % "bcprov-jdk18on" % "1.84",
-  "org.bouncycastle" % "bcpkix-jdk18on" % "1.84",
-  "org.bouncycastle" % "bcutil-jdk18on" % "1.84",
-  "org.bouncycastle" % "bcpg-jdk18on"   % "1.84"
+  "org.bouncycastle" % "bcprov-jdk18on" % "1.85",
+  "org.bouncycastle" % "bcpkix-jdk18on" % "1.85",
+  "org.bouncycastle" % "bcutil-jdk18on" % "1.85",
+  "org.bouncycastle" % "bcpg-jdk18on"   % "1.85"
 )
