@@ -4,7 +4,7 @@ import sbt.Keys.dependencyOverrides
 
 import java.io.FileWriter
 
-ThisBuild / scalaVersion := "2.13.18"
+ThisBuild / scalaVersion := "3.9.0"
 ThisBuild / organization := "uk.gov.nationalarchives"
 ThisBuild / organizationName := "The National Archives"
 
@@ -100,8 +100,8 @@ lazy val bagitExport = (project in file("bagit-export"))
   ).enablePlugins(JavaAppPackaging, UniversalPlugin, BuildInfoPlugin)
 
 ThisBuild / dependencyOverrides ++= Seq(
-  "org.bouncycastle" % "bcprov-jdk18on" % "1.85",
-  "org.bouncycastle" % "bcpkix-jdk18on" % "1.85",
-  "org.bouncycastle" % "bcutil-jdk18on" % "1.85",
-  "org.bouncycastle" % "bcpg-jdk18on"   % "1.85"
+  "org.bouncycastle" % "bcprov-jdk18on" % "1.86",
+  "org.bouncycastle" % "bcpkix-jdk18on" % "1.86",
+  "org.bouncycastle" % "bcutil-jdk18on" % "1.86",
+  "org.bouncycastle" % "bcpg-jdk18on"   % "1.86"
 )
