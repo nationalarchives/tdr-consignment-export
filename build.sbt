@@ -102,6 +102,6 @@ lazy val bagitExport = (project in file("bagit-export"))
 ThisBuild / dependencyOverrides ++= Seq(
   "org.bouncycastle" % "bcprov-jdk18on" % "1.86",
   "org.bouncycastle" % "bcpkix-jdk18on" % "1.86",
-  "org.bouncycastle" % "bcutil-jdk18on" % "1.85",
+  "org.bouncycastle" % "bcutil-jdk18on" % "1.86",
   "org.bouncycastle" % "bcpg-jdk18on"   % "1.86"
 )
