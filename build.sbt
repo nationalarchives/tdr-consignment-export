@@ -4,7 +4,7 @@ import sbt.Keys.dependencyOverrides
 
 import java.io.FileWriter
 
-ThisBuild / scalaVersion := "2.13.18"
+ThisBuild / scalaVersion := "3.9.0"
 ThisBuild / organization := "uk.gov.nationalarchives"
 ThisBuild / organizationName := "The National Archives"
 
