@@ -142,7 +142,6 @@ class TestUtils extends AnyFlatSpec with TestContainerForAll with BeforeAndAfter
   def stubExternalServices(mappedPort: Int, numberOfRecords: Int = 1, shouldAddMetadata: Boolean = true,
                            seriesName: String = UUID.randomUUID().toString, persistedAssetIds: Boolean = true): (UUID, List[TestRecordsIds], String) = {
     System.setProperty("db.port", mappedPort.toString)
-    val userId = UUID.randomUUID()
     val consignmentId = UUID.randomUUID()
     val fileIds = (1 to numberOfRecords).map(_ => UUID.randomUUID()).toList.sorted
     val recordIds = fileIds.map(id => TestRecordsIds(UUID.randomUUID(), id))
