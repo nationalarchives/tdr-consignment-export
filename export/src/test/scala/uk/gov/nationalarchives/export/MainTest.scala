@@ -41,6 +41,7 @@ class MainTest extends TestUtils {
       JsonPath.read[String](jsonReturned, "$.[0].ConsignmentReference") shouldEqual consignmentReference
       JsonPath.read[String](jsonReturned, "$.[0].TransferringBody") shouldEqual "Test"
       JsonPath.read[String](jsonReturned, "$.[0].MetadataSchemaLibraryVersion") shouldEqual "Schema-Library-Version-v0.1"
+      JsonPath.read[String](jsonReturned, "$.[0].UserId") shouldEqual userId
   }
 
   "run" should "copy the files to the output bucket" in withContainers {
