@@ -357,7 +357,7 @@ class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with T
       .unsafeRunSync()
 
     val body = bodyCaptor.getValue.contentStreamProvider().newStream().readAllBytes().map(_.toChar).mkString
-    body.startsWith("""[{"FFID":[],"TestFile":"TestFileValue","TestConsignment":"TestConsignmentValue","fileId":""") should equal(true)
+    body.startsWith("""[{"FFID":[],"TestFile":"TestFileValue","TestConsignment":"TestConsignmentValue","fileId":"""") should equal(true)
   }
 
   "createMetadata" should s"not write metadata if the file is not in the list of file ids" in {
