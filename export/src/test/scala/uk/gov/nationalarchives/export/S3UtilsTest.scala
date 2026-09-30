@@ -48,7 +48,7 @@ class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with T
     val consignmentMetadata = List(
       Metadata(UUID.randomUUID, Series.id, "series"),
       Metadata(UUID.randomUUID, TransferringBody.id, "body"),
-      Metadata(UUID.randomUUID, "AssetSource", "assetSourceValue")
+      Metadata(UUID.randomUUID, "SourceSystem", "assetSourceValue")
     )
 
     utils.copyFiles(userId, consignmentId, Standard, consignmentMetadata, objectKeyIds).unsafeRunSync()
@@ -93,7 +93,7 @@ class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with T
 
     val objectKeyIds = ObjectKeyIds(assetId, UUID.randomUUID(), UUID.randomUUID())
     val fileOutput = FileOutput("", assetId, UUID.randomUUID, URI.create("s3://bucket/metadataLocation"), None, None)
-    val consignmentMetadata = List(Metadata(UUID.randomUUID(), "AssetSource", "assetSourceValue"))
+    val consignmentMetadata = List(Metadata(UUID.randomUUID(), "SourceSystem", "assetSourceValue"))
 
     utils
       .putMetadata(userId, consignmentId, Standard, List(FileDetails(fileOutput, objectKeyIds)), Nil, consignmentMetadata, Map.empty)

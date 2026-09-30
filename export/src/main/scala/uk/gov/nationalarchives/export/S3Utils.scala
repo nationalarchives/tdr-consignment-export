@@ -84,7 +84,7 @@ class S3Utils(config: Config, s3Client: S3Client) {
           .destinationKey(destinationKey)
           .destinationBucket(destinationBucket)
           .taggingDirective(TaggingDirective.REPLACE)
-          .tagging(contextTagging(userId, consignmentId, consignmentMetadata.find(_.propertyName == "AssetSource").map(_.value)))
+          .tagging(contextTagging(userId, consignmentId, consignmentMetadata.find(_.propertyName == "SourceSystem").map(_.value)))
           .build()
         s3Client.copyObject(copyRequest)
         val series = consignmentMetadata.find(_.propertyName == Series.id).map(_.value)
@@ -130,7 +130,7 @@ class S3Utils(config: Config, s3Client: S3Client) {
       val request = PutObjectRequest.builder
         .bucket(outputBucket)
         .key(fileDetails.output.metadataLocation.getPath.drop(1))
-        .tagging(contextTagging(userId, consignmentId, consignmentMetadata.find(_.propertyName == "AssetSource").map(_.value)))
+        .tagging(contextTagging(userId, consignmentId, consignmentMetadata.find(_.propertyName == "SourceSystem").map(_.value)))
         .build
       s3Client.putObject(request, body)
     }
