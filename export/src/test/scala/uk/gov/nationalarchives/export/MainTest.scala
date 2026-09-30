@@ -10,6 +10,7 @@ import org.scalatest.matchers.should.Matchers._
 import uk.gov.nationalarchives.`export`.MetadataUtils.Metadata
 import uk.gov.nationalarchives.`export`.S3Utils.FileOutput
 
+import java.net.URI
 import java.util.UUID
 import scala.jdk.CollectionConverters.ListHasAsScala
 
@@ -65,6 +66,17 @@ class MainTest extends TestUtils {
     fileOutput.bucket should equal("output")
     fileOutput.assetId should equal(testRecordIds.head.assetId)
     fileOutput.fileId should equal(testRecordIds.head.fileId)
+  }
+
+  "run" should "send a message to the SNS topic with the metadata location" in withContainers {
+    container: PostgreSQLContainer =>
+      val mappedPort = container.mappedPort(5432)
+      val (consignmentId, testRecordIds, _) = stubExternalServices(mappedPort)
+      Main.run(List("export", "--consignmentId", consignmentId.toString, "--taskToken", "taskToken")).unsafeRunSync()
+
+      val snsMessage = snsServer.getAllServeEvents.asScala.head.getRequest.getFormParameters.get("Message").values().get(0)
+      val fileOutput = decode[FileOutput](snsMessage).value
+      fileOutput.metadataLocation should equal(URI.create(s"s3://output/${testRecordIds.head.assetId}.metadata"))
   }
 
   "run" should "send a message to the SNS topic with the id of the file being a random id when no asset id persisted" in withContainers {

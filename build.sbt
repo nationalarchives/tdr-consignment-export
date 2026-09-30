@@ -26,13 +26,13 @@ lazy val root = (project in file("."))
       tagRelease,
       pushChanges,
       releaseStepTask(bagitExport / Universal / packageZipTarball),
-      releaseStepTask(tdrExport / Universal / packageZipTarball),
+      releaseStepTask(export / Universal / packageZipTarball),
       setNextVersion,
       commitNextVersion,
       pushChanges
     )
   )
-  .aggregate(bagitExport, tdrExport)
+  .aggregate(bagitExport, export)
 
 
 val commonSettings = Seq(
@@ -59,7 +59,7 @@ val commonSettings = Seq(
   buildInfoPackage := "uk.gov.nationalarchives.consignmentexport",
 )
 
-lazy val tdrExport = (project in file("export"))
+lazy val export = (project in file("export"))
   .settings(commonSettings)
   .settings(
     libraryDependencies ++= Seq(
@@ -80,7 +80,6 @@ lazy val tdrExport = (project in file("export"))
 
 lazy val bagitExport = (project in file("bagit-export"))
   .settings(commonSettings)
-  .settings((Test / parallelExecution) := false)
   .settings(
     name := "tdr-consignment-export",
     libraryDependencies ++= Seq(
@@ -100,6 +99,16 @@ lazy val bagitExport = (project in file("bagit-export"))
   ).enablePlugins(JavaAppPackaging, UniversalPlugin, BuildInfoPlugin)
 
 ThisBuild / dependencyOverrides ++= Seq(
+  "io.netty" % "netty-buffer" % "4.2.18.Final",
+  "io.netty" % "netty-codec" % "4.2.18.Final",
+  "io.netty" % "netty-codec-http" % "4.2.18.Final",
+  "io.netty" % "netty-codec-http2" % "4.2.18.Final",
+  "io.netty" % "netty-common" % "4.2.18.Final",
+  "io.netty" % "netty-handler" % "4.2.18.Final",
+  "io.netty" % "netty-resolver" % "4.2.18.Final",
+  "io.netty" % "netty-transport" % "4.2.18.Final",
+  "io.netty" % "netty-transport-classes-epoll" % "4.2.18.Final",
+  "io.netty" % "netty-transport-native-unix-common" % "4.2.18.Final",
   "org.bouncycastle" % "bcprov-jdk18on" % "1.86",
   "org.bouncycastle" % "bcpkix-jdk18on" % "1.86",
   "org.bouncycastle" % "bcutil-jdk18on" % "1.86",
