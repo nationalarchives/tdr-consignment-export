@@ -21,10 +21,88 @@ import scala.jdk.CollectionConverters.ListHasAsScala
 
 class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with TableDrivenPropertyChecks {
 
-  def config(blockAddContextTagging: Boolean = false): Config = Config(Db(useIamAuth = false, "", "", "", 5432),
+  def config(blockAddContextTagging: Boolean = false): Config = Config(
+    Db(useIamAuth = false, "", "", "", 5432),
     ExportConfiguration(blockAddContextTagging = blockAddContextTagging, blockMockSeriesIngest = true),
-    SFN(""), S3("", "testCleanBucket", "outputBucket", "outputBucketJudgment"), SNS("", "testTopic", 500)
+    SFN(""),
+    S3("", "testCleanBucket", "outputBucket", "outputBucketJudgment", "ConsignmentId", "UserId", "AssetSource"),
+    SNS("", "testTopic", 500)
   )
+
+  "copyFiles" should "add an AssetSource tag when SourceSystem is provided" in {
+    val client = mock[S3Client]
+    val utils = new S3Utils(config(), client)
+    val userId = UUID.randomUUID()
+    val consignmentId = UUID.randomUUID()
+    val assetId = UUID.randomUUID()
+    val fileId = UUID.randomUUID()
+    val objectKeyIds = Map(fileId -> ObjectKeyIds(assetId, fileId, UUID.randomUUID()))
+    val copyObjectCaptor: ArgumentCaptor[CopyObjectRequest] = ArgumentCaptor.forClass(classOf[CopyObjectRequest])
+
+    val s3Object = S3Object.builder.key(s"$consignmentId/$fileId").build
+    val response = ListObjectsV2Response.builder.contents(s3Object).build()
+
+    when(client.listObjectsV2(any[ListObjectsV2Request])).thenReturn(response)
+    when(client.copyObject(copyObjectCaptor.capture)).thenReturn(CopyObjectResponse.builder.build)
+
+    val consignmentMetadata = List(
+      Metadata(UUID.randomUUID, Series.id, "series"),
+      Metadata(UUID.randomUUID, TransferringBody.id, "body"),
+      Metadata(UUID.randomUUID, "SourceSystem", "assetSourceValue")
+    )
+
+    utils.copyFiles(userId, consignmentId, Standard, consignmentMetadata, objectKeyIds).unsafeRunSync()
+
+    copyObjectCaptor.getValue.tagging() should equal(
+      s"ConsignmentId=$consignmentId&UserId=$userId&AssetSource=assetSourceValue"
+    )
+  }
+
+  "copyFiles" should "not add an AssetSource tag when SourceSystem is absent" in {
+    val client = mock[S3Client]
+    val utils = new S3Utils(config(), client)
+    val userId = UUID.randomUUID()
+    val consignmentId = UUID.randomUUID()
+    val assetId = UUID.randomUUID()
+    val fileId = UUID.randomUUID()
+    val objectKeyIds = Map(fileId -> ObjectKeyIds(assetId, fileId, UUID.randomUUID()))
+    val copyObjectCaptor: ArgumentCaptor[CopyObjectRequest] = ArgumentCaptor.forClass(classOf[CopyObjectRequest])
+
+    val s3Object = S3Object.builder.key(s"$consignmentId/$fileId").build
+    val response = ListObjectsV2Response.builder.contents(s3Object).build()
+
+    when(client.listObjectsV2(any[ListObjectsV2Request])).thenReturn(response)
+    when(client.copyObject(copyObjectCaptor.capture)).thenReturn(CopyObjectResponse.builder.build)
+
+    val consignmentMetadata = List(Metadata(UUID.randomUUID, Series.id, "series"))
+
+    utils.copyFiles(userId, consignmentId, Standard, consignmentMetadata, objectKeyIds).unsafeRunSync()
+
+    copyObjectCaptor.getValue.tagging() should equal(s"ConsignmentId=$consignmentId&UserId=$userId")
+  }
+
+  "putMetadata" should "add an AssetSource tag when SourceSystem is provided" in {
+    val client = mock[S3Client]
+    val utils = S3Utils(config(), client)
+    val userId = UUID.randomUUID()
+    val consignmentId = UUID.randomUUID()
+    val assetId = UUID.randomUUID()
+    val putObjectRequestCaptor: ArgumentCaptor[PutObjectRequest] = ArgumentCaptor.forClass(classOf[PutObjectRequest])
+
+    when(client.putObject(putObjectRequestCaptor.capture(), any[RequestBody])).thenReturn(PutObjectResponse.builder.build)
+
+    val objectKeyIds = ObjectKeyIds(assetId, UUID.randomUUID(), UUID.randomUUID())
+    val fileOutput = FileOutput("", assetId, UUID.randomUUID, URI.create("s3://bucket/metadataLocation"), None, None)
+    val consignmentMetadata = List(Metadata(UUID.randomUUID(), "SourceSystem", "assetSourceValue"))
+
+    utils
+      .putMetadata(userId, consignmentId, Standard, List(FileDetails(fileOutput, objectKeyIds)), Nil, consignmentMetadata, Map.empty)
+      .unsafeRunSync()
+
+    putObjectRequestCaptor.getValue.tagging() should equal(
+      s"ConsignmentId=$consignmentId&UserId=$userId&AssetSource=assetSourceValue"
+    )
+  }
 
   "copyFiles" should "not add context tagging when feature blocked" in {
     val client = mock[S3Client]
@@ -45,7 +123,10 @@ class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with T
     when(client.listObjectsV2(listObjectsCaptor.capture())).thenReturn(response)
     when(client.copyObject(copyObjectCaptor.capture)).thenReturn(CopyObjectResponse.builder.build)
 
-    val consignmentMetadata = List(Metadata(UUID.randomUUID, "Series", "series"), Metadata(UUID.randomUUID, "TransferringBody", "body"))
+    val consignmentMetadata = List(
+      Metadata(UUID.randomUUID, Series.id, "series"),
+      Metadata(UUID.randomUUID, TransferringBody.id, "body")
+    )
 
     utils.copyFiles(userId, consignmentId, Standard, consignmentMetadata, objectKeyIds).unsafeRunSync()
 
@@ -80,7 +161,10 @@ class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with T
     when(client.listObjectsV2(listObjectsCaptor.capture())).thenReturn(response)
     when(client.copyObject(copyObjectCaptor.capture)).thenReturn(CopyObjectResponse.builder.build)
 
-    val consignmentMetadata = List(Metadata(UUID.randomUUID, "Series", "series"), Metadata(UUID.randomUUID, "TransferringBody", "body"))
+    val consignmentMetadata = List(
+      Metadata(UUID.randomUUID, Series.id, "series"),
+      Metadata(UUID.randomUUID, TransferringBody.id, "body")
+    )
 
     utils.copyFiles(userId, consignmentId, Standard, consignmentMetadata, objectKeyIds).unsafeRunSync()
 
@@ -121,7 +205,10 @@ class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with T
     when(client.listObjectsV2(listObjectsCaptor.capture())).thenReturn(responseOne, responseTwo)
     when(client.copyObject(any[CopyObjectRequest])).thenReturn(CopyObjectResponse.builder.build)
 
-    val consignmentMetadata = List(Metadata(UUID.randomUUID, "Series", "series"), Metadata(UUID.randomUUID, "TransferringBody", "body"))
+    val consignmentMetadata = List(
+      Metadata(UUID.randomUUID, Series.id, "series"),
+      Metadata(UUID.randomUUID, TransferringBody.id, "body")
+    )
 
     utils.copyFiles(userId, consignmentId, Standard, consignmentMetadata, objectKeyIds).unsafeRunSync()
 
@@ -166,7 +253,6 @@ class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with T
     val listObjectsV2Response = ListObjectsV2Response.builder.contents(s3Object).build
 
     when(client.listObjectsV2(any[ListObjectsV2Request])).thenReturn(listObjectsV2Response)
-
     when(client.copyObject(any[CopyObjectRequest])).thenThrow(new Exception("Error copying object"))
 
     val response = utils.copyFiles(userId, consignmentId, Standard, Nil, objectKeyIds).attempt.unsafeRunSync()
@@ -198,7 +284,6 @@ class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with T
   forAll(consignmentTypes) { (consignmentType, bucket) =>
     "copyFiles" should s"write the records to the correct bucket for a $consignmentType export" in {
       val client = mock[S3Client]
-
       val utils = new S3Utils(config(), client)
       val userId = UUID.randomUUID()
       val consignmentId = UUID.randomUUID()
@@ -209,7 +294,10 @@ class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with T
 
       val s3Object = S3Object.builder.key(s"$consignmentId/$fileId").build
       val response = ListObjectsV2Response.builder.contents(s3Object).build()
-      val consignmentMetadata = List(Metadata(UUID.randomUUID, "Series", "series"), Metadata(UUID.randomUUID, "TransferringBody", "body"))
+      val consignmentMetadata = List(
+        Metadata(UUID.randomUUID, Series.id, "series"),
+        Metadata(UUID.randomUUID, TransferringBody.id, "body")
+      )
 
       when(client.listObjectsV2(any[ListObjectsV2Request])).thenReturn(response)
       when(client.copyObject(copyObjectCaptor.capture)).thenReturn(CopyObjectResponse.builder.build)
@@ -223,7 +311,6 @@ class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with T
 
     "createMetadata" should s"write the metadata to the correct bucket for a $consignmentType export" in {
       val client = mock[S3Client]
-
       val utils = S3Utils(config(), client)
       val userId = UUID.randomUUID()
       val consignmentId = UUID.randomUUID()
@@ -234,8 +321,9 @@ class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with T
 
       val objectKeyIds = ObjectKeyIds(assetId, UUID.randomUUID(), UUID.randomUUID())
       val fileOutput = FileOutput("", assetId, UUID.randomUUID, URI.create("s3://bucket/metadataLocation"), None, None)
+      val fileDetails = List(FileDetails(fileOutput, objectKeyIds))
 
-      utils.putMetadata(userId, consignmentId, consignmentType, List(FileDetails(fileOutput, objectKeyIds)), Nil, List(Metadata(UUID.randomUUID(), "Test", "TestValue")), Map.empty).unsafeRunSync()
+      utils.putMetadata(userId, consignmentId, consignmentType, fileDetails, Nil, List(Metadata(UUID.randomUUID(), "Test", "TestValue")), Map.empty).unsafeRunSync()
 
       putObjectRequestCaptor.getValue.bucket() should equal(bucket)
       putObjectRequestCaptor.getValue.tagging() should equal(s"ConsignmentId=$consignmentId&UserId=$userId")
@@ -298,7 +386,7 @@ class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with T
       .unsafeRunSync()
 
     val body = bodyCaptor.getValue.contentStreamProvider().newStream().readAllBytes().map(_.toChar).mkString
-    body.startsWith("""[{"FFID":[],"TestFile1":"TestFileValue1","fileId":"""") should equal(true)
+    body.startsWith("""[{"FFID":[],"TestFile1":"TestFileValue1","fileId":""") should equal(true)
   }
 
   "createMetadata" should s"return an error if there is an error writing to s3" in {
