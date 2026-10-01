@@ -81,6 +81,7 @@ lazy val exportProject = (project in file("export"))
 lazy val bagitExport = (project in file("bagit-export"))
   .settings(commonSettings)
   .settings(
+    Test / parallelExecution := false,
     name := "tdr-consignment-export",
     libraryDependencies ++= Seq(
       authUtils,
