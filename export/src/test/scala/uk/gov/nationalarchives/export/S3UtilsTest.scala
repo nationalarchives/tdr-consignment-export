@@ -29,7 +29,7 @@ class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with T
     SNS("", "testTopic", 500)
   )
 
-  "copyFiles" should "add an AssetSource tag when asset source metadata is provided" in {
+  "copyFiles" should "add an AssetSource tag when SourceSystem is provided" in {
     val client = mock[S3Client]
     val utils = new S3Utils(config(), client)
     val userId = UUID.randomUUID()
@@ -58,7 +58,7 @@ class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with T
     )
   }
 
-  "copyFiles" should "not add an AssetSource tag when asset source metadata is absent" in {
+  "copyFiles" should "not add an AssetSource tag when SourceSystem is absent" in {
     val client = mock[S3Client]
     val utils = new S3Utils(config(), client)
     val userId = UUID.randomUUID()
@@ -81,7 +81,7 @@ class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with T
     copyObjectCaptor.getValue.tagging() should equal(s"ConsignmentId=$consignmentId&UserId=$userId")
   }
 
-  "putMetadata" should "add an AssetSource tag when asset source metadata is provided" in {
+  "putMetadata" should "add an AssetSource tag when SourceSystem is provided" in {
     val client = mock[S3Client]
     val utils = S3Utils(config(), client)
     val userId = UUID.randomUUID()
