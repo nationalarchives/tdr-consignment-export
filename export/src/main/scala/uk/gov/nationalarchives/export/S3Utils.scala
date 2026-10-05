@@ -38,20 +38,28 @@ class S3Utils(config: Config, s3Client: S3Client) {
     }
   }
 
-  private def contextTagging(userId: UUID, consignmentId: UUID) = {
+  private def contextTagging(userId: UUID, consignmentId: UUID, assetSource:Option[String]) = {
     if (config.exportConfiguration.blockAddContextTagging) {
       Tagging.builder().build()
     } else {
       val consignmentIdTag = Tag.builder
-        .key(ConsignmentId.id)
+        .key(config.s3.consignmentIdTag)
         .value(consignmentId.toString)
         .build
       val userIdTag = Tag.builder
-        .key(UserId.id)
+        .key(config.s3.userIdTag)
         .value(userId.toString)
         .build
+
+      val tags = List(consignmentIdTag, userIdTag) ++ assetSource.map { value =>
+        Tag.builder()
+          .key(config.s3.assetSourceTag)
+          .value(value)
+          .build()
+      }
+
       Tagging.builder()
-        .tagSet(consignmentIdTag, userIdTag)
+        .tagSet(tags.asJava)
         .build()
     }
   }
@@ -76,7 +84,7 @@ class S3Utils(config: Config, s3Client: S3Client) {
           .destinationKey(destinationKey)
           .destinationBucket(destinationBucket)
           .taggingDirective(TaggingDirective.REPLACE)
-          .tagging(contextTagging(userId, consignmentId))
+          .tagging(contextTagging(userId, consignmentId, consignmentMetadata.find(_.propertyName == "SourceSystem").map(_.value)))
           .build()
         s3Client.copyObject(copyRequest)
         val series = consignmentMetadata.find(_.propertyName == Series.id).map(_.value)
@@ -88,13 +96,13 @@ class S3Utils(config: Config, s3Client: S3Client) {
   }
 
   def putMetadata(
-                   userId: UUID,
-                   consignmentId: UUID,
-                   consignmentType: ConsignmentType,
-                   fileDetails: List[FileDetails],
-                   fileMetadata: List[Metadata],
-                   consignmentMetadata: List[Metadata],
-                   ffidMetadata: Map[UUID, List[MetadataUtils.FFID]]
+    userId: UUID,
+    consignmentId: UUID,
+    consignmentType: ConsignmentType,
+    fileDetails: List[FileDetails],
+    fileMetadata: List[Metadata],
+    consignmentMetadata: List[Metadata],
+    ffidMetadata: Map[UUID, List[MetadataUtils.FFID]]
   ): IO[Unit] = IO.blocking {
     val groupedMetadata = fileMetadata.groupBy(_.id)
     val outputBucket = consignmentType match {
@@ -122,7 +130,7 @@ class S3Utils(config: Config, s3Client: S3Client) {
       val request = PutObjectRequest.builder
         .bucket(outputBucket)
         .key(fileDetails.output.metadataLocation.getPath.drop(1))
-        .tagging(contextTagging(userId, consignmentId))
+        .tagging(contextTagging(userId, consignmentId, consignmentMetadata.find(_.propertyName == "SourceSystem").map(_.value)))
         .build
       s3Client.putObject(request, body)
     }
