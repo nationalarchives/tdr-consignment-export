@@ -43,7 +43,7 @@ Set the `EXPORT_ROOT_PATH` environment variable to a path on your machine which 
 
 You can then run the Main object in Intellij as you can with any similar project. You will need to provide the program arguments: `export --consignmentId {a uuid}`
 
-You can also run `sbt universal:packageZipTarball` which creates a file `target/out/jvm/<scala-version>/tdr-consignment-export/universal/tdr-consignment-export.tgz` which, when unzipped, gives you a `bin/tdr-consignment-export` executable which you can run with the same arguments as above. This is how the docker container runs the file so is the closest to running this in production.
+You can also run `sbt "bagitExport / Universal / packageZipTarball"` which creates a file `target/out/jvm/<scala-version>/tdr-consignment-export/universal/tdr-consignment-export.tgz` which, when unzipped, gives you a `bin/tdr-consignment-export` executable which you can run with the same arguments as above. This is how the docker container runs the file so is the closest to running this in production.
 
 ### Release notes
 We are now releasing new versions to github and for this we need release notes. 
