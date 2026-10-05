@@ -73,7 +73,7 @@ jobs:
           LATEST_TAG: ${{ steps.build.outputs.latest-tag }}
           MANAGEMENT_ACCOUNT: ${{ secrets.MANAGEMENT_ACCOUNT }}
         run: |
-          gh release create --generate-notes $LATEST_TAG bagit-export/target/universal/tdr-consignment-export.tgz export/target/universal/tdr-export.tgz
+          gh release create --generate-notes $LATEST_TAG target/out/jvm/*/tdr-consignment-export/universal/tdr-consignment-export.tgz target/out/jvm/*/tdr-export/universal/tdr-export.tgz
           gh pr create --fill --label 'Version bump'
           docker buildx build --output=type=docker --provenance=false --sbom=false --pull --no-cache -t $MANAGEMENT_ACCOUNT.dkr.ecr.eu-west-2.amazonaws.com/consignment-export:$LATEST_TAG .
       - name: Wiz Container Image Scan
