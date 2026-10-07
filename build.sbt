@@ -103,7 +103,7 @@ ThisBuild / dependencyOverrides ++= Seq(
   "io.netty" % "netty-buffer" % "4.2.19.Final",
   "io.netty" % "netty-codec" % "4.2.19.Final",
   "io.netty" % "netty-codec-http" % "4.2.19.Final",
-  "io.netty" % "netty-codec-http2" % "4.2.18.Final",
+  "io.netty" % "netty-codec-http2" % "4.2.19.Final",
   "io.netty" % "netty-common" % "4.2.18.Final",
   "io.netty" % "netty-handler" % "4.2.18.Final",
   "io.netty" % "netty-resolver" % "4.2.18.Final",
