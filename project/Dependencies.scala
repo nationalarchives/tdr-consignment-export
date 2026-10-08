@@ -2,7 +2,7 @@ import sbt._
 
 object Dependencies {
   private val githubPureConfigVersion = "0.17.10"
-  private val keycloakVersion = "26.7.5"
+  private val keycloakVersion = "26.8.0"
   private val log4CatsVersion = "2.8.0"
   private val mockitoScalaVersion = "2.2.3"
   private val monovoreDeclineVersion = "2.6.2"
@@ -11,7 +11,7 @@ object Dependencies {
   private val testContainersVersion = "0.44.1"
 
   lazy val authUtils = "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.305"
-  lazy val awsRds = "software.amazon.awssdk" % "rds" % "2.55.11"
+  lazy val awsRds = "software.amazon.awssdk" % "rds" % "2.55.12"
   lazy val generatedGraphql = "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.486"
   lazy val s3Utils = "uk.gov.nationalarchives" %% "s3-utils" % awsUtilsVersion
   lazy val stepFunctionUtils = "uk.gov.nationalarchives" %% "stepfunction-utils" % "0.1.340"
@@ -23,7 +23,7 @@ object Dependencies {
   lazy val declineEffect = "com.monovore" %% "decline-effect" % monovoreDeclineVersion
   lazy val doobie = "org.typelevel" %% "doobie-core" % doobieVersion
   lazy val doobiePostgres = "org.typelevel" %% "doobie-postgres"  % doobieVersion
-  lazy val postgres = "org.postgresql" % "postgresql" % "42.7.13"
+  lazy val postgres = "org.postgresql" % "postgresql" % "42.7.14"
   lazy val graphqlClient = "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.307"
   lazy val scalaTest = "org.scalatest" %% "scalatest" % "3.2.20"
   lazy val scalaCsv = "com.github.tototoshi" %% "scala-csv" % "2.0.0"
@@ -40,5 +40,5 @@ object Dependencies {
   lazy val testContainersPostgres = "com.dimafeng" %% "testcontainers-scala-postgresql" % testContainersVersion
   lazy val wiremock = "org.wiremock" % "wiremock" % "3.13.2"
   lazy val jsonpath = "com.jayway.jsonpath" % "json-path-assert" % "3.0.0"
-  lazy val schemaConfig = "uk.gov.nationalarchives" %% "da-metadata-schema"% "0.0.144"
+  lazy val schemaConfig = "uk.gov.nationalarchives" %% "da-metadata-schema"% "0.0.147"
 }
