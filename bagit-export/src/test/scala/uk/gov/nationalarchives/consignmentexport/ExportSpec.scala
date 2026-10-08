@@ -66,7 +66,10 @@ abstract class ExportSpec extends AnyFlatSpec with MockitoSugar with Matchers wi
       FileMetadata("RestrictionsOnUse", "restrictions on use"),
       FileMetadata("EvidenceProvidedBy", "evidence provided by test"),
       FileMetadata("Note", "my note"),
-      FileMetadata("CopyrightDetails","my copyright details")
+      FileMetadata("CopyrightDetails","my copyright details"),
+      FileMetadata("FormerFilepathDepartment", "formerFilepathDepartment"),
+      FileMetadata("CataloguePlacement", "cataloguePlacement"),
+      FileMetadata("Inventor", "inventor"),
     )
   }
 }

@@ -3,7 +3,6 @@ package uk.gov.nationalarchives.consignmentexport
 import cats.effect.unsafe.implicits.global
 import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignment.ConsignmentMetadata
 import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignment.Files.FileMetadata
-import uk.gov.nationalarchives.consignmentexport.Utils.PathUtils
 import uk.gov.nationalarchives.consignmentexport.Validator.{ValidatedAntivirusMetadata, ValidatedFFIDMetadata}
 import java.io.File
 import java.nio.file.Files
@@ -33,7 +32,7 @@ class BagAdditionalFilesSpec extends ExportSpec {
       "date_last_modified","closure_type","closure_start_date","closure_period","foi_exemption_code","foi_exemption_asserted",
       "title_closed","title_alternate","description","description_closed","description_alternate","language","end_date",
       "file_name_translation","original_identifier","parent_reference","former_reference_department","UUID","restrictions_on_use",
-      "related_material", "evidence_provided_by", "note", "copyright_details")
+      "related_material", "evidence_provided_by", "note", "copyright_details", "former_filepath_department", "catalogue_placement", "inventor")
 
     withBagAdditionalFiles { bagAdditionalFiles =>
       val orderedProperties = bagAdditionalFiles.orderedExportProperties(Standard)
@@ -50,7 +49,8 @@ class BagAdditionalFilesSpec extends ExportSpec {
       "title_closed","title_alternate","description","description_closed","description_alternate","language","end_date",
       "file_name_translation","original_identifier","parent_reference","former_reference_department","UUID","restrictions_on_use"
       ,"related_material","judgment_type", "judgment_update", "judgment_update_type", "judgment_update_details",
-      "judgment_neutral_citation","judgment_no_neutral_citation", "judgment_reference", "evidence_provided_by", "note", "copyright_details"
+      "judgment_neutral_citation","judgment_no_neutral_citation", "judgment_reference", "evidence_provided_by", "note", "copyright_details",
+      "former_filepath_department", "catalogue_placement", "inventor"
     )
 
     withBagAdditionalFiles { bagAdditionalFiles =>
@@ -113,12 +113,13 @@ class BagAdditionalFilesSpec extends ExportSpec {
         "held_by", "date_last_modified", "closure_type", "closure_start_date", "closure_period", "foi_exemption_code",
         "foi_exemption_asserted", "title_closed", "title_alternate", "description", "description_closed", "description_alternate",
         "language", "end_date", "file_name_translation", "original_filepath", "parent_reference", "former_reference_department", "UUID",
-        "restrictions_on_use", "related_material", "evidence_provided_by", "note", "copyright_details" )
+        "restrictions_on_use", "related_material", "evidence_provided_by", "note", "copyright_details", "former_filepath_department", "catalogue_placement", "inventor" )
       val expectedOrderedFilePropertyValues = List(
         "fileReference", "fileName", "fileType", "1", "data/originalFilePath", "rightsCopyright", "legalStatus", "heldBy", "2021-02-03T10:33:30",
         "closureType", "2021-02-03T10:33:30", "30", "foiExemption;foiExemption2", "2021-02-03T10:33:30", "titleClosed", "titleAlternate",
         "description", "descriptionClosed", "descriptionAlternate", "language", "2021-02-03T10:33:30", "fileNameTranslation", "data/nonRedactedFilepath",
-        "parentReference", "formerReferenceDepartment", "uuid", "restrictions on use", "relatedMaterial", "evidence provided by test", "my note", "my copyright details" )
+        "parentReference", "formerReferenceDepartment", "uuid", "restrictions on use", "relatedMaterial", "evidence provided by test", "my note", "my copyright details",
+        "formerFilepathDepartment", "cataloguePlacement", "inventor")
 
       val fileCsvLines = csvLines(file)
       val header = fileCsvLines.head
@@ -126,7 +127,7 @@ class BagAdditionalFilesSpec extends ExportSpec {
       header.split(",").toList should equal(expectedOrderedHeaders)
       rest.length should equal(2)
       rest.head.split(",").toList should equal(expectedOrderedFilePropertyValues)
-      rest.last should equal("folderReference,folderName,Folder,,data/folder,,,,,,,,,,,,,,,,,,,,,,,,,,")
+      rest.last should equal("folderReference,folderName,Folder,,data/folder,,,,,,,,,,,,,,,,,,,,,,,,,,,,,")
     }
   }
 
@@ -153,14 +154,16 @@ class BagAdditionalFilesSpec extends ExportSpec {
         "foi_exemption_asserted", "title_closed", "title_alternate", "description", "description_closed", "description_alternate",
         "language", "end_date", "file_name_translation", "original_filepath", "parent_reference", "former_reference_department", "UUID",
         "restrictions_on_use", "related_material", "judgment_type", "judgment_update", "judgment_update_type", "judgment_update_details",
-        "judgment_neutral_citation", "judgment_no_neutral_citation", "judgment_reference", "evidence_provided_by", "note", "copyright_details"
+        "judgment_neutral_citation", "judgment_no_neutral_citation", "judgment_reference", "evidence_provided_by", "note", "copyright_details",
+        "former_filepath_department", "catalogue_placement", "inventor"
       )
       val expectedOrderedFilePropertyValues = List(
         "fileReference", "fileName", "fileType", "1", "data/originalFilePath", "rightsCopyright", "legalStatus", "heldBy", "2021-02-03T10:33:30",
         "closureType", "2021-02-03T10:33:30", "30", "foiExemption;foiExemption2", "2021-02-03T10:33:30", "titleClosed", "titleAlternate",
         "description", "descriptionClosed", "descriptionAlternate", "language", "2021-02-03T10:33:30", "fileNameTranslation", "data/nonRedactedFilepath",
         "parentReference", "formerReferenceDepartment", "uuid", "restrictions on use", "relatedMaterial", "judgmentType", "judgmentUpdate", "judgmentUpdateType",
-        "judgmentUpdateDetails", "judgmentNeutralCitation", "judgmentNoNeutralCitation", "judgmentReference", "evidence provided by test","my note", "my copyright details"
+        "judgmentUpdateDetails", "judgmentNeutralCitation", "judgmentNoNeutralCitation", "judgmentReference", "evidence provided by test","my note", "my copyright details",
+        "formerFilepathDepartment", "cataloguePlacement", "inventor"
       )
 
       val fileCsvLines = csvLines(file)
