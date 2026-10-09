@@ -4,6 +4,7 @@ import cats.effect.unsafe.implicits.global
 import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignment.ConsignmentMetadata
 import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignment.Files.FileMetadata
 import uk.gov.nationalarchives.consignmentexport.Validator.{ValidatedAntivirusMetadata, ValidatedFFIDMetadata}
+import uk.gov.nationalarchives.tdr.common.utils.statuses.StatusValues.NoOriginalFileValue
 import java.io.File
 import java.nio.file.Files
 import java.time.LocalDateTime
@@ -75,6 +76,13 @@ class BagAdditionalFilesSpec extends ExportSpec {
 
       val value2 = bagAdditionalFiles.exportValue("original_identifier", Some("filePathValue"))
       value2 should equal("data/filePathValue")
+    }
+  }
+
+  "exportValue" should "not prefix original_identifier when the original file is missing" in {
+    withBagAdditionalFiles { bagAdditionalFiles =>
+      val value = bagAdditionalFiles.exportValue("original_identifier", Some(NoOriginalFileValue.value))
+      value should equal(NoOriginalFileValue.value)
     }
   }
 
