@@ -41,4 +41,5 @@ object Dependencies {
   lazy val wiremock = "org.wiremock" % "wiremock" % "3.13.2"
   lazy val jsonpath = "com.jayway.jsonpath" % "json-path-assert" % "3.0.0"
   lazy val schemaConfig = "uk.gov.nationalarchives" %% "da-metadata-schema"% "0.0.147"
+  lazy val tdrStatuses = "uk.gov.nationalarchives" %% "tdr-statuses" % "0.0.54"
 }

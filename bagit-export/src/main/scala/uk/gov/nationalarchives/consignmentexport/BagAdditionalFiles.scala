@@ -3,9 +3,9 @@ package uk.gov.nationalarchives.consignmentexport
 import cats.effect.IO
 import com.github.tototoshi.csv.CSVWriter
 import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignment.{ConsignmentMetadata, Files}
-import graphql.codegen.GetConsignmentExport.getConsignmentForExport.GetConsignment.Files.FileMetadata
 import uk.gov.nationalarchives.consignmentexport.BagAdditionalFiles.MetadataConfiguration
 import uk.gov.nationalarchives.consignmentexport.Validator.{ValidatedAntivirusMetadata, ValidatedFFIDMetadata}
+import uk.gov.nationalarchives.tdr.common.utils.statuses.StatusValues.NoOriginalFileValue
 import uk.gov.nationalarchives.tdr.schemautils.ConfigUtils
 import uk.gov.nationalarchives.tdr.schemautils.ConfigUtils.DownloadFileDisplayProperty
 
@@ -60,6 +60,7 @@ class BagAdditionalFiles(rootDirectory: Path, metadataConfig: MetadataConfigurat
     lazy val formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss")
     metadataValue.map { mv =>
       propertyKey match {
+        case "original_identifier" if mv == NoOriginalFileValue.value => mv
         case pk if pk == "file_path" || pk == "original_identifier" => dataPath(mv)
         case _ if propertyType == "date" => LocalDateTime.parse(mv, parseFormatter).format(formatter)
         case _ => mv
