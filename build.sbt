@@ -92,7 +92,8 @@ lazy val bagitExport = (project in file("bagit-export"))
       keycloakAdminClient,
       scalaCsv,
       slf4j,
-      schemaConfig
+      schemaConfig,
+      tdrStatuses
     ),
     (Universal / packageName) := "tdr-consignment-export",
     dependencyOverrides += "org.scala-lang.modules" %% "scala-java8-compat" % "1.0.2",
