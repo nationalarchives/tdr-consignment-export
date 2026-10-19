@@ -70,6 +70,7 @@ abstract class ExportSpec extends AnyFlatSpec with MockitoSugar with Matchers wi
       FileMetadata("FormerFilepathDepartment", "formerFilepathDepartment"),
       FileMetadata("CataloguePlacement", "cataloguePlacement"),
       FileMetadata("Inventor", "inventor"),
+      FileMetadata("CitableRefPrefix", "citableRefPrefix"),
     )
   }
 }
