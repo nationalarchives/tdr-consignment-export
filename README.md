@@ -3,7 +3,7 @@ This is the project which contains the code for the consignment export.
 
 The infrastructure for the export, is defined in the [terraform]("https://github.com/nationalarchives/tdr-terraform-environments") repository.
 * The front end makes a request to the api gateway with the user's token.
-* A lambda authorises the request using the consignment api to check the token
+* A lambda authorises the request using the consignment api to check the token.
 * Api gateway triggers a step function
 * The step function triggers an ECS task which runs the code in this repository.
 
@@ -43,7 +43,7 @@ Set the `EXPORT_ROOT_PATH` environment variable to a path on your machine which 
 
 You can then run the Main object in Intellij as you can with any similar project. You will need to provide the program arguments: `export --consignmentId {a uuid}`
 
-You can also run `sbt universal:packageZipTarball` which creates a file `target/universal/tdr-consignment-export.tgz` which, when unzipped, gives you a `bin/tdr-consignment-export` executable which you can run with the same arguments as above. This is how the docker container runs the file so is the closest to running this in production.
+You can also run `sbt "bagitExport / Universal / packageZipTarball"` which creates a file `target/out/jvm/<scala-version>/tdr-consignment-export/universal/tdr-consignment-export.tgz` which, when unzipped, gives you a `bin/tdr-consignment-export` executable which you can run with the same arguments as above. This is how the docker container runs the file so is the closest to running this in production.
 
 ### Release notes
 We are now releasing new versions to github and for this we need release notes. 
