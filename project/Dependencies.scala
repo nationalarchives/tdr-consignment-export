@@ -11,8 +11,8 @@ object Dependencies {
   private val testContainersVersion = "0.44.1"
 
   lazy val authUtils = "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.307"
-  lazy val awsRds = "software.amazon.awssdk" % "rds" % "2.57.2"
-  lazy val generatedGraphql = "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.493"
+  lazy val awsRds = "software.amazon.awssdk" % "rds" % "2.57.3"
+  lazy val generatedGraphql = "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.494"
   lazy val s3Utils = "uk.gov.nationalarchives" %% "s3-utils" % awsUtilsVersion
   lazy val stepFunctionUtils = "uk.gov.nationalarchives" %% "stepfunction-utils" % "0.1.341"
   lazy val snsUtils = "uk.gov.nationalarchives" %% "sns-utils" % awsUtilsVersion
@@ -40,6 +40,6 @@ object Dependencies {
   lazy val testContainersPostgres = "com.dimafeng" %% "testcontainers-scala-postgresql" % testContainersVersion
   lazy val wiremock = "org.wiremock" % "wiremock" % "3.13.2"
   lazy val jsonpath = "com.jayway.jsonpath" % "json-path-assert" % "3.0.0"
-  lazy val schemaConfig = "uk.gov.nationalarchives" %% "da-metadata-schema"% "0.0.152"
+  lazy val schemaConfig = "uk.gov.nationalarchives" %% "da-metadata-schema"% "0.0.153"
   lazy val tdrStatuses = "uk.gov.nationalarchives" %% "tdr-statuses" % "0.0.54"
 }
