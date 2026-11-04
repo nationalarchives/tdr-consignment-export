@@ -102,7 +102,7 @@ lazy val bagitExport = (project in file("bagit-export"))
 
 ThisBuild / dependencyOverrides ++= Seq(
   "io.netty" % "netty-buffer" % "4.2.20.Final",
-  "io.netty" % "netty-codec" % "4.2.19.Final",
+  "io.netty" % "netty-codec" % "4.2.20.Final",
   "io.netty" % "netty-codec-http" % "4.2.19.Final",
   "io.netty" % "netty-codec-http2" % "4.2.19.Final",
   "io.netty" % "netty-common" % "4.2.19.Final",
