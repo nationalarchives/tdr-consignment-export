@@ -55,6 +55,35 @@ class MainTest extends TestUtils {
     copyCount should equal(1)
   }
 
+  "run" should "add upload match IDs from the File table to export tags without adding them to metadata JSON" in withContainers {
+    container: PostgreSQLContainer =>
+      val mappedPort = container.mappedPort(5432)
+      val (consignmentId, records, _) = stubExternalServices(mappedPort, numberOfRecords = 2)
+      val matchId = UUID.randomUUID().toString
+      addUploadMatchId(records.head.fileId, matchId, mappedPort)
+
+      Main.run(List("export", "--consignmentId", consignmentId.toString, "--taskToken", "taskToken")).unsafeRunSync()
+
+      val requests = s3Server.getAllServeEvents.asScala.map(_.getRequest).filter(_.getMethod == RequestMethod.PUT)
+      records.foreach { record =>
+        val recordRequests = requests.filter(request =>
+          request.getUrl == s"/${record.assetId}/${record.fileId}" || request.getUrl == s"/${record.assetId}.metadata"
+        )
+        recordRequests.size should equal(2)
+        recordRequests.foreach { request =>
+          if (record.fileId == records.head.fileId) {
+            request.getHeader("x-amz-tagging") should include(s"TestUploadMatchId=$matchId")
+          } else {
+            request.getHeader("x-amz-tagging") should not include "TestUploadMatchId"
+          }
+        }
+        val metadataBody = getRequestBody(event =>
+          event.getRequest.getUrl == s"/${record.assetId}.metadata" && event.getRequest.getMethod == RequestMethod.PUT
+        )
+        metadataBody should not include "UploadMatchId"
+      }
+  }
+
   "run" should "send a message to the SNS topic with the id of the file and the bucket name" in withContainers {
     container: PostgreSQLContainer =>
     val mappedPort = container.mappedPort(5432)
