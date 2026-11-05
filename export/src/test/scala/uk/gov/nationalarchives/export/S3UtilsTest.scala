@@ -17,7 +17,7 @@ import uk.gov.nationalarchives.`export`.S3Utils.{FileDetails, FileOutput}
 
 import java.net.URI
 import java.util.UUID
-import scala.jdk.CollectionConverters.ListHasAsScala
+import scala.jdk.CollectionConverters.{ListHasAsScala, SeqHasAsJava}
 
 class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with TableDrivenPropertyChecks {
 
@@ -25,7 +25,7 @@ class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with T
     Db(useIamAuth = false, "", "", "", 5432),
     ExportConfiguration(blockAddContextTagging = blockAddContextTagging, blockMockSeriesIngest = true),
     SFN(""),
-    S3("", "testCleanBucket", "outputBucket", "outputBucketJudgment", "ConsignmentId", "UserId", "AssetSource"),
+    S3("", "testCleanBucket", "outputBucket", "outputBucketJudgment", "ConsignmentId", "UserId", "AssetSource", "TestUploadMatchId"),
     SNS("", "testTopic", 500)
   )
 
@@ -56,6 +56,35 @@ class S3UtilsTest extends AnyFlatSpec with MockitoSugar with EitherValues with T
     copyObjectCaptor.getValue.tagging() should equal(
       s"ConsignmentId=$consignmentId&UserId=$userId&AssetSource=assetSourceValue"
     )
+  }
+
+  for (blocked <- List(false, true)) {
+    "context tagging" should s"use each TDR file's upload match ID for records and sidecars when blocked=$blocked" in {
+      val client = mock[S3Client]
+      val utils = S3Utils(config(blocked), client)
+      val userId = UUID.randomUUID()
+      val consignmentId = UUID.randomUUID()
+      val fileIds = List(UUID.randomUUID(), UUID.randomUUID())
+      val ids = fileIds.map(fileId => fileId -> ObjectKeyIds(UUID.randomUUID(), UUID.randomUUID(), fileId)).toMap
+      val matchIds = fileIds.map(fileId => fileId -> UUID.randomUUID().toString).toMap
+      val copyCaptor = ArgumentCaptor.forClass(classOf[CopyObjectRequest])
+      val putCaptor = ArgumentCaptor.forClass(classOf[PutObjectRequest])
+      when(client.listObjectsV2(any[ListObjectsV2Request])).thenReturn(
+        ListObjectsV2Response.builder.contents(fileIds.map(fileId => S3Object.builder.key(s"$consignmentId/$fileId").build).asJava).build
+      )
+      when(client.copyObject(copyCaptor.capture())).thenReturn(CopyObjectResponse.builder.build)
+      when(client.putObject(putCaptor.capture(), any[RequestBody])).thenReturn(PutObjectResponse.builder.build)
+      val metadata = List(Metadata(consignmentId, "SourceSystem", "SharePoint"))
+
+      val details = utils.copyFiles(userId, consignmentId, Standard, metadata, ids, matchIds).unsafeRunSync()
+      utils.putMetadata(userId, consignmentId, Standard, details, Nil, metadata, Map.empty, matchIds).unsafeRunSync()
+
+      fileIds.foreach { fileId =>
+        val expected = if (blocked) "" else s"ConsignmentId=$consignmentId&UserId=$userId&AssetSource=SharePoint&TestUploadMatchId=${matchIds(fileId)}"
+        copyCaptor.getAllValues.asScala.find(_.destinationKey() == s"${ids(fileId).assetId}/${ids(fileId).digitalObjectKeyId}").get.tagging() should equal(expected)
+        putCaptor.getAllValues.asScala.find(_.key() == s"${ids(fileId).assetId}.metadata").get.tagging() should equal(expected)
+      }
+    }
   }
 
   "copyFiles" should "not add an AssetSource tag when SourceSystem is absent" in {
