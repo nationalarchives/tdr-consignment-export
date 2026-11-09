@@ -21,7 +21,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: sbt/setup-sbt@ecad189dd245444b9ae0a0cd5922fd938b88906f # v1.5.12
+      - uses: sbt/setup-sbt@b113b960ba361e87e08ce02a390d51871b7ee459 # v1.5.13
       - name: Import GPG key
         uses: crazy-max/ghaction-import-gpg@2dc316deee8e90f13e1a351ab510b4d5bc0c82cd # v7.0.0
         with:
@@ -99,7 +99,7 @@ jobs:
         run: >-
           ./wizcli tag $MANAGEMENT_ACCOUNT.dkr.ecr.eu-west-2.amazonaws.com/consignment-export:$LATEST_TAG
       - name: Send success message
-        uses: nationalarchives/tdr-github-actions/.github/actions/slack-send@51a06bbc08eb65018238b144d0ad8bfd707a8ffa # v0.0.50
+        uses: nationalarchives/tdr-github-actions/.github/actions/slack-send@fc52a93f9636579d7478f01a8a960007134ad30f # v0.0.51
         with:
           message: "*Consignment Export* :whale: Pushed version ${{ steps.build.outputs.latest-tag}} to AWS ECR"
           slack-url: ${{ secrets.SLACK_WEBHOOK }}
