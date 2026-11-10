@@ -211,6 +211,11 @@ class TestUtils extends AnyFlatSpec with TestContainerForAll with BeforeAndAfter
     }.sequence
   }.unsafeRunSync()
 
+  def addUploadMatchId(fileId: UUID, uploadMatchId: String, port: Int): Unit =
+    sql"""UPDATE "File" SET "UploadMatchId" = $uploadMatchId
+          WHERE "FileId" = CAST(${fileId.toString} AS UUID)"""
+      .update.run.transact(createTransactor(port)).unsafeRunSync()
+
   private def createTransactor(port: Int) = {
     val jdbcUrl = s"jdbc:postgresql://localhost:$port/consignmentapi"
     val transactor = Transactor.fromDriverManager[IO](
