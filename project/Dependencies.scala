@@ -7,7 +7,7 @@ object Dependencies {
   private val mockitoScalaVersion = "2.2.3"
   private val monovoreDeclineVersion = "2.6.2"
   private val awsUtilsVersion = "0.1.343"
-  private val doobieVersion = "1.0.0-RC13"
+  private val doobieVersion = "1.0.0-RC14"
   private val testContainersVersion = "0.44.1"
 
   lazy val authUtils = "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.309"
