@@ -149,6 +149,14 @@ class MetadataUtils(config: Config) {
     }
   }
 
+  def getUploadMatchIds(consignmentId: UUID): IO[Map[UUID, String]] =
+    sql"""SELECT "FileId", "UploadMatchId" FROM "File"
+          WHERE "ConsignmentId" = CAST(${consignmentId.toString} AS UUID)"""
+      .query[(UUID, Option[String])]
+      .to[List]
+      .transact(transactor)
+      .map(_.flatMap { case (fileId, matchId) => matchId.filter(_.nonEmpty).map(fileId -> _) }.toMap)
+
   def getFileMetadata(consignmentId: UUID): IO[List[Metadata]] =
     for {
       fileMetadata <- sql"""SELECT fm."FileId", "PropertyName", "Value"

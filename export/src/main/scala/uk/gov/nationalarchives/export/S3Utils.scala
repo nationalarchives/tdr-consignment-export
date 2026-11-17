@@ -38,7 +38,7 @@ class S3Utils(config: Config, s3Client: S3Client) {
     }
   }
 
-  private def contextTagging(userId: UUID, consignmentId: UUID, assetSource:Option[String]) = {
+  private def contextTagging(userId: UUID, consignmentId: UUID, assetSource:Option[String], uploadMatchId: Option[String]) = {
     if (config.exportConfiguration.blockAddContextTagging) {
       Tagging.builder().build()
     } else {
@@ -56,6 +56,11 @@ class S3Utils(config: Config, s3Client: S3Client) {
           .key(config.s3.assetSourceTag)
           .value(value)
           .build()
+      } ++ uploadMatchId.filter(_.nonEmpty).map { value =>
+        Tag.builder()
+          .key(config.s3.uploadMatchIdTag)
+          .value(value)
+          .build()
       }
 
       Tagging.builder()
@@ -65,7 +70,7 @@ class S3Utils(config: Config, s3Client: S3Client) {
   }
 
   def copyFiles(userId: UUID, consignmentId: UUID, consignmentType: ConsignmentType, consignmentMetadata: List[Metadata],
-                objectKeyIds: Map[UUID, ObjectKeyIds]): IO[List[FileDetails]] = IO.blocking {
+                objectKeyIds: Map[UUID, ObjectKeyIds], uploadMatchIds: Map[UUID, String] = Map.empty): IO[List[FileDetails]] = IO.blocking {
     val destinationBucket = consignmentType match {
       case Judgment => config.s3.outputBucketJudgment
       case Standard => config.s3.outputBucket
@@ -84,7 +89,7 @@ class S3Utils(config: Config, s3Client: S3Client) {
           .destinationKey(destinationKey)
           .destinationBucket(destinationBucket)
           .taggingDirective(TaggingDirective.REPLACE)
-          .tagging(contextTagging(userId, consignmentId, consignmentMetadata.find(_.propertyName == "SourceSystem").map(_.value)))
+          .tagging(contextTagging(userId, consignmentId, consignmentMetadata.find(_.propertyName == "SourceSystem").map(_.value), uploadMatchIds.get(ids.tdrFileId)))
           .build()
         s3Client.copyObject(copyRequest)
         val series = consignmentMetadata.find(_.propertyName == Series.id).map(_.value)
@@ -102,7 +107,8 @@ class S3Utils(config: Config, s3Client: S3Client) {
     fileDetails: List[FileDetails],
     fileMetadata: List[Metadata],
     consignmentMetadata: List[Metadata],
-    ffidMetadata: Map[UUID, List[MetadataUtils.FFID]]
+    ffidMetadata: Map[UUID, List[MetadataUtils.FFID]],
+    uploadMatchIds: Map[UUID, String] = Map.empty
   ): IO[Unit] = IO.blocking {
     val groupedMetadata = fileMetadata.groupBy(_.id)
     val outputBucket = consignmentType match {
@@ -130,7 +136,7 @@ class S3Utils(config: Config, s3Client: S3Client) {
       val request = PutObjectRequest.builder
         .bucket(outputBucket)
         .key(fileDetails.output.metadataLocation.getPath.drop(1))
-        .tagging(contextTagging(userId, consignmentId, consignmentMetadata.find(_.propertyName == "SourceSystem").map(_.value)))
+        .tagging(contextTagging(userId, consignmentId, consignmentMetadata.find(_.propertyName == "SourceSystem").map(_.value), uploadMatchIds.get(ids.tdrFileId)))
         .build
       s3Client.putObject(request, body)
     }
