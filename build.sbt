@@ -100,19 +100,25 @@ lazy val bagitExport = (project in file("bagit-export"))
     (Test / javaOptions) += s"-Dconfig.file=${sourceDirectory.value}/test/resources/application.conf"
   ).enablePlugins(JavaAppPackaging, UniversalPlugin, BuildInfoPlugin)
 
+val nettyVersion = "4.2.20.Final"
+val bouncyCastleVersion = "1.87"
+
 ThisBuild / dependencyOverrides ++= Seq(
-  "io.netty" % "netty-buffer" % "4.2.20.Final",
-  "io.netty" % "netty-codec" % "4.2.20.Final",
-  "io.netty" % "netty-codec-http" % "4.2.20.Final",
-  "io.netty" % "netty-codec-http2" % "4.2.20.Final",
-  "io.netty" % "netty-common" % "4.2.20.Final",
-  "io.netty" % "netty-handler" % "4.2.20.Final",
-  "io.netty" % "netty-resolver" % "4.2.20.Final",
-  "io.netty" % "netty-transport" % "4.2.20.Final",
-  "io.netty" % "netty-transport-classes-epoll" % "4.2.20.Final",
-  "io.netty" % "netty-transport-native-unix-common" % "4.2.20.Final",
-  "org.bouncycastle" % "bcprov-jdk18on" % "1.87",
-  "org.bouncycastle" % "bcpkix-jdk18on" % "1.87",
-  "org.bouncycastle" % "bcutil-jdk18on" % "1.87",
-  "org.bouncycastle" % "bcpg-jdk18on"   % "1.87"
+  "com.fasterxml.jackson.core" % "jackson-databind" % "2.21.8",
+  "com.fasterxml.jackson.core" % "jackson-core" % "2.21.8",
+  "com.fasterxml.jackson.core" % "jackson-annotations" % "2.21",
+  "io.netty" % "netty-buffer" % nettyVersion,
+  "io.netty" % "netty-codec" % nettyVersion,
+  "io.netty" % "netty-codec-http" % nettyVersion,
+  "io.netty" % "netty-codec-http2" % nettyVersion,
+  "io.netty" % "netty-common" % nettyVersion,
+  "io.netty" % "netty-handler" % nettyVersion,
+  "io.netty" % "netty-resolver" % nettyVersion,
+  "io.netty" % "netty-transport" % nettyVersion,
+  "io.netty" % "netty-transport-classes-epoll" % nettyVersion,
+  "io.netty" % "netty-transport-native-unix-common" % nettyVersion,
+  "org.bouncycastle" % "bcprov-jdk18on" % bouncyCastleVersion,
+  "org.bouncycastle" % "bcpkix-jdk18on" % bouncyCastleVersion,
+  "org.bouncycastle" % "bcutil-jdk18on" % bouncyCastleVersion,
+  "org.bouncycastle" % "bcpg-jdk18on"   % bouncyCastleVersion
 )
