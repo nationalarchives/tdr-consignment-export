@@ -37,13 +37,13 @@ object Main extends CommandIOApp("tdr-consignment-export", "Exports tdr files in
   implicit val tdrKeycloakDeployment: TdrKeycloakDeployment = TdrKeycloakDeployment(configuration.getString("auth.url"), "tdr", 3600)
   private val stepFunctionPublishEndpoint = configuration.getString("stepFunction.endpoint")
 
-  private def buildS3AsyncClient(endpoint: String): S3AsyncClient = {
+  private def buildS3AsyncClient(endpoint: String, multipartEnabled: Boolean = true): S3AsyncClient = {
     val httpClient = NettyNioAsyncHttpClient.builder
       .maxConcurrency(500)
       .connectionAcquisitionTimeout(JDuration.ofSeconds(60))
       .build
     S3AsyncClient.builder
-      .multipartEnabled(true)
+      .multipartEnabled(multipartEnabled)
       .region(Region.EU_WEST_2)
       .endpointOverride(URI.create(endpoint))
       .httpClient(httpClient)
@@ -72,6 +72,7 @@ object Main extends CommandIOApp("tdr-consignment-export", "Exports tdr files in
           bashCommands = BashCommands()
           graphQlApi = GraphQlApi(config, consignmentId)
           s3Files = S3Files(S3Utils(buildS3AsyncClient(config.s3.endpoint)), config)
+          downloadS3Files = S3Files(S3Utils(buildS3AsyncClient(config.s3.endpoint, multipartEnabled = false)), config)
           validator = Validator(consignmentId)
           //Export datetime generated as value needed in bag metadata and DB table
           //Cannot use the value from DB table in bag metadata, as bag metadata created before bagging
@@ -80,7 +81,7 @@ object Main extends CommandIOApp("tdr-consignment-export", "Exports tdr files in
           consignmentResult <- graphQlApi.getConsignmentMetadata
           consignmentData <- IO.fromEither(validator.validateConsignmentResult(consignmentResult))
           _ <- IO.fromEither(validator.validateConsignmentHasFiles(consignmentData))
-          _ <- s3Files.downloadFiles(consignmentData.files, config.s3.cleanBucket, consignmentId, consignmentData.consignmentReference, basePath)
+          _ <- downloadS3Files.downloadFiles(consignmentData.files, config.s3.cleanBucket, consignmentId, consignmentData.consignmentReference, basePath)
           consignmentType = consignmentData.consignmentType.map(ConsignmentType(_)).getOrElse(Standard)
           bagMetadata <- createBag(consignmentType, consignmentId, consignmentData, exportDatetime, config, basePath)
 
