@@ -6,15 +6,15 @@ object Dependencies {
   private val log4CatsVersion = "2.8.0"
   private val mockitoScalaVersion = "2.2.3"
   private val monovoreDeclineVersion = "2.6.2"
-  private val awsUtilsVersion = "0.1.343"
+  private val awsUtilsVersion = "0.1.344"
   private val doobieVersion = "1.0.0-RC14"
   private val testContainersVersion = "0.44.1"
 
   lazy val authUtils = "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.309"
-  lazy val awsRds = "software.amazon.awssdk" % "rds" % "2.59.1"
+  lazy val awsRds = "software.amazon.awssdk" % "rds" % "2.59.4"
   lazy val generatedGraphql = "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.497"
   lazy val s3Utils = "uk.gov.nationalarchives" %% "s3-utils" % awsUtilsVersion
-  lazy val stepFunctionUtils = "uk.gov.nationalarchives" %% "stepfunction-utils" % "0.1.343"
+  lazy val stepFunctionUtils = "uk.gov.nationalarchives" %% "stepfunction-utils" % "0.1.344"
   lazy val snsUtils = "uk.gov.nationalarchives" %% "sns-utils" % awsUtilsVersion
   lazy val bagit = "gov.loc" % "bagit" % "5.2.0"
   lazy val catsEffect = "org.typelevel" %% "cats-effect" % "3.7.1"
@@ -24,7 +24,7 @@ object Dependencies {
   lazy val doobie = "org.typelevel" %% "doobie-core" % doobieVersion
   lazy val doobiePostgres = "org.typelevel" %% "doobie-postgres"  % doobieVersion
   lazy val postgres = "org.postgresql" % "postgresql" % "42.7.14"
-  lazy val graphqlClient = "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.308"
+  lazy val graphqlClient = "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.309"
   lazy val scalaTest = "org.scalatest" %% "scalatest" % "3.2.20"
   lazy val scalaCsv = "com.github.tototoshi" %% "scala-csv" % "2.0.0"
   lazy val log4cats = "org.typelevel" %% "log4cats-core" % log4CatsVersion
@@ -41,5 +41,5 @@ object Dependencies {
   lazy val wiremock = "org.wiremock" % "wiremock" % "3.13.2"
   lazy val jsonpath = "com.jayway.jsonpath" % "json-path-assert" % "3.0.0"
   lazy val schemaConfig = "uk.gov.nationalarchives" %% "da-metadata-schema"% "0.0.156"
-  lazy val tdrStatuses = "uk.gov.nationalarchives" %% "tdr-statuses" % "0.0.55"
+  lazy val tdrStatuses = "uk.gov.nationalarchives" %% "tdr-statuses" % "0.0.56"
 }
