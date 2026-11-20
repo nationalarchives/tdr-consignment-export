@@ -1,5 +1,6 @@
 package uk.gov.nationalarchives.consignmentexport
 
+import cats.effect.{Deferred, IO, Ref, Resource}
 import cats.effect.unsafe.implicits.global
 import com.github.tomakehurst.wiremock.stubbing.{ServeEvent, StubMapping}
 import org.scalatest.Assertion
@@ -7,6 +8,7 @@ import uk.gov.nationalarchives.consignmentexport.ConsignmentStatus.{StatusType, 
 
 import java.io.File
 import java.util.UUID
+import scala.concurrent.duration._
 import scala.io.Source.fromResource
 import scala.jdk.CollectionConverters._
 import scala.sys.process._
@@ -246,6 +248,73 @@ class MainSpec extends ExternalServiceSpec {
 
     checkStepFunctionFailureCalled("publish_failure_no_consignment_metadata_request_body")
     ex.getMessage should equal(s"No consignment metadata found for consignment $consignmentId")
+  }
+
+  "the heartbeat resource" should "stop the heartbeat before releasing the client after an export failure" in {
+    val failure = new RuntimeException("export failed")
+
+    val result = (for {
+      firstHeartbeat <- Deferred[IO, Unit]
+      heartbeatCount <- Ref.of[IO, Int](0)
+      heartbeatStopped <- Ref.of[IO, Boolean](false)
+      clientReleased <- Ref.of[IO, Boolean](false)
+      clientResource = Resource.make(IO.unit) { _ =>
+        heartbeatStopped.get.flatMap {
+          case true => clientReleased.set(true)
+          case false => IO.raiseError(new AssertionError("client released before heartbeat stopped"))
+        }
+      }
+      heartbeat = (_: Unit) =>
+        heartbeatCount.update(_ + 1) >>
+          firstHeartbeat.complete(()) >>
+          IO.sleep(1.hour).onCancel(heartbeatStopped.set(true))
+      runResult <- Main.withHeartbeatClient(clientResource, heartbeat, 1.hour) { _ =>
+        firstHeartbeat.get >> IO.raiseError[Unit](failure)
+      }.attempt
+      countWhenRunFinished <- heartbeatCount.get
+      _ <- IO.sleep(20.millis)
+      countAfterWait <- heartbeatCount.get
+      stopped <- heartbeatStopped.get
+      released <- clientReleased.get
+    } yield (runResult, countWhenRunFinished, countAfterWait, stopped, released)).unsafeRunSync()
+
+    result._1 shouldBe Left(failure)
+    result._2 shouldBe result._3
+    result._4 shouldBe true
+    result._5 shouldBe true
+  }
+
+  "the heartbeat resource" should "stop the heartbeat before releasing the client after cancellation" in {
+    val result = (for {
+      firstHeartbeat <- Deferred[IO, Unit]
+      heartbeatCount <- Ref.of[IO, Int](0)
+      heartbeatStopped <- Ref.of[IO, Boolean](false)
+      clientReleased <- Ref.of[IO, Boolean](false)
+      clientResource = Resource.make(IO.unit) { _ =>
+        heartbeatStopped.get.flatMap {
+          case true => clientReleased.set(true)
+          case false => IO.raiseError(new AssertionError("client released before heartbeat stopped"))
+        }
+      }
+      heartbeat = (_: Unit) =>
+        heartbeatCount.update(_ + 1) >>
+          firstHeartbeat.complete(()) >>
+          IO.sleep(1.hour).onCancel(heartbeatStopped.set(true))
+      fiber <- Main.withHeartbeatClient(clientResource, heartbeat, 1.hour) { _ =>
+        firstHeartbeat.get >> IO.never
+      }.start
+      _ <- firstHeartbeat.get
+      _ <- fiber.cancel
+      countWhenRunFinished <- heartbeatCount.get
+      _ <- IO.sleep(20.millis)
+      countAfterWait <- heartbeatCount.get
+      stopped <- heartbeatStopped.get
+      released <- clientReleased.get
+    } yield (countWhenRunFinished, countAfterWait, stopped, released)).unsafeRunSync()
+
+    result._1 shouldBe result._2
+    result._3 shouldBe true
+    result._4 shouldBe true
   }
 
   private def setUpValidExternalServices(jsonResponse: String) = {
