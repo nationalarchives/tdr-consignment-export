@@ -129,13 +129,12 @@ class S3FilesSpec extends ExportSpec {
   }
 
   "deleteDownloadDirectories" should "delete the efs directory" in {
-    val s3Utils = mock[S3Utils]
     val testDir: Path = Paths.get("test_dir")
     val testFile: Path = Paths.get("test_dir", "test.txt")
     Files.createDirectories(testDir)
     Files.createFile(testFile)
 
-    S3Files(s3Utils, config).deleteDownloadDirectories(testDir.toString).unsafeRunSync()
+    FileUtils.deleteDownloadDirectories(testDir.toString).unsafeRunSync()
 
     Files.exists(testDir) shouldBe false
     Files.exists(testFile) shouldBe false

@@ -37,6 +37,19 @@ object Main extends CommandIOApp("tdr-consignment-export", "Exports tdr files in
   implicit val tdrKeycloakDeployment: TdrKeycloakDeployment = TdrKeycloakDeployment(configuration.getString("auth.url"), "tdr", 3600)
   private val stepFunctionPublishEndpoint = configuration.getString("stepFunction.endpoint")
 
+  private[consignmentexport] def withHeartbeatClient[A, B](
+    clientResource: Resource[IO, A],
+    heartbeat: A => IO[Unit],
+    interval: FiniteDuration
+  )(use: A => IO[B]): IO[B] = {
+    def runHeartbeat(client: A): IO[Unit] =
+      heartbeat(client) >> IO.sleep(interval) >> runHeartbeat(client)
+
+    clientResource.flatMap { client =>
+      runHeartbeat(client).background.map(_ => client)
+    }.use(use)
+  }
+
   private def buildS3AsyncClient(endpoint: String, multipartEnabled: Boolean = true): S3AsyncClient = {
     val httpClient = NettyNioAsyncHttpClient.builder
       .maxConcurrency(500)
@@ -55,23 +68,16 @@ object Main extends CommandIOApp("tdr-consignment-export", "Exports tdr files in
       case FileExport(consignmentId, taskToken) =>
         val exportId = UUID.randomUUID
         val exportFailedErrorMessage = s"Export for consignment $consignmentId failed"
-        val stepFunctionResource = for {
-          client <- Resource.fromAutoCloseable(IO {
-            SfnAsyncClient.builder
-              .region(Region.EU_WEST_2)
-              .endpointOverride(URI.create(stepFunctionPublishEndpoint))
-              .httpClientBuilder(
-                NettyNioAsyncHttpClient.builder
-                  .eventLoopGroupBuilder(SdkEventLoopGroup.builder)
-              )
-              .build
-          })
-          stepFunction = StepFunction(StepFunctionUtils(client))
-          _ <- {
-            def runHeartbeat(): IO[Unit] = stepFunction.sendHeartbeat(taskToken) >> IO.sleep(30 seconds) >> runHeartbeat()
-            runHeartbeat().background
-          }
-        } yield stepFunction
+        val stepFunctionClientResource = Resource.fromAutoCloseable(IO {
+          SfnAsyncClient.builder
+            .region(Region.EU_WEST_2)
+            .endpointOverride(URI.create(stepFunctionPublishEndpoint))
+            .httpClientBuilder(
+              NettyNioAsyncHttpClient.builder
+                .eventLoopGroupBuilder(SdkEventLoopGroup.builder)
+            )
+            .build
+        })
 
         def configure(): IO[(Configuration, String)] = for {
           config <- config()
@@ -79,7 +85,12 @@ object Main extends CommandIOApp("tdr-consignment-export", "Exports tdr files in
           basePath = s"$rootLocation/$exportId"
         } yield (config, basePath)
 
-        stepFunctionResource.use { stepFunction =>
+        withHeartbeatClient(
+          stepFunctionClientResource,
+          (client: SfnAsyncClient) => StepFunction(StepFunctionUtils(client)).sendHeartbeat(taskToken),
+          30.seconds
+        ) { client =>
+          val stepFunction = StepFunction(StepFunctionUtils(client))
           val exitCode = for {
             configuration <- configure()
             (config, basePath) = configuration
@@ -120,7 +131,7 @@ object Main extends CommandIOApp("tdr-consignment-export", "Exports tdr files in
                 s3Bucket
               ))
             _ <- graphQlApi.updateConsignmentStatus(StatusType.export, StatusValue.completed)
-            _ <- s3Files.deleteDownloadDirectories(basePath)
+            _ <- FileUtils.deleteDownloadDirectories(basePath)
           } yield ExitCode.Success
 
           exitCode.handleErrorWith {e =>
@@ -129,8 +140,7 @@ object Main extends CommandIOApp("tdr-consignment-export", "Exports tdr files in
               _ <- stepFunction.publishFailure(taskToken, s"$exportFailedErrorMessage: ${e.getMessage}")
               configuration <- configure()
               (config, basePath) = configuration
-              s3Files = S3Files(S3Utils(buildS3AsyncClient(config.s3.endpoint)), config)
-              _ <- s3Files.deleteDownloadDirectories(basePath)
+              _ <- FileUtils.deleteDownloadDirectories(basePath)
               _ <- IO.raiseError(e)
             } yield ExitCode.Error
           }
