@@ -5,7 +5,9 @@ RUN apk add --no-cache bash tar curl wget && \
     adduser consignment-export -D && \
     wget https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64 -O /usr/local/bin/jq && \
     chmod +x /usr/local/bin/jq && \
-    apk add openjdk17 --repository=http://dl-cdn.alpinelinux.org/alpine/edge/community
+    wget -O /etc/apk/keys/amazoncorretto.rsa.pub https://apk.corretto.aws/amazoncorretto.rsa.pub && \
+    echo "https://apk.corretto.aws/" >> /etc/apk/repositories && \
+    apk update && apk add --no-cache openssl 'amazon-corretto-21>=21.0.13.1.2'
 WORKDIR /home/consignment-export
 USER consignment-export
 RUN wget https://truststore.pki.rds.amazonaws.com/eu-west-2/eu-west-2-bundle.pem
