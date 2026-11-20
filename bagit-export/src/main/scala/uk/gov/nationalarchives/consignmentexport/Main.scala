@@ -8,11 +8,11 @@ import gov.loc.repository.bagit.domain.Metadata
 import graphql.codegen.GetConsignmentExport.{getConsignmentForExport => gce}
 import org.typelevel.log4cats.SelfAwareStructuredLogger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
-import software.amazon.awssdk.http.nio.netty.NettyNioAsyncHttpClient
+import software.amazon.awssdk.http.nio.netty.{NettyNioAsyncHttpClient, SdkEventLoopGroup}
 import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.s3.S3AsyncClient
+import software.amazon.awssdk.services.sfn.SfnAsyncClient
 import uk.gov.nationalarchives.aws.utils.s3.S3Utils
-import uk.gov.nationalarchives.aws.utils.stepfunction.StepFunctionClients.sfnAsyncClient
 import uk.gov.nationalarchives.aws.utils.stepfunction.StepFunctionUtils
 import uk.gov.nationalarchives.consignmentexport.Arguments._
 import uk.gov.nationalarchives.consignmentexport.BagMetadata.{ConsignmentSeriesKey, InternalSenderIdentifierKey, SourceOrganisationKey}
@@ -55,9 +55,23 @@ object Main extends CommandIOApp("tdr-consignment-export", "Exports tdr files in
       case FileExport(consignmentId, taskToken) =>
         val exportId = UUID.randomUUID
         val exportFailedErrorMessage = s"Export for consignment $consignmentId failed"
-        val stepFunction: StepFunction = StepFunction(StepFunctionUtils(sfnAsyncClient(stepFunctionPublishEndpoint)))
-
-        def runHeartbeat(): IO[Unit] = stepFunction.sendHeartbeat(taskToken) >> IO.sleep(30 seconds) >> runHeartbeat()
+        val stepFunctionResource = for {
+          client <- Resource.fromAutoCloseable(IO {
+            SfnAsyncClient.builder
+              .region(Region.EU_WEST_2)
+              .endpointOverride(URI.create(stepFunctionPublishEndpoint))
+              .httpClientBuilder(
+                NettyNioAsyncHttpClient.builder
+                  .eventLoopGroupBuilder(SdkEventLoopGroup.builder)
+              )
+              .build
+          })
+          stepFunction = StepFunction(StepFunctionUtils(client))
+          _ <- {
+            def runHeartbeat(): IO[Unit] = stepFunction.sendHeartbeat(taskToken) >> IO.sleep(30 seconds) >> runHeartbeat()
+            runHeartbeat().background
+          }
+        } yield stepFunction
 
         def configure(): IO[(Configuration, String)] = for {
           config <- config()
@@ -65,61 +79,61 @@ object Main extends CommandIOApp("tdr-consignment-export", "Exports tdr files in
           basePath = s"$rootLocation/$exportId"
         } yield (config, basePath)
 
-        val exitCode = for {
-          heartbeat <- runHeartbeat().start
-          configuration <- configure()
-          (config, basePath) = configuration
-          bashCommands = BashCommands()
-          graphQlApi = GraphQlApi(config, consignmentId)
-          s3Files = S3Files(S3Utils(buildS3AsyncClient(config.s3.endpoint)), config)
-          downloadS3Files = S3Files(S3Utils(buildS3AsyncClient(config.s3.endpoint, multipartEnabled = false)), config)
-          validator = Validator(consignmentId)
-          //Export datetime generated as value needed in bag metadata and DB table
-          //Cannot use the value from DB table in bag metadata, as bag metadata created before bagging
-          //and cannot update DB until bag creation successfully completed
-          exportDatetime = ZonedDateTime.now(ZoneOffset.UTC)
-          consignmentResult <- graphQlApi.getConsignmentMetadata
-          consignmentData <- IO.fromEither(validator.validateConsignmentResult(consignmentResult))
-          _ <- IO.fromEither(validator.validateConsignmentHasFiles(consignmentData))
-          _ <- downloadS3Files.downloadFiles(consignmentData.files, config.s3.cleanBucket, consignmentId, consignmentData.consignmentReference, basePath)
-          consignmentType = consignmentData.consignmentType.map(ConsignmentType(_)).getOrElse(Standard)
-          bagMetadata <- createBag(consignmentType, consignmentId, consignmentData, exportDatetime, config, basePath)
-
-          // The owner and group in the below command have no effect on the file permissions. It just makes tar idempotent
-          consignmentReference = consignmentData.consignmentReference
-          tarPath = s"$basePath/$consignmentReference.tar.gz"
-          _ <- bashCommands.runCommand(s"tar --sort=name --owner=root:0 --group=root:0 --mtime ${java.time.LocalDate.now.toString} -C $basePath -c ./${consignmentData.consignmentReference} | gzip -n > $tarPath")
-          _ <- bashCommands.runCommand(s"sha256sum $tarPath > $tarPath.sha256")
-          s3Bucket = if (consignmentType == Judgment) {
-            config.s3.outputBucketJudgment
-          } else {
-            config.s3.outputBucket
-          }
-          _ <- s3Files.uploadFiles(s3Bucket, consignmentId, consignmentReference, tarPath)
-          _ <- graphQlApi.updateExportData(s"s3://$s3Bucket/$consignmentReference.tar.gz", exportDatetime, version)
-          _ <- stepFunction.publishSuccess(taskToken,
-            ExportOutput(consignmentData.userid,
-              bagMetadata.get(InternalSenderIdentifierKey).get(0),
-              bagMetadata.get(SourceOrganisationKey).get(0),
-              bagMetadata.get(ConsignmentSeriesKey).get(0),
-              Overrides.consignmentTypeMessageOverride(consignmentType, consignmentData, config.consignmentTypeOverride),
-              s3Bucket
-            ))
-          _ <- graphQlApi.updateConsignmentStatus(StatusType.export, StatusValue.completed)
-          _ <- s3Files.deleteDownloadDirectories(basePath)
-          _ <- heartbeat.cancel
-        } yield ExitCode.Success
-
-        exitCode.handleErrorWith {e =>
-          for {
-            _ <- logger.error(e)(s"$exportFailedErrorMessage: ${e.getMessage}")
-            _ <- stepFunction.publishFailure(taskToken, s"$exportFailedErrorMessage: ${e.getMessage}")
+        stepFunctionResource.use { stepFunction =>
+          val exitCode = for {
             configuration <- configure()
             (config, basePath) = configuration
+            bashCommands = BashCommands()
+            graphQlApi = GraphQlApi(config, consignmentId)
             s3Files = S3Files(S3Utils(buildS3AsyncClient(config.s3.endpoint)), config)
+            downloadS3Files = S3Files(S3Utils(buildS3AsyncClient(config.s3.endpoint, multipartEnabled = false)), config)
+            validator = Validator(consignmentId)
+            //Export datetime generated as value needed in bag metadata and DB table
+            //Cannot use the value from DB table in bag metadata, as bag metadata created before bagging
+            //and cannot update DB until bag creation successfully completed
+            exportDatetime = ZonedDateTime.now(ZoneOffset.UTC)
+            consignmentResult <- graphQlApi.getConsignmentMetadata
+            consignmentData <- IO.fromEither(validator.validateConsignmentResult(consignmentResult))
+            _ <- IO.fromEither(validator.validateConsignmentHasFiles(consignmentData))
+            _ <- downloadS3Files.downloadFiles(consignmentData.files, config.s3.cleanBucket, consignmentId, consignmentData.consignmentReference, basePath)
+            consignmentType = consignmentData.consignmentType.map(ConsignmentType(_)).getOrElse(Standard)
+            bagMetadata <- createBag(consignmentType, consignmentId, consignmentData, exportDatetime, config, basePath)
+
+            // The owner and group in the below command have no effect on the file permissions. It just makes tar idempotent
+            consignmentReference = consignmentData.consignmentReference
+            tarPath = s"$basePath/$consignmentReference.tar.gz"
+            _ <- bashCommands.runCommand(s"tar --sort=name --owner=root:0 --group=root:0 --mtime ${java.time.LocalDate.now.toString} -C $basePath -c ./${consignmentData.consignmentReference} | gzip -n > $tarPath")
+            _ <- bashCommands.runCommand(s"sha256sum $tarPath > $tarPath.sha256")
+            s3Bucket = if (consignmentType == Judgment) {
+              config.s3.outputBucketJudgment
+            } else {
+              config.s3.outputBucket
+            }
+            _ <- s3Files.uploadFiles(s3Bucket, consignmentId, consignmentReference, tarPath)
+            _ <- graphQlApi.updateExportData(s"s3://$s3Bucket/$consignmentReference.tar.gz", exportDatetime, version)
+            _ <- stepFunction.publishSuccess(taskToken,
+              ExportOutput(consignmentData.userid,
+                bagMetadata.get(InternalSenderIdentifierKey).get(0),
+                bagMetadata.get(SourceOrganisationKey).get(0),
+                bagMetadata.get(ConsignmentSeriesKey).get(0),
+                Overrides.consignmentTypeMessageOverride(consignmentType, consignmentData, config.consignmentTypeOverride),
+                s3Bucket
+              ))
+            _ <- graphQlApi.updateConsignmentStatus(StatusType.export, StatusValue.completed)
             _ <- s3Files.deleteDownloadDirectories(basePath)
-            _ <- IO.raiseError(e)
-          } yield ExitCode.Error
+          } yield ExitCode.Success
+
+          exitCode.handleErrorWith {e =>
+            for {
+              _ <- logger.error(e)(s"$exportFailedErrorMessage: ${e.getMessage}")
+              _ <- stepFunction.publishFailure(taskToken, s"$exportFailedErrorMessage: ${e.getMessage}")
+              configuration <- configure()
+              (config, basePath) = configuration
+              s3Files = S3Files(S3Utils(buildS3AsyncClient(config.s3.endpoint)), config)
+              _ <- s3Files.deleteDownloadDirectories(basePath)
+              _ <- IO.raiseError(e)
+            } yield ExitCode.Error
+          }
         }
     }
 
