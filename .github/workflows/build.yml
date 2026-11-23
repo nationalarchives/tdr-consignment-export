@@ -21,7 +21,7 @@ jobs:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
-      - uses: sbt/setup-sbt@67d461eba2c4753196c230e02da850757ba4775e # v1.5.14
+      - uses: sbt/setup-sbt@7e114eae4f32ec3f93c851c2793376a77f384409 # v1.5.15
       - name: Import GPG key
         uses: crazy-max/ghaction-import-gpg@2dc316deee8e90f13e1a351ab510b4d5bc0c82cd # v7.0.0
         with:
@@ -92,7 +92,7 @@ jobs:
       - name: Send Wiz vulnerability failure message
         # Wiz CLI exits with code 4 when the scan finds policy violations (e.g. vulnerabilities)
         if: ${{ failure() && steps.wiz-image-scan.outputs.exit-code == '4' }}
-        uses: nationalarchives/tdr-github-actions/.github/actions/slack-send@5a96b84cf82bce1371168cc31cb89f88cad86763 # v0.0.53
+        uses: nationalarchives/tdr-github-actions/.github/actions/slack-send@4b2753940019ebbed38030f1aca49f0eb123a45e # v0.0.55
         with:
           message: ":rotating_light: *Consignment Export* :whale: Wiz container image scan failed due to policy violations (vulnerabilities found). The image was *not* pushed to ECR.\n*Version:* ${{ steps.build.outputs.latest-tag }}\n*Image:* consignment-export:${{ steps.build.outputs.latest-tag }}\n*Triggered by:* ${{ github.actor }}\n*Workflow run:* ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
           slack-url: ${{ secrets.SLACK_WEBHOOK }}
@@ -111,7 +111,7 @@ jobs:
         run: >-
           ./wizcli tag $MANAGEMENT_ACCOUNT.dkr.ecr.eu-west-2.amazonaws.com/consignment-export:$LATEST_TAG
       - name: Send success message
-        uses: nationalarchives/tdr-github-actions/.github/actions/slack-send@5a96b84cf82bce1371168cc31cb89f88cad86763 # v0.0.53
+        uses: nationalarchives/tdr-github-actions/.github/actions/slack-send@4b2753940019ebbed38030f1aca49f0eb123a45e # v0.0.55
         with:
           message: "*Consignment Export* :whale: Pushed version ${{ steps.build.outputs.latest-tag}} to AWS ECR"
           slack-url: ${{ secrets.SLACK_WEBHOOK }}
