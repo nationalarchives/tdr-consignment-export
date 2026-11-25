@@ -11,8 +11,8 @@ object Dependencies {
   private val testContainersVersion = "0.44.1"
 
   lazy val authUtils = "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.309"
-  lazy val awsRds = "software.amazon.awssdk" % "rds" % "2.59.7"
-  lazy val generatedGraphql = "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.498"
+  lazy val awsRds = "software.amazon.awssdk" % "rds" % "2.59.9"
+  lazy val generatedGraphql = "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.500"
   lazy val s3Utils = "uk.gov.nationalarchives" %% "s3-utils" % awsUtilsVersion
   lazy val stepFunctionUtils = "uk.gov.nationalarchives" %% "stepfunction-utils" % "0.1.345"
   lazy val snsUtils = "uk.gov.nationalarchives" %% "sns-utils" % awsUtilsVersion
@@ -23,7 +23,7 @@ object Dependencies {
   lazy val declineEffect = "com.monovore" %% "decline-effect" % monovoreDeclineVersion
   lazy val doobie = "org.typelevel" %% "doobie-core" % doobieVersion
   lazy val doobiePostgres = "org.typelevel" %% "doobie-postgres"  % doobieVersion
-  lazy val postgres = "org.postgresql" % "postgresql" % "42.7.14"
+  lazy val postgres = "org.postgresql" % "postgresql" % "42.7.15"
   lazy val graphqlClient = "uk.gov.nationalarchives" %% "tdr-graphql-client" % "0.0.309"
   lazy val scalaTest = "org.scalatest" %% "scalatest" % "3.2.20"
   lazy val scalaCsv = "com.github.tototoshi" %% "scala-csv" % "2.0.0"
@@ -41,5 +41,5 @@ object Dependencies {
   lazy val wiremock = "org.wiremock" % "wiremock" % "3.13.2"
   lazy val jsonpath = "com.jayway.jsonpath" % "json-path-assert" % "3.0.0"
   lazy val schemaConfig = "uk.gov.nationalarchives" %% "da-metadata-schema"% "0.0.156"
-  lazy val tdrStatuses = "uk.gov.nationalarchives" %% "tdr-statuses" % "0.0.56"
+  lazy val tdrStatuses = "uk.gov.nationalarchives" %% "tdr-statuses" % "0.0.57"
 }
