@@ -1,6 +1,6 @@
 package uk.gov.nationalarchives.`export`
 
-import cats.effect.IO
+import cats.effect.{IO, Resource}
 import org.typelevel.doobie.implicits._
 import org.typelevel.doobie.util.transactor.Transactor.Aux
 import org.typelevel.doobie.{Get, Transactor}
@@ -9,7 +9,8 @@ import software.amazon.awssdk.regions.Region
 import software.amazon.awssdk.services.rds.RdsUtilities
 import software.amazon.awssdk.services.rds.model.GenerateAuthenticationTokenRequest
 import Main.Config
-import MetadataUtils.{MetadataPropertyName, _}
+import MetadataUtils._
+import java.sql.{Connection, DriverManager}
 
 import java.util.UUID
 
@@ -39,13 +40,7 @@ class MetadataUtils(config: Config) {
       ""
     }
     val jdbcUrl = s"jdbc:postgresql://${config.db.host}:${config.db.port}/consignmentapi$suffix"
-    Transactor.fromDriverManager[IO](
-      driver = "org.postgresql.Driver",
-      url = jdbcUrl,
-      user = config.db.user,
-      password = dbPassword,
-      logHandler = None
-    )
+    createTransactor(jdbcUrl, config.db.user, () => dbPassword)
   }
 
   implicit val consignmentTypeGet: Get[ConsignmentType] = Get[String].map {
@@ -181,6 +176,27 @@ class MetadataUtils(config: Config) {
 }
 
 object MetadataUtils {
+  private[export] def createTransactor(
+    jdbcUrl: String,
+    user: String,
+    password: () => String,
+    openConnection: (String, String, String) => Connection =
+      (url, username, token) => DriverManager.getConnection(url, username, token)
+  ): Aux[IO, Unit] =
+    Transactor
+      .fromDriverManager[IO](
+        driver = "org.postgresql.Driver",
+        url = jdbcUrl,
+        logHandler = None
+      )
+      .copy(
+        connect0 = _ =>
+          Resource.fromAutoCloseable(IO.blocking {
+            Class.forName("org.postgresql.Driver")
+            openConnection(jdbcUrl, user, password())
+          })
+      )
+
   implicit val get: Get[UUID] = Get[String].map(UUID.fromString)
   case class Metadata(id: UUID, propertyName: String, value: String)
   sealed trait ConsignmentType
