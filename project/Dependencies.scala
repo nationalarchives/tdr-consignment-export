@@ -10,8 +10,8 @@ object Dependencies {
   private val doobieVersion = "1.0.0-RC14"
   private val testContainersVersion = "0.44.1"
 
-  lazy val authUtils = "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.309"
-  lazy val awsRds = "software.amazon.awssdk" % "rds" % "2.59.9"
+  lazy val authUtils = "uk.gov.nationalarchives" %% "tdr-auth-utils" % "0.0.310"
+  lazy val awsRds = "software.amazon.awssdk" % "rds" % "2.59.11"
   lazy val generatedGraphql = "uk.gov.nationalarchives" %% "tdr-generated-graphql" % "0.0.500"
   lazy val s3Utils = "uk.gov.nationalarchives" %% "s3-utils" % awsUtilsVersion
   lazy val stepFunctionUtils = "uk.gov.nationalarchives" %% "stepfunction-utils" % "0.1.345"
